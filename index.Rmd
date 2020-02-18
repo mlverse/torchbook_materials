@@ -1,0 +1,35 @@
+---
+title: "Torch book"
+author: ["tbd"]
+description: "tbd"
+url: 'tbd'
+github-repo: tbd
+cover-image: cover.png
+output: bookdown::gitbook
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: book.bib
+link-citations: yes
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+`r if (knitr::is_latex_output()) '<!--'` 
+
+# Welcome {-}
+
+
+This is the website for 
+
+## License {-}
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a>
+
+This work, as a whole, is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+
+The code contained in this book is simultaneously available under the [MIT license](https://opensource.org/licenses/MIT); this means that you are free to use it in your own packages, as long as you cite the source.
+
+
+`r if (knitr::is_latex_output()) '-->'`

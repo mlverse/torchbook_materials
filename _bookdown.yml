@@ -1,0 +1,43 @@
+book_filename: "torchbook"
+language:
+  ui:
+    chapter_name: "Chapter "
+delete_merged_file: true
+rmd_files:
+  [
+    "index.Rmd",
+
+    "introduction.Rmd",
+
+    "using_torch.Rmd",
+    "simple_net_R.Rmd",
+    "simple_net_tensors.Rmd",
+    "simple_net_autograd.Rmd",
+    "simple_net_optim.Rmd",
+    "simple_net_layers.Rmd",
+
+
+    # Section 2
+    #"Deep_learning_applications_getting_started.Rmd",
+
+
+    #"Data_loading.Rmd",
+
+
+    #"Utilities.Rmd",
+
+
+    #"Intermediate_deep_learning.Rmd",
+
+
+    #"Extensibility.Rmd",
+
+
+    #"Probabilistic_deep_learning.Rmd",
+
+
+    #"Research_topics.Rmd",
+
+
+    "references.Rmd",
+  ]

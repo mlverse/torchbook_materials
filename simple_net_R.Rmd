@@ -1,0 +1,226 @@
+
+# A simple neural network in R {#simple_net_R}
+
+Our blueprint for a simple network won't employ any deep learning libraries; however, for speed, predictability and intuitiveness (in the sense of comparability to Python's NumPy) make use of [rray](https://github.com/r-lib/rray) to manipulate array data.
+
+Before getting to the network proper, we simulate some data for a typical regression problem.
+
+### Simulated data
+
+Our data will have three input columns and a single target column.
+
+```{r}
+library(rray)
+library(dplyr)
+
+# input dimensionality (number of input features)
+d_in <- 3
+# output dimensionality (number of predicted features)
+d_out <- 1
+# number of observations in training set
+n <- 100
+
+# create random data
+x <- rray(rnorm(n * d_in), dim = c(n, d_in))
+y <- x[ , 1] * 0.2 - x[ , 2] * 1.3 - x[ , 3] * 0.5 + rnorm(n)
+```
+
+
+With `x` and `y` being instances of `rray` - provided classes,
+
+```{r}
+class(x)
+```
+
+we can use operations like `rray_dot`, `rray_add` or `rray_transpose` on them. If you've used Python NumPy before, these will look familiar, -- there is one point of caution though: Although `rray` explicitly provides [broadcasting](https://blogs.rstudio.com/tensorflow/posts/2020-01-24-numpy-broadcasting/), it lines up array dimensions [from the left, not from the right side](https://github.com/r-lib/rray/blob/master/vignettes/broadcasting.Rmd), in line with R's column-major storage format.
+
+Also reflecting column-major layout, `rray` prints array dimension data differently from base R -- e.g. for two-dimensional arrays, the number of columns goes first:
+
+```{r}
+first_ten_rows = x[1:10, ]
+first_ten_rows
+```
+
+## What's in a network?
+
+If we had to, we could do linear regression
+
+\begin{equation*} 
+\mathbf{X \ \beta} = \mathbf{y}
+\end{equation*} 
+
+from scratch in R. Not necessarily using the _normal equations_ (as those imply invertibility of the covariance matrix)
+
+\begin{equation*} 
+\hat{\beta} = \mathbf{{(X^t X)}^{-1} \ X^t \ y}
+\end{equation*} 
+
+
+### Complete program
+
+```{r}
+library(rray)
+library(dplyr)
+### generate training data -----------------------------------------------------
+
+# input dimensionality (number of input features)
+d_in <- 3
+# output dimensionality (number of predicted features)
+d_out <- 1
+# number of observations in training set
+n <- 100
+
+# create random data
+x <- rray(rnorm(n * d_in), dim = c(n, d_in))
+y <- x[ , 1] * 0.2 - x[ , 2] * 1.3 - x[ , 3] * 0.5 + rnorm(n)
+# lm(as.matrix(y) ~ as.matrix(x)) %>% summary()
+
+
+### initialize weights ---------------------------------------------------------
+
+# dimensionality of hidden layer
+d_hidden <- 32
+# weights connecting input to hidden layer
+w1 <- rray(rnorm(d_in * d_hidden), dim = c(d_in, d_hidden))
+# weights connecting hidden to output layer
+w2 <- rray(rnorm(d_hidden * d_out), dim = c(d_hidden, d_out))
+
+# hidden layer bias
+b1 <- rray(rep(0, d_hidden), dim = c(1, d_hidden))
+# output layer bias
+b2 <- rray(rep(0, d_out), dim = c(d_out, 1))
+
+### network parameters ---------------------------------------------------------
+
+learning_rate <- 1e-4
+
+### training loop --------------------------------------------------------------
+
+for (t in 1:200) {
+    
+    ### -------- Forward pass -------- 
+    
+    # compute pre-activations of hidden layers (dim: 100 x 32)
+    h <- rray_dot(x, w1) + b1
+    # apply activation function (dim: 100 x 32)
+    h_relu <- rray_maximum(h, 0)
+    # compute output (dim: 100 x 1)
+    y_pred <- rray_dot(h_relu, w2) + b2
+
+    ### -------- compute loss -------- 
+    loss <- rray_pow(y_pred - y, 2) %>% rray_sum()
+    if (t %% 10 == 0) cat("Epoch:", t, ", loss:", loss, "\n")
+
+    ### -------- Backpropagation -------- 
+    
+    # gradient of loss w.r.t. prediction (dim: 100 x 1)
+    grad_y_pred <- 2 * (y_pred - y)
+    
+    # gradient of loss w.r.t. w2 (dim: 32 x 1)
+    grad_w2 <- rray_transpose(h_relu) %>% rray_dot(grad_y_pred)
+    # gradient of loss w.r.t. hidden activation (dim: 100 x 32)
+    grad_h_relu <- rray_dot(grad_y_pred, rray_transpose(w2))
+    # gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)
+    grad_h <- rray_if_else(h > 0, grad_h_relu, 0)
+    # gradient of loss w.r.t. b2 (dim: 1 x 1)
+    grad_b2 <- rray_sum(grad_y_pred)
+    
+    # gradient of loss w.r.t. w1 (dim: 3 x 32)
+    grad_w1 <- rray_transpose(x) %>% rray_dot(grad_h)
+    # gradient of loss w.r.t. b1 (dim: 3 x 32)
+    grad_b1 <- rray_sum(grad_h, axes = 1)
+
+    ### -------- Update weights -------- 
+    
+    w2 <- w2 - learning_rate * grad_w2
+    b2 <- b2 - learning_rate * grad_b2
+    w1 <- w1 - learning_rate * grad_w1
+    b1 <- b1 - learning_rate * grad_b1
+}
+
+```
+
+
+### Appendix: Python code
+
+
+```{python}
+import numpy as np
+
+### generate training data -----------------------------------------------------
+
+# input dimensionality (number of input features)
+d_in = 3
+# output dimensionality (number of predicted features)
+d_out = 1
+# number of observations in training set
+n = 100
+
+# create random data
+x = np.random.randn(n, d_in) 
+y = x[ : , 0, np.newaxis] * 0.2 - x[ : , 1, np.newaxis] * 1.3 - x[ : , 2, np.newaxis] * 0.5 + np.random.randn(n, 1)
+
+
+### initialize weights ---------------------------------------------------------
+
+# dimensionality of hidden layer
+d_hidden = 32
+# weights connecting input to hidden layer
+w1 = np.random.randn(d_in, d_hidden)
+# weights connecting hidden to output layer
+w2 = np.random.randn(d_hidden, d_out)
+
+# hidden layer bias
+b1 = np.zeros((1, d_hidden))
+# output layer bias
+b2 = np.zeros((1, d_out))
+
+### network parameters----------------------------------------------------------
+
+learning_rate = 1e-4
+
+### training loop --------------------------------------------------------------
+
+for t in range(200):
+    
+    ### -------- Forward pass -------- 
+    
+    # compute pre-activations of hidden layers (dim: 100 x 32)
+    h = x.dot(w1) + b1
+    # apply activation function (dim: 100 x 32)
+    h_relu = np.maximum(h, 0)
+    # compute output (dim: 100 x 1)
+    y_pred = h_relu.dot(w2) + b2
+
+    ### -------- compute loss -------- 
+    loss = np.square(y_pred - y).sum()
+    if t % 10 == 0: print(t, loss)
+
+    ### -------- Backpropagation -------- 
+    
+    # gradient of loss w.r.t. prediction (dim: 100 x 1)
+    grad_y_pred = 2.0 * (y_pred - y)
+    # gradient of loss w.r.t. w2 (dim: 32 x 1)
+    grad_w2 = h_relu.T.dot(grad_y_pred)
+    # gradient of loss w.r.t. hidden activation (dim: 100 x 32)
+    grad_h_relu = grad_y_pred.dot(w2.T)
+    # gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)
+    grad_h = grad_h_relu.copy()
+    grad_h[h < 0] = 0
+    # gradient of loss w.r.t. b2 (shape: ())
+    grad_b2 = grad_y_pred.sum()
+    
+    # gradient of loss w.r.t. w1 (dim: 3 x 32)
+    grad_w1 = x.T.dot(grad_h)
+    # gradient of loss w.r.t. b1 (shape: (32, ))
+    grad_b1 = grad_h.sum(axis = 0)
+
+    ### -------- Update weights -------- 
+    
+    w2 -= learning_rate * grad_w2
+    b2 -= learning_rate * grad_b2
+    w1 -= learning_rate * grad_w1
+    b1 -= learning_rate * grad_b1
+
+```
+

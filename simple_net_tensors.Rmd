@@ -1,0 +1,95 @@
+
+# simple_net_tensors {#simple_net_tensors}
+
+## Introduction
+
+tbd
+
+
+```{python}
+
+import torch
+
+### generate training data -----------------------------------------------------
+
+# input dimensionality (number of input features)
+d_in = 3
+# output dimensionality (number of predicted features)
+d_out = 1
+# number of observations in training set
+n = 100
+
+device = torch.device("cpu")
+# device = torch.device("cuda:0") # Uncomment this to run on GPU
+
+# create random data
+x = torch.randn(n, d_in, device = device) 
+y = x[ : , 0, None] * 0.2 - x[ : , 1, None] * 1.3 - x[ : , 2, None] * 0.5 + torch.randn(n, 1, device = device)
+
+
+### initialize weights ---------------------------------------------------------
+
+# dimensionality of hidden layer
+d_hidden = 32
+# weights connecting input to hidden layer
+w1 = torch.randn(d_in, d_hidden, device = device)
+# weights connecting hidden to output layer
+w2 = torch.randn(d_hidden, d_out, device = device)
+
+# hidden layer bias
+b1 = torch.zeros((1, d_hidden), device = device)
+# output layer bias
+b2 = torch.zeros((1, d_out), device = device)
+
+### network parameters ---------------------------------------------------------
+
+learning_rate = 1e-4
+
+### training loop --------------------------------------------------------------
+
+for t in range(200):
+    
+    ### -------- Forward pass -------- 
+    
+    # compute pre-activations of hidden layers (dim: 100 x 32)
+    h = x.mm(w1) + b1
+    # apply activation function (dim: 100 x 32)
+    h_relu = h.clamp(min = 0)
+    # compute output (dim: 100 x 1)
+    y_pred = h_relu.mm(w2) + b2
+
+    ### -------- compute loss -------- 
+    loss = (y_pred - y).pow(2).sum().item()
+    if t % 10 == 0: print(t, loss)
+
+    ### -------- Backpropagation -------- 
+    
+    # gradient of loss w.r.t. prediction (dim: 100 x 1)
+    grad_y_pred = 2.0 * (y_pred - y)
+    # gradient of loss w.r.t. w2 (dim: 32 x 1)
+    grad_w2 = h_relu.t().mm(grad_y_pred)
+    # gradient of loss w.r.t. hidden activation (dim: 100 x 32)
+    grad_h_relu = grad_y_pred.mm(w2.t())
+    # gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)
+    grad_h = grad_h_relu.clone()
+    grad_h[h < 0] = 0
+    # gradient of loss w.r.t. b2 (shape: ())
+    grad_b2 = grad_y_pred.sum()
+    
+    # gradient of loss w.r.t. w1 (dim: 3 x 32)
+    grad_w1 = x.t().mm(grad_h)
+    # gradient of loss w.r.t. b1 (shape: (32, ))
+    grad_b1 = grad_h.sum(axis = 0)
+
+    ### -------- Update weights -------- 
+    
+    w2 -= learning_rate * grad_w2
+    b2 -= learning_rate * grad_b2
+    w1 -= learning_rate * grad_w1
+    b1 -= learning_rate * grad_b1
+
+```
+
+## More on tensors
+
+## Running on GPU
