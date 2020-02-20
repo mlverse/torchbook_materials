@@ -1,13 +1,156 @@
 
 # A simple neural network in R {#simple_net_R}
 
-Our blueprint for a simple network won't employ any deep learning libraries; however, for speed, predictability and intuitiveness (in the sense of comparability to Python's NumPy) make use of [rray](https://github.com/r-lib/rray) to manipulate array data.
+Let's think about what we need for a neural network.
+
+## What's in a network?
+
+Our toy network will perform a simple regression task, and to explain its building blocks, we start by explaining what it has in common with standard linear regression (ordinary least squares, OLS). 
+
+### Gradient descent
+
+If we had to, we could do linear regression
+
+\begin{equation*} 
+ \mathbf{X} \boldsymbol{\beta} = \mathbf{y}
+ (\#eq:linreg)
+\end{equation*} 
+
+from scratch in R. Not necessarily using the _normal equations_ (as those imply invertibility of the covariance matrix):
+
+\begin{equation*} 
+ \hat{\boldsymbol{\beta}} = \mathbf{{(X^t X)}^{-1} X^t y}
+ (\#eq:normaleqs)
+\end{equation*} 
+
+but iteratively, doing _gradient descent_. We start with a guess of the weight vector $\boldsymbol{\beta}$, $\hat{\boldsymbol{\beta}}$. Then in each iteration, we compute how far we are from our objective, that is, from correctly solving equation \@ref(eq:linreg). Most often in regression, for this we'd calculate _the sum of squared errors_:
+
+\begin{equation*} 
+ \mathcal{L} = \sum{{(\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{\ y})}^2}
+ (\#eq:mse)
+\end{equation*} 
+
+This is our _loss function_. For that loss to go down, we need to update $\hat{\boldsymbol{\beta}}$ in the right direction. How the loss changes with $\hat{\boldsymbol{\beta}}$ is given by its _gradient_ with respect to the same:
+
+\begin{equation*} 
+ \nabla_{\hat{\boldsymbol{\beta}}} \mathcal{L} = 2 \mathbf{X}^t (\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{y})
+ (\#eq:gradlosswrtbeta)
+\end{equation*} 
+
+Substracting a fraction of that gradient from $\hat{\boldsymbol{\beta}}$ -- "descending" the gradient of the loss -- will make it go down. This can be seen by looking at the first-order Taylor approximation of a function $f$ (choosing a single-variable function for simplicity):
+
+\begin{equation*} 
+ f(x + \delta x) \approx f(x) + f'(x) \delta x
+ (\#eq:euler)
+\end{equation*}
+
+If we set $\delta x$ to a multiple of the derivative of $f$ at $x$, $\delta = \eta f'(x)$, we get 
+ 
+\begin{equation*} 
+ f(x - \eta f'(x)) \approx f(x) - \eta f'(x) f'(x)) 
+\end{equation*}
+
+\begin{equation*} 
+ f(x - \eta f'(x)) \approx f(x) - \eta (f'(x))^2
+ (\#eq:euler)
+\end{equation*}
+
+This new value $f(x - \eta f'(x))$ is smaller than $f(x)$ because on the right side, a positive value is subtracted.
+
+Ported to our task of loss minimization, where loss $\mathcal(L)$ depends on a vector parameter $\hat{\boldsymbol{\beta}}$, this would be
+
+\begin{equation*} 
+ \mathcal{L}(\hat{\boldsymbol{\beta}} + \Delta \hat{\boldsymbol{\beta}}) \approx \mathcal{L}(\hat{\boldsymbol{\beta}}) + {\Delta \hat{\boldsymbol{\beta}}}^t  \nabla \hat{\boldsymbol{\beta}}
+ (\#eq:euler)
+\end{equation*}
+
+Now, again, subtracting a fraction of the gradient, $- \eta \nabla \hat{\boldsymbol{\beta}}$, we have
+
+\begin{equation*} 
+ \mathcal{L}(\hat{\boldsymbol{\beta}} - \eta \nabla \hat{\boldsymbol{\beta}}) \approx  \mathcal{L}(\hat{\boldsymbol{\beta}}) - \eta {\nabla \hat{\boldsymbol{\beta}}}^t \nabla \hat{\boldsymbol{\beta}} 
+\end{equation*}
+
+where again the new loss value is lower than the old one.
+
+Iterating this process, we successively approach better estimates of $\hat{\boldsymbol{\beta}}$. The scale parameter, $\eta$, used to multiply the gradient is called the _learning rate_.
+
+The process is analogous if we have a simple network. The main difference is that instead of one weight vector $\hat{\boldsymbol{\beta}}$, we have several layers, each with their own weights that have to be updated.
+
+Before going there, a quick summary of the concepts and building blocks we've now seen:
+
+- Better weights are determined iteratively.
+- On each iteration, with the current weight estimates, we calculate a new prediction, the current _loss_, and the gradient of the loss with respect to the weights.
+- We update the weights, subtracting  _learning_rate_ times the gradient, and proceed to the next iteration.
+
+The program below will follow this blueprint. We'll fill out the sections soon:
+
+
+```{r, eval=FALSE}
+for (t in 1:200) {
+    
+    ### -------- Forward pass -------- 
+    
+    # here we'll compute the prediction
+    
+    
+    ### -------- compute loss -------- 
+    
+    # here we'll compute the sum of squared errors
+    
+
+    ### -------- Backpropagation -------- 
+    
+    # here we'll pass through the network, calculating the required gradients
+    
+
+    ### -------- Update weights -------- 
+    
+    # here we'll update the weights, subtracting portion of the gradients 
+}
+```
+
+### From linear regression to a simple network
+
+Let's see how our simple network will be different from that process.
+
+#### Implications of having multiple layers
+
+The simple network will have two layers, the output layer (corresponding to the predictions above) and an intermediate (_hidden_) layer. Both layers have their corresponding weight matrices, `w1` and `w2`, and intermediate values computed at the hidden layer -- called _activations_ -- are passed to the output layer for multiplication with _its_ weight matrix.
+
+Mirroring that multi-step forward pass, losses have to be _propagated back_ through the network, such that both weight matrices may be updated. _Backpropagation_, understood in a conceptual ^[as opposed to implementation-related] way, means that gradients are computed via the chain rule of calculus; for example, the gradient of the loss with respect to `w1` in our example will be ^[simplifying slightly here; we'll correct that shortly]
+
+- the gradient of the loss w.r.t. the predictions; times
+- the gradient of output layer activation w.r.t. hidden layer activation (`w2`)
+- the gradient of hidden layer activation w.r.t. `w1` (`X`, the matrix of input data)
+
+
+#### Activation functions
+
+In the above paragraph, we simplified slightly, making it look as though layer weights were applied with no action "in between". In fact, usually a layer's output, before being passed to the next layer, is transformed by an _activation function_, operating pointwise. Different activation functions exist; they all have in common that they introduce non-linearity into the computation.
+
+Our example will use _ReLU_ ("Rectified Linear Unit") activation for the intermediate layer. _ReLU_ sets negative input to 0 while leaving positive input as is. Activation functions add a further step to the backward pass, as well.
+
+#### Weights and biases
+
+In the linear regression example, we had a weight vector \hat{\boldsymbol{\beta}} -- a vector, with one element for each predictor.
+
+In neural networks, layers normally consist of several "neurons" (or units), the exception being the output layer -- sometimes, namely, when there is a single prediction per observation.
+
+Apart from that exception though, instead of weight vectors here we have weight _matrices_, connecting multiple "source" units to multiple "target" units.
+
+Moreover, every unit has a so-called _bias_ that is added to the output of the multiplication of inputs and weights. Thus, the biases _are_ in fact vectors.
+
+We now have all building blocks we need to define a training loop. 
+
+## A simple network
+
+Our blueprint for a simple network does not employ any deep learning libraries; however, for speed, predictability and intuitiveness (in the sense of comparability to Python's NumPy) we make use of [rray](https://github.com/r-lib/rray) to manipulate array data.
 
 Before getting to the network proper, we simulate some data for a typical regression problem.
 
-### Simulated data
+### Simulate data
 
-Our data will have three input columns and a single target column.
+Our data has three input columns and a single target column.
 
 ```{r}
 library(rray)
@@ -41,24 +184,94 @@ first_ten_rows = x[1:10, ]
 first_ten_rows
 ```
 
-## What's in a network?
-
-If we had to, we could do linear regression
-
-\begin{equation*} 
-\mathbf{X \ \beta} = \mathbf{y}
-\end{equation*} 
-
-from scratch in R. Not necessarily using the _normal equations_ (as those imply invertibility of the covariance matrix)
-
-\begin{equation*} 
-\hat{\beta} = \mathbf{{(X^t X)}^{-1} \ X^t \ y}
-\end{equation*} 
+We also need the weight matrices $w1$ and $w2$, as well as the biases $b1$ and $b2$. 
 
 
-### Complete program
+### Initialize weights and biases
+
+Again, we use `rray`, initializing the weights from a standard normal distribution, and the biases to $0$:
+
 
 ```{r}
+### initialize weights ---------------------------------------------------------
+
+# dimensionality of hidden layer
+d_hidden <- 32
+# weights connecting input to hidden layer
+w1 <- rray(rnorm(d_in * d_hidden), dim = c(d_in, d_hidden))
+# weights connecting hidden to output layer
+w2 <- rray(rnorm(d_hidden * d_out), dim = c(d_hidden, d_out))
+
+# hidden layer bias
+b1 <- rray(rep(0, d_hidden), dim = c(1, d_hidden))
+# output layer bias
+b2 <- rray(rep(0, d_out), dim = c(d_out, 1))
+
+```
+
+### Training loop
+
+Now for the training loop proper. The training loop here _is_ the network.
+
+The forward pass computes intermediate activations (also applying _ReLU_ activation), actual predictions, and the loss.
+
+The backward pass starts from the output and, making use of the chain rule, calculates the gradients of the loss with respect to $w2$, $b2$, $w1$ und $b1$.
+It then uses the gradients to update the parameters.
+
+If you're just starting out with neural networks, don't worry too much about the details of matrix shapes and operations -- all this will become _a lot_ easier when we use full-flegded torch. Just try to develop an understanding of what this code does overall.
+
+```{r}
+learning_rate <- 1e-4
+
+### training loop --------------------------------------------------------------
+for (t in 1:200) {
+    
+    ### -------- Forward pass -------- 
+    
+    # compute pre-activations of hidden layers (dim: 100 x 32)
+    h <- rray_dot(x, w1) + b1
+    # apply activation function (dim: 100 x 32)
+    h_relu <- rray_maximum(h, 0)
+    # compute output (dim: 100 x 1)
+    y_pred <- rray_dot(h_relu, w2) + b2
+
+    ### -------- compute loss -------- 
+    loss <- rray_pow(y_pred - y, 2) %>% rray_sum()
+    if (t %% 10 == 0) cat("Epoch:", t, ", loss:", loss, "\n")
+
+    ### -------- Backpropagation -------- 
+    
+    # gradient of loss w.r.t. prediction (dim: 100 x 1)
+    grad_y_pred <- 2 * (y_pred - y)
+    
+    # gradient of loss w.r.t. w2 (dim: 32 x 1)
+    grad_w2 <- rray_transpose(h_relu) %>% rray_dot(grad_y_pred)
+    # gradient of loss w.r.t. hidden activation (dim: 100 x 32)
+    grad_h_relu <- rray_dot(grad_y_pred, rray_transpose(w2))
+    # gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)
+    grad_h <- rray_if_else(h > 0, grad_h_relu, 0)
+    # gradient of loss w.r.t. b2 (dim: 1 x 1)
+    grad_b2 <- rray_sum(grad_y_pred)
+    
+    # gradient of loss w.r.t. w1 (dim: 3 x 32)
+    grad_w1 <- rray_transpose(x) %>% rray_dot(grad_h)
+    # gradient of loss w.r.t. b1 (dim: 3 x 32)
+    grad_b1 <- rray_sum(grad_h, axes = 1)
+
+    ### -------- Update weights -------- 
+    
+    w2 <- w2 - learning_rate * grad_w2
+    b2 <- b2 - learning_rate * grad_b2
+    w1 <- w1 - learning_rate * grad_w1
+    b1 <- b1 - learning_rate * grad_b1
+}
+```
+
+In the next chapter, we start introducing torch. Optimization will still be performed manually, but instead of `rray` we are going to use torch _tensors_.
+
+### Complete code
+
+```{r, eval=FALSE}
 library(rray)
 library(dplyr)
 ### generate training data -----------------------------------------------------
@@ -95,7 +308,6 @@ b2 <- rray(rep(0, d_out), dim = c(d_out, 1))
 learning_rate <- 1e-4
 
 ### training loop --------------------------------------------------------------
-
 for (t in 1:200) {
     
     ### -------- Forward pass -------- 
@@ -141,7 +353,7 @@ for (t in 1:200) {
 ```
 
 
-### Appendix: Python code
+## Appendix: Python code
 
 
 ```{python}
