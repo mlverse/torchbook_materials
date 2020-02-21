@@ -12,7 +12,7 @@ bibliography: book.bib
 link-citations: yes
 ---
 
-```{r setup, include=FALSE} 
+```{r setup} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
 
