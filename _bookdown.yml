@@ -13,8 +13,8 @@ rmd_files:
     "simple_net_R.Rmd",
     "simple_net_tensors.Rmd",
     "simple_net_autograd.Rmd",
-    "simple_net_optim.Rmd",
     "simple_net_layers.Rmd",
+    "simple_net_optim.Rmd",
 
 
     # Section 2
@@ -28,15 +28,19 @@ rmd_files:
 
 
     #"Intermediate_deep_learning.Rmd",
-
-
-    #"Extensibility.Rmd",
+    ## adversarial
+    ## transformers
+    ## spatial attention
+    ## segmentation
 
 
     #"Probabilistic_deep_learning.Rmd",
-
+    ## Bayesian
+    ## Flows
 
     #"Research_topics.Rmd",
+    ## spherical CNNs
+    ## causality
 
 
     "references.Rmd",

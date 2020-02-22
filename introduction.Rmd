@@ -6,4 +6,6 @@
 - address people new to DL as well as Keras/TF users
 - presuppose general ML knowledge
 
+- awareness/ethics
+
 
