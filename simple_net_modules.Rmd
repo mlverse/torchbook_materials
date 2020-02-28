@@ -1,0 +1,196 @@
+
+# Using torch modules {#simple_net_modules}
+
+As next-to-last step of our torchifying the simple network, we modularize it -- literally -- in a very literal sense, actually -- by replacing our manual function calls with torch _modules_.
+
+
+## Modules 
+
+From other frameworks, you may be used to distinguishing between models and layers. In torch, both inherit from `torch.nn.Module()` and thus, have some methods in common.
+
+### Layers as modules
+
+For example, instead of writing out an affine operation by hand -- say `x.mm(w1) + b1`, as we've been doing so far -- we can create a linear layer, or module.
+This would create a linear layer that expects an input with three features, and outputs a single output per observation:
+
+```{python}
+import torch
+l = torch.nn.Linear(3, 1)
+```
+
+It has two parameters, "weight" and "bias", which we can inspect using `named_parameters()`:
+
+```{python}
+[(p[0], p[1]) for p in l.named_parameters()]
+```
+
+Both parameters have automatically been initialized for us. 
+
+Modules are callable; calling a module runs its `forward()` method, which for a linear layer just matrix-multiplies the input with the weights and adds the bias.
+
+Let's try this:
+
+```{python}
+data  = torch.randn(10, 3)
+out = l(data)
+```
+
+The output is a tensor that not just contains data
+
+```{python}
+out.data
+```
+
+but also, knows what has to be done to obtain gradients:
+
+```{python}
+out.grad_fn
+```
+
+At this point, we've effectuated a forward pass, but as we haven't called `backward()` no gradients have yet been calculated:
+
+```{python}
+l.weight.grad
+l.bias.grad
+```
+
+Let's change this:
+
+```{python, error = TRUE}
+out.backward()
+```
+
+Autograd expects the output tensor to be a scalar, while in our example, we have a tensor of size (10, 1). This error won't happen in our "real example" below, where we'll work with _batches_ of inputs (or rather, a single batch, for simplicity).
+But still, it's interesting to see how to resolve this.
+
+To make the example work, we introduce a -- virtual -- final aggregation step, the mean say. Let's call it `avg`. If such a mean were taken, its gradient with respect to `l.weight` would be obtained via the chain rule:
+
+\begin{equation*} 
+ \frac{\partial avg}{\partial w} = \frac{\partial avg}{\partial out}  \frac{\partial out}{\partial w}
+ (\#eq:backwardgradient)
+\end{equation*} 
+
+From the quantities on the right side, we're interested in the second one. We need to provide the first one, the way it would look _if really we were taking the mean_:
+
+```{python}
+out.backward(gradient = [torch.Tensor([[0.1] * 10]).T])
+```
+
+
+Now, `l.weight.grad` and `l.bias.grad` _will_ contain the respective gradients:
+
+```{python}
+l.weight.grad
+l.bias.grad
+```
+
+Back to the main thread. `torch.nn.Linear` is one of the most often used layers in neural networks; we'll see others (convolutional, recurrent...) in later chapters. 
+In usual lingo, combining layers yields _models_.
+
+### Models as modules
+
+Now, _models_ are just modules that contain other modules. For example, if all data is supposed to flow through the same nodes, in a unidirectional fashion, then `torch.nn.Sequential` can be used to build a simple graph.
+
+For example:
+
+
+```{python}
+model = torch.nn.Sequential(
+    torch.nn.Linear(3, 16),
+    torch.nn.ReLU(),
+    torch.nn.Linear(16, 1),
+)
+```
+
+
+We can use the same technique used on the single linear layer to get an overview of all model parameters:
+
+```{python}
+[(p[0], p[1]) for p in l.named_parameters()]
+```
+
+Individual parameters can just be directly inspected making use of their position in the sequential model, e.g.
+
+```{python}
+model[0].bias
+```
+
+
+### TBD continue
+
+- call model and backward with same data
+
+...
+...
+
+
+```{python}
+model.cuda()
+model[0].bias
+```
+
+
+## Simple network using modules
+
+```{python}
+import torch
+
+### generate training data -----------------------------------------------------
+
+# input dimensionality (number of input features)
+d_in = 3
+# output dimensionality (number of predicted features)
+d_out = 1
+# number of observations in training set
+n = 100
+
+# create random data
+x = torch.randn(n, d_in) 
+y = x[ : , 0, None] * 0.2 - x[ : , 1, None] * 1.3 - x[ : , 2, None] * 0.5 + torch.randn(n, 1)
+
+### define the network ---------------------------------------------------------
+
+# dimensionality of hidden layer
+d_hidden = 32
+
+model = torch.nn.Sequential(
+    torch.nn.Linear(d_in, d_hidden),
+    torch.nn.ReLU(),
+    torch.nn.Linear(d_hidden, d_out),
+)
+
+mse_loss = torch.nn.MSELoss(reduction='sum')
+
+
+### training loop --------------------------------------------------------------
+learning_rate = 1e-4
+
+for t in range(200):
+    
+    ### -------- Forward pass -------- 
+
+    y_pred = model(x)
+
+    ### -------- compute loss -------- 
+    loss = mse_loss(y_pred, y)
+    if t % 10 == 0: print(t, loss.item())
+
+    ### -------- Backpropagation -------- 
+
+    # Zero the gradients before running the backward pass.
+    model.zero_grad()
+    
+    # compute gradient of the loss w.r.t. all learnable parameters of the model
+    loss.backward()
+ 
+    ### -------- Update weights -------- 
+    
+    # Wrap in torch.no_grad() because this is a part we DON'T want to record for automatic gradient computation
+    # Update each parameter by its `grad`
+    with torch.no_grad():
+        for param in model.parameters():
+            param -= learning_rate * param.grad
+
+```
+
+

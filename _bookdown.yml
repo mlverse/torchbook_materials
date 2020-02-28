@@ -17,9 +17,9 @@ rmd_files:
     "simple_net_optim.Rmd",
 
 
-    # Section 2
-    #"Deep_learning_applications_getting_started.Rmd",
+    "Deep_learning_classical_applications.Rmd",
 
+    #"Customization.Rmd",
 
     #"Data_loading.Rmd",
 
