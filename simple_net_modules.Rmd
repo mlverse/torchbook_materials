@@ -115,20 +115,31 @@ Individual parameters can just be directly inspected making use of their positio
 model[0].bias
 ```
 
+And just like the simple `Linear` module, this model can directly be called on data:
 
-### TBD continue
+```{python}
+out = model(data)
+```
 
-- call model and backward with same data
+On this composite module, calling `backward()` will effectuate a backward pass through all the layers:
 
-...
-...
+```{python}
+out.backward(gradient = [torch.Tensor([[0.1] * 10]).T])
+
+# e.g.
+model[0].bias.grad
+```
+
+And placing the composite on the GPU will move all tensors there:
 
 
 ```{python}
 model.cuda()
-model[0].bias
+model[0].bias.grad.device
 ```
 
+
+Now let's see how using `Sequential` can simplify our example network. As an act of further simplication, we won't calculate mean squared error "by hand" anymore either; instead, we'll use one of the loss functions torch provides, `torch.nn.MSELoss`.
 
 ## Simple network using modules
 
@@ -194,3 +205,4 @@ for t in range(200):
 ```
 
 
+The forward pass looks a lot better now; however, we still loop through the model's parameters and update each one by hand. As a final act of simplification, the next chapter will show how to make use of torch optimizers instead. 
