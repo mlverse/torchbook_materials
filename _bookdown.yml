@@ -17,15 +17,10 @@ rmd_files:
     "simple_net_optim.Rmd",
 
 
-    "Deep_learning_classical_applications.Rmd",
+    "deep_learning_classical_applications.Rmd",
+    "image_classification.Rmd",
     # https://github.com/AntixK/PyTorch-VAE
 
-    #"Customization.Rmd",
-
-    #"Data_loading.Rmd",
-
-
-    #"Utilities.Rmd",
 
 
     #"Intermediate_deep_learning.Rmd",

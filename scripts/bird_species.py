@@ -64,13 +64,10 @@ def imshow(inp, title=None):
     plt.imshow(inp)
     if title is not None:
         plt.title(title)
-    plt.pause(0.001)  # pause a bit so that plots are updated
+    plt.pause(0.001)  
 
-
-# Get a batch of training data
 inputs, classes = next(iter(dataloaders['train']))
 
-# Make a grid from batch
 out = torchvision.utils.make_grid(inputs)
 
 imshow(out, title=[class_names[x] for x in classes])
@@ -82,31 +79,24 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
-        # Each epoch has a training and validation phase
         for phase in ['train', 'valid']:
             if phase == 'train':
-                model.train()  # Set model to training mode
+                model.train() 
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()   
             running_loss = 0.0
             running_corrects = 0
-            # Iterate over data.
             for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
-                # zero the parameter gradients
                 optimizer.zero_grad()
-                # forward
-                # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
                     _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
-                    # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
-                # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
             if phase == 'train':
@@ -115,7 +105,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
-            # deep copy the model
             if phase == 'valid' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
@@ -124,7 +113,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
-    # load best model weights
     model.load_state_dict(best_model_wts)
     return model
 
@@ -146,27 +134,18 @@ criterion = nn.CrossEntropyLoss()
 
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-# Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 model = train_model(model, criterion, optimizer, exp_lr_scheduler,
                        num_epochs=1)
 
-def eval_model(model):
-    was_training = model.training
-    model.eval()
-    with torch.no_grad():
-        total = 0
-        corrects = 0
-        for i, (inputs, labels) in enumerate(dataloaders['test']):
-            total += labels.size(0)
+phase = 'test'
+with torch.no_grad():
+        running_num_correct = 0
+        for inputs, labels in dataloaders[phase]:
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
-            corrects += torch.sum(preds == labels.data)
-        model.train(mode=was_training)
-    print('test Acc: {:4f}'.format(corrects/total))
-
-eval_model(model)
-
+            running_num_correct += torch.sum(preds == labels.data)
+        print('test accuracy: {:4f}'.format(running_num_correct.double()/ dataset_sizes[phase]))
