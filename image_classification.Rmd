@@ -1,11 +1,12 @@
 
 # Classifying images {#image_classification}
 
-As our first real deep learning application, we'll pick image classification, arguably the scene of deep learning's first "official breakthrough". As explained in the introduction, we aim to make this text readable by both newcomers and experienced users of other frameworks (e.g., TensorFlow); consequently, we may quickly characterize commonly-used-in-deep-learning-features, but rely on you looking up mathematical details yourself; instead, we'll focus on torch mechanics, which should be relevant to both types of audiences.
+As our first real deep learning application, we'll pick image classification, arguably the scene of deep learning's first "official breakthrough". As explained in the introduction, we aim to make this text readable by both newcomers and experienced users of other frameworks (e.g., TensorFlow).
+Consequently, we may quickly characterize commonly-used-in-deep-learning features, but rely on you looking up mathematical details yourself; instead, we'll focus on torch mechanics, which should be relevant to both types of audiences.
 
 Our example setup will differentiate birds by species. In image classification, especially on motifs so close to what's contained in [ImageNet](), it is rare to start from scratch: Pre-trained -- pre-trained, mostly, on that same ImageNet dataset, that is -- models exist, and we can repurpose them to fit our own data, still benefiting from their compositional feature-extraction capabilities.  
 
-Concretely, we will use Resnet, one of several classic computer vision models provided by torchvision, and attach our own classification layer on top. If you are looking for how to code a convolutional neural network from scratch, you can pick up related information in the following chapter on DCGAN.
+Concretely, we will use Resnet, one of several classic computer vision models provided by torchvision, and attach our own classification layer on top. If you are looking for how to code a convolutional neural network from scratch, you can pick up related information in the following chapter on generative adversarial networks.
 
 ## Data loading and transformation
 
