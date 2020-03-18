@@ -214,7 +214,8 @@ plt.show()
 
 fig = plt.figure(figsize=(8,8))
 plt.axis("off")
-ims = [[plt.imshow(np.transpose(i,(1,2,0)))] for i in img_list]
+img1 = img_list[0]
+plt.imshow(np.transpose(img1,(1,2,0)))
 plt.show()
 
 # Grab a batch of real images from the dataloader

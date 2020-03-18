@@ -175,7 +175,8 @@ First, the discriminator is trained. This is a two-stage procedure:
 - In stage (1), it is given the real images, together with labels (fabricated on the fly) that say "these are real images". Binary cross entropy will be minimized when all those images are, in fact, classified as real by the discriminator.
 - In stage (2), first the generator is asked to generate some images, and then the discriminator is asked to rate them. Again, binary cross entropy is calculated, but this time, it will be minimal if all images are characterized as fake.
 
-Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's turn
+Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is "no fake", so the labels are set to "real". The binary cross entropy loss then reflects the generator's performance, not that of the discriminator.
+
 
 ```{python}
 # random noise - input for generator
@@ -187,14 +188,19 @@ fake_label = 0
 img_list = []
 generator_losses = []
 discriminator_losses = []
+discriminator_outputs_fake = []
+discriminator_outputs_real = []
+
+num_epochs = 5
 
 for epoch in range(num_epochs):
 
     for i, data in enumerate(dataloader, 0):
     
-        # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
+        # (1) Train discriminator
         
         ## Train with all-real batch
+
         discriminator.zero_grad()
         real_cpu = data[0].to(device)
         b_size = real_cpu.size(0)
@@ -202,45 +208,115 @@ for epoch in range(num_epochs):
         output = discriminator(real_cpu).view(-1)
         discriminator_loss_real = criterion(output, label)
         discriminator_loss_real.backward()
-        discriminator_real_verdict = output.mean().item()
+        discriminator_output_real = output.mean().item()
         
         ## Train with all-fake batch
+
         noise = torch.randn(b_size, latent_input_size, 1, 1, device=device)
         fake = generator(noise)
         label.fill_(fake_label)
         output = discriminator(fake.detach()).view(-1)
         discriminator_loss_fake = criterion(output, label)
         discriminator_loss_fake.backward()
-        
-        discriminator_loss = discriminator_loss_real + discriminator_loss_fake
-        # Update D
+    
+        # Update discriminator weights
+    
+        discriminator_loss = discriminator_loss_real + discriminator_loss_fake    
         disc_optimizer.step()
-        ############################
-        # (2) Update G network: maximize log(D(G(z)))
-        ###########################
+
+        # (2) Train generator
+
         generator.zero_grad()
-        label.fill_(real_label)  # fake labels are real for generator cost
-        # Since we just updated D, perform another forward pass of all-fake batch through D
+        label.fill_(real_label)  
         output = discriminator(fake).view(-1)
-        # Calculate G's loss based on this output
         generator_loss = criterion(output, label)
-        # Calculate gradients for G
         generator_loss.backward()
-        discriminator_fake_verdict = output.mean().item()
-        # Update G
+        discriminator_output_fake = output.mean().item()
+
+        # Update generator weights
         gen_optimizer.step()
+
         # Output training stats
         if i % 50 == 0:
             print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f '
                   % (epoch, num_epochs, i, len(dataloader),
-                     discriminator_loss.item(), generator_loss.item(), discriminator_real_verdict, discriminator_fake_verdict))
-        # Save Losses for plotting later
+                     discriminator_loss.item(), generator_loss.item(), discriminator_output_real, discriminator_output_fake))
         generator_losses.append(generator_loss.item())
         discriminator_losses.append(discriminator_loss.item())
-        # Check how the generator is doing by saving G's output on fixed_noise
+        discriminator_outputs_fake.append(discriminator_output_fake)
+        discriminator_outputs_real.append(discriminator_output_real)
         with torch.no_grad():
           fake = generator(fixed_noise).detach().cpu()
           img_list.append(utils.make_grid(fake, padding=2, normalize=True))
 
 ```
+
+Now let's see samples of generated images, spread out over training time:
+
+```{r}
+index <- seq(1, length(py$img_list), length.out = 16)
+images <- py$img_list[index]
+
+par(mfcol = c(4,4), mar = rep(0, 4), oma = rep(0, 4))
+rasterize <- function(x) {
+     x <- x$numpy()
+     x <- aperm(x, perm = c(2, 3, 1))
+     as.raster(x)
+}
+images %>%
+   purrr::map(rasterize) %>%
+   purrr::iwalk(~{plot(.x)})
+```
+
+To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch: 
+
+```{python}
+new = generator(fixed_noise).cpu().detach().numpy()
+```
+
+```{r}
+images <- py$new[,1,,] 
+
+par(mfcol = c(8,8), mar = c(0, 0, 0, 0))
+images %>%
+  purrr::array_tree(1) %>%
+  purrr::map(function(img) image(img, col = gray.colors(n = 255), xaxt = 'n', yaxt = 'n', asp = 1))
+```
+
+We can also inspect how the respective losses developed over time:
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+generator_losses <- py$generator_losses
+discriminator_losses <- py$discriminator_losses
+iterations <- 1:length(discriminator_losses)
+
+df <- data.frame(iteration = iterations, discriminator = discriminator_losses, generator = generator_losses)
+df %>%
+  gather(module, loss, discriminator, generator) %>%
+    ggplot(aes(x = iteration, y = loss, colour = module)) +
+    geom_line()
+```
+
+
+As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5 (and thus, close to each other), which obviously isn't the case here. This means there is still room for improvement.
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+discriminator_outputs_fake <- py$discriminator_outputs_fake
+discriminator_outputs_real <- py$discriminator_outputs_real
+iterations <- 1:length(discriminator_outputs_real)
+
+df <- data.frame(iteration = iterations, real = discriminator_outputs_real, fake = discriminator_outputs_fake)
+df %>%
+  gather(images, ratio_accepted, real, fake) %>%
+    ggplot(aes(x = iteration, y = ratio_accepted, colour = images)) +
+    geom_line()
+```
+
 
