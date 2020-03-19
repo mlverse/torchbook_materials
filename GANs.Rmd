@@ -78,21 +78,21 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.main = nn.Sequential(
             # h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1
-            # (1 - 1) * 1 - 2 * 0 + 1 * (4 -1 ) + 0 + 1
+            # h_out = (  1  - 1) *   1    - 2 *    0    +     1    * (      4     - 1) +        0       + 1
             # 4 x 4
-            nn.ConvTranspose2d(latent_input_size, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias=False),
+            nn.ConvTranspose2d(latent_input_size, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = False),
             nn.BatchNorm2d(image_size * 4),
             nn.ReLU(True),
             # 8 * 8
-            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = False),
             nn.BatchNorm2d(image_size * 2),
             nn.ReLU(True),
             # 16 x 16
-            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias=False),
+            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = False),
             nn.BatchNorm2d(image_size),
             nn.ReLU(True),
             # 28 x 28
-            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = False),
             nn.Tanh()
         )
     def forward(self, input):

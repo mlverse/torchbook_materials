@@ -20,8 +20,6 @@ rmd_files:
     "deep_learning_classical_applications.Rmd",
     "image_classification.Rmd",
     "GANs.Rmd",
-    # https://github.com/AntixK/PyTorch-VAE
-
 
 
     #"Intermediate_deep_learning.Rmd",

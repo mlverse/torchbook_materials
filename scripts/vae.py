@@ -8,6 +8,7 @@ from torchvision import transforms, datasets, utils
 import os
 import matplotlib.pyplot as plt
 
+# https://github.com/AntixK/PyTorch-VAE
 
 transform = transforms.Compose([
                                transforms.ToTensor(),
@@ -22,102 +23,131 @@ dataloader = torch.utils.data.DataLoader(kmnist, batch_size=128,
 # Decide which device we want to run on
 device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
 
-latent_dim <- 
+image_size = 28
+
+class View(nn.Module):
+    def __init__(self, shape):
+        super(View, self).__init__()
+        self.shape = shape
+    def forward(self, x):
+        return x.view(*self.shape)
 
 class VAE(nn.Module):
-    def __init__(self):
+    def __init__(self, latent_dim):
         super(VAE, self).__init__()
+        self.latent_dim = latent_dim
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels, 32, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(1, image_size, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size),
             nn.LeakyReLU(),
-            nn.Conv2d(32, 64, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(image_size, image_size * 2, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size * 2),
             nn.LeakyReLU(),
-            nn.Conv2d(64, 128, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(image_size * 2, image_size * 4, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size * 4),
             nn.LeakyReLU(),
-            nn.Conv2d(128, 256, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(image_size * 4, image_size * 8, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size * 8),
             nn.LeakyReLU()
         )
-        self.latent_mu = nn.Linear(1024, latent_dim)
-        self.latent_var = nn.Linear(1024, latent_dim)
+        self.latent_mean = nn.Linear(896, latent_dim)
+        self.latent_log_var = nn.Linear(896, latent_dim)
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, 1024)
-            nn.Conv2dTranspose(1024, 256, kernel_size= 3, stride= 2, padding  = 1, output_padding = 1),
-            nn.BatchNorm2d(256),
+            nn.Linear(latent_dim, image_size * 8),
+            View((-1, image_size * 8, 1, 1)),
+            nn.ConvTranspose2d(image_size * 8, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = False),
+            nn.BatchNorm2d(image_size * 4),
             nn.LeakyReLU(),
-            nn.Conv2d(256, 128, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(128),
+            # 8 * 8
+            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.BatchNorm2d(image_size * 2),
             nn.LeakyReLU(),
-            nn.Conv2d(128, 64, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(64),
+            # 16 x 16
+            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = False),
+            nn.BatchNorm2d(image_size),
             nn.LeakyReLU(),
-            nn.Conv2d(64, 32, kernel_size= 3, stride= 2, padding  = 1),
-            nn.BatchNorm2d(32),
-            nn.LeakyReLU()
+            # 28 x 28
+            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.Sigmoid()
         )
+    def encode(self, input): 
+        result = self.encoder(input)
+        result = torch.flatten(result, start_dim = 1)
+        mean = self.latent_mean(result)
+        log_var = self.latent_log_var(result)
+        return [mean, log_var]
+    def decode(self, z):
+        result = self.decoder(z)
+        return result
+    def reparameterize(self, mean, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps * std + mean
+    def forward(self, input):
+        mean, log_var = self.encode(input)
+        z = self.reparameterize(mean, log_var)
+        return [self.decode(z), input, mean, log_var]
+    def loss_function(self, reconstruction, input, mean, log_var):
+        reconstruction_loss = F.binary_cross_entropy(reconstruction, input, reduction='sum')
+        kl_loss = -0.5 * torch.sum(1 + log_var - mean ** 2 - log_var.exp())
+        loss = reconstruction_loss + kl_loss
+        return loss, reconstruction_loss, kl_loss
+    def sample(self, num_samples, current_device):
+        z = torch.randn(num_samples, self.latent_dim)
+        z = z.to(current_device)
+        samples = self.decode(z)
+        return samples
 
+model = VAE(latent_dim = 128).to(device)
+optimizer = optim.Adam(model.parameters(), lr = 1e-3)
 
+num_epochs = 5
 
-model = VAE().to(device)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
-
-# Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x, mu, logvar):
-    BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # https://arxiv.org/abs/1312.6114
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    return BCE + KLD
-
-num_epochs = 1
+reconstruction_losses = []
+kl_losses = []
+losses = []
+img_list  = []
 
 for epoch in range(num_epochs):
-    train_loss = 0
     for i, data in enumerate(dataloader, 0):
         data = data[0].to(device)
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
-        loss = loss_function(recon_batch, data, mu, logvar)
+        reconstruction, input, mean, log_var = model(data)
+        loss, reconstruction_loss, kl_loss = model.loss_function(reconstruction, input, mean, log_var)
         loss.backward()
-        train_loss += loss.item()
         optimizer.step()
+        # Output training stats
         if i % 50 == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, i * len(data), len(dataloader.dataset),
-                100. * i / len(dataloader),
-                loss.item() / len(data)))
-            print('====> Epoch: {} Average loss: {:.4f}'.format(
-                epoch, train_loss / len(dataloader.dataset)))
-        # if i % 50 == 0:
-        #    with torch.no_grad():
-        #       fake = generator(fixed_noise).detach().cpu()
-        #       img_list.append(utils.make_grid(fake, padding=2, normalize=True))
+            print('[%d/%d][%d/%d]\tLoss: %.2f\tReconstruction: %.2f\tKL: %.2f'
+                  % (epoch, num_epochs, i, len(dataloader),
+                     loss.item(), reconstruction_loss.item(), kl_loss.item()))
+            reconstruction_losses.append(reconstruction_loss.item())
+            kl_losses.append(kl_loss.item())
+            losses.append(loss.item())
+            with torch.no_grad():
+              generated = model.sample(64, device)
+              img_list.append(utils.make_grid(generated, padding=2, normalize=True))
 
-
-plt.figure(figsize=(10,5))
-plt.title("Generator and Discriminator Loss During Training")
-plt.plot(generator_losses,label="G")
-plt.plot(discriminator_losses,label="D")
-plt.xlabel("iterations")
-plt.ylabel("Loss")
-plt.legend()
-plt.show()
-
-fig = plt.figure(figsize=(8,8))
-plt.axis("off")
-img1 = img_list[0]
-plt.imshow(np.transpose(img1,(1,2,0)))
-plt.show()
-
-# Grab a batch of real images from the dataloader
-real_batch = next(iter(dataloader))
-
+# plt.figure(figsize=(10,5))
+# plt.title("Generator and Discriminator Loss During Training")
+# plt.plot(generator_losses,label="G")
+# plt.plot(discriminator_losses,label="D")
+# plt.xlabel("iterations")
+# plt.ylabel("Loss")
+# plt.legend()
+# plt.show()
+# 
+# fig = plt.figure(figsize=(8,8))
+# plt.axis("off")
+# img1 = img_list[0]
+# plt.imshow(np.transpose(img1,(1,2,0)))
+# plt.show()
+# 
+# # Grab a batch of real images from the dataloader
+# real_batch = next(iter(dataloader))
+# 
 # Plot the real images
+real_batch = next(iter(dataloader))
 plt.figure(figsize=(15,15))
 plt.subplot(1,2,1)
 plt.axis("off")
@@ -128,7 +158,7 @@ plt.show()
 plt.subplot(1,2,2)
 plt.axis("off")
 plt.title("Fake Images")
-plt.imshow(np.transpose(img_list[-1],(1,2,0)))
+plt.imshow(np.transpose(img_list[-1].cpu(),(1,2,0)))
 plt.show()
 
 
