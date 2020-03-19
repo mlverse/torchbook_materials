@@ -31,14 +31,14 @@ dataloader = torch.utils.data.DataLoader(kmnist, batch_size=128, shuffle = True,
 
 Let's view a few of those. Here are the first 128 images:
 
-```{python}
+```{python, eval = FALSE}
 images = next(iter(dataloader))[0].cpu()
 images.device
 ```
 
 ... of which, let's plot the first 16:
 
-```{r}
+```{r, eval = FALSE}
 library(reticulate)
 library(dplyr)
 
@@ -65,7 +65,7 @@ Its main tool is repeated application of _transposed convolutions_ that upsample
 
 Following the DCGAN paper, the generator's `ConvTranspose2d` and `BatchNorm2d` layers are initialized according to a normal distribution with mean 0 and standard deviation 0.02.
 
-```{python}
+```{python, eval = FALSE}
 device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
 
 # size of generator input
@@ -77,23 +77,22 @@ class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
         self.main = nn.Sequential(
-            # torch.nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=True, dilation=1, padding_mode='zeros')
             # h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1
             # (1 - 1) * 1 - 2 * 0 + 1 * (4 -1 ) + 0 + 1
             # 4 x 4
-            nn.ConvTranspose2d(latent_input_size, image_size * 4, 4, 1, 0, bias=False),
+            nn.ConvTranspose2d(latent_input_size, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias=False),
             nn.BatchNorm2d(image_size * 4),
             nn.ReLU(True),
             # 8 * 8
-            nn.ConvTranspose2d(image_size * 4, image_size * 2, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias=False),
             nn.BatchNorm2d(image_size * 2),
             nn.ReLU(True),
             # 16 x 16
-            nn.ConvTranspose2d(image_size * 2, image_size, 4, 2, 2, bias=False),
+            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias=False),
             nn.BatchNorm2d(image_size),
             nn.ReLU(True),
             # 28 x 28
-            nn.ConvTranspose2d(image_size, 1, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias=False),
             nn.Tanh()
         )
     def forward(self, input):
@@ -118,7 +117,7 @@ generator.apply(weights_init)
 
 The discriminator is a pretty conventional convnet. Its layers' weights are initialized in the same way as the generator's.
 
-```{python}
+```{python, eval = FALSE}
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
@@ -153,13 +152,13 @@ discriminator.apply(weights_init)
 
 While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary crossentropy:
 
-```{python}
+```{python, eval = FALSE}
 criterion = nn.BCELoss()
 ```
 
 They each have their own optimizer:
 
-```{python}
+```{python, eval = FALSE}
 lr = 0.0002
 beta1 = 0.5
 
@@ -178,7 +177,7 @@ First, the discriminator is trained. This is a two-stage procedure:
 Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is "no fake", so the labels are set to "real". The binary cross entropy loss then reflects the generator's performance, not that of the discriminator.
 
 
-```{python}
+```{python, eval = FALSE}
 # random noise - input for generator
 fixed_noise = torch.randn(64, latent_input_size, 1, 1, device = device)
 
@@ -241,19 +240,19 @@ for epoch in range(num_epochs):
             print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f '
                   % (epoch, num_epochs, i, len(dataloader),
                      discriminator_loss.item(), generator_loss.item(), discriminator_output_real, discriminator_output_fake))
-        generator_losses.append(generator_loss.item())
-        discriminator_losses.append(discriminator_loss.item())
-        discriminator_outputs_fake.append(discriminator_output_fake)
-        discriminator_outputs_real.append(discriminator_output_real)
-        with torch.no_grad():
-          fake = generator(fixed_noise).detach().cpu()
-          img_list.append(utils.make_grid(fake, padding=2, normalize=True))
+            generator_losses.append(generator_loss.item())
+            discriminator_losses.append(discriminator_loss.item())
+            discriminator_outputs_fake.append(discriminator_output_fake)
+            discriminator_outputs_real.append(discriminator_output_real)
+            with torch.no_grad():
+              fake = generator(fixed_noise).detach().cpu()
+              img_list.append(utils.make_grid(fake, padding=2, normalize=True))
 
 ```
 
 Now let's see samples of generated images, spread out over training time:
 
-```{r}
+```{r, eval = FALSE}
 index <- seq(1, length(py$img_list), length.out = 16)
 images <- py$img_list[index]
 
@@ -270,11 +269,11 @@ images %>%
 
 To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch: 
 
-```{python}
+```{python, eval = FALSE}
 new = generator(fixed_noise).cpu().detach().numpy()
 ```
 
-```{r}
+```{r, eval = FALSE}
 images <- py$new[,1,,] 
 
 par(mfcol = c(8,8), mar = c(0, 0, 0, 0))
@@ -285,7 +284,7 @@ images %>%
 
 We can also inspect how the respective losses developed over time:
 
-```{r}
+```{r, eval = FALSE}
 library(ggplot2)
 library(tidyr)
 
@@ -304,7 +303,7 @@ df %>%
 As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5 (and thus, close to each other), which obviously isn't the case here. This means there is still room for improvement.
 
 
-```{r}
+```{r, eval = FALSE}
 library(ggplot2)
 library(tidyr)
 
