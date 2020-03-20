@@ -20,7 +20,6 @@ kmnist = torchvision.datasets.KMNIST("data/kmnist", train=True, transform=transf
 dataloader = torch.utils.data.DataLoader(kmnist, batch_size=128,
                                          shuffle=True, num_workers=4)
 
-# Decide which device we want to run on
 device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
 
 image_size = 28
@@ -98,14 +97,11 @@ class VAE(nn.Module):
         samples = self.decode(z)
         return samples
 
-model = VAE(latent_dim = 128).to(device)
+model = VAE(latent_dim = 2).to(device)
 optimizer = optim.Adam(model.parameters(), lr = 1e-3)
 
 num_epochs = 5
 
-reconstruction_losses = []
-kl_losses = []
-losses = []
 img_list  = []
 
 for epoch in range(num_epochs):
@@ -121,32 +117,18 @@ for epoch in range(num_epochs):
             print('[%d/%d][%d/%d]\tLoss: %.2f\tReconstruction: %.2f\tKL: %.2f'
                   % (epoch, num_epochs, i, len(dataloader),
                      loss.item(), reconstruction_loss.item(), kl_loss.item()))
-            reconstruction_losses.append(reconstruction_loss.item())
-            kl_losses.append(kl_loss.item())
-            losses.append(loss.item())
             with torch.no_grad():
               generated = model.sample(64, device)
               img_list.append(utils.make_grid(generated, padding=2, normalize=True))
 
-# plt.figure(figsize=(10,5))
-# plt.title("Generator and Discriminator Loss During Training")
-# plt.plot(generator_losses,label="G")
-# plt.plot(discriminator_losses,label="D")
-# plt.xlabel("iterations")
-# plt.ylabel("Loss")
-# plt.legend()
-# plt.show()
-# 
-# fig = plt.figure(figsize=(8,8))
-# plt.axis("off")
-# img1 = img_list[0]
-# plt.imshow(np.transpose(img1,(1,2,0)))
-# plt.show()
-# 
-# # Grab a batch of real images from the dataloader
-# real_batch = next(iter(dataloader))
-# 
-# Plot the real images
+
+fig = plt.figure(figsize=(8,8))
+plt.axis("off")
+img1 = img_list[-1].cpu()
+plt.imshow(np.transpose(img1,(1,2,0)))
+plt.show()
+
+
 real_batch = next(iter(dataloader))
 plt.figure(figsize=(15,15))
 plt.subplot(1,2,1)

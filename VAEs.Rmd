@@ -1,0 +1,222 @@
+
+# Variational autoencoders {#vaes}
+
+In this chapter, we look at the other -- as of this writing -- main type of architecture used for unsupervised learning: variational autoencoders (VAEs). VAEs are autoencoders, in that they compress their input and, starting from a compressed representation, aim for a faithful reconstruction. But in addition, there is constraint on that compressed representation: It is regularized so as to deviate as little as possible from a prior distribution, often (but not necessarily) a multivariate normal. The rationale behind this regularization is that we are looking for an informative _latent space_ of hidden variables, whose expression to various degrees should create the range of "phenotypes" observed.
+
+Thus, where GANs are designed solely for good generative performance, VAEs incorporate the additional aspiration to allow for a meaningful representation of the domain modeled. Of course, what counts as a meaningful representation is open for debate. Often in introductory articles, the latent space is chosen to consist of just two variables, which can then be drawn from at random and passed through the decoder. In two dimensions, we can then nicely plot the artifacts in a grid, and visually try to infer "what a dimension does". However, as soon as the domain modeled requires more than just two dimensions, the latent space itself has to undergo dimensionality reduction in order to be plotted, resulting in loss of information and, most problematically, ambiguity.
+
+In our sample application, we compare, for a given dataset, modeling with latent space dimensionalities of 2 and 128, respectively, and in the former case, take a look at the two-dimensional grid of artifacts.
+
+## Dataset
+
+For comparability with the GAN model shown in the last chapter, we use the same dataset, Kuzushiji-MNIST.
+
+```{python}
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.nn import functional as F
+import numpy as np
+import torchvision
+from torchvision import transforms, datasets, utils
+import os
+
+transform = transforms.Compose([transforms.ToTensor()])
+
+kmnist = torchvision.datasets.KMNIST("data/kmnist", train = True, transform = transform, download = True)
+
+dataloader = torch.utils.data.DataLoader(kmnist, batch_size=128, shuffle = True, num_workers = 8)
+
+device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
+```
+
+
+## Model
+
+This time, for illustrative purposes, we encapsulate all functionality in a custom `VAE` module comprises encoder and decoder submodules that are called, in order, from the `forward` method. Also contained in the module are the loss function and a utility function to sample images.
+
+The model uses the famous _reparameterization trick_ [@kingma2013autoencoding] to reduce variance during optimization. Instead of sampling directly from the latent space, using its mean and variance, we introduce a new standard-normal random variable $\epsilon$ and transform this into non-standard normals using the learned means and standard deviations from latent space.
+
+
+```{python, eval = FALSE}
+image_size = 28
+
+class View(nn.Module):
+    def __init__(self, shape):
+        super(View, self).__init__()
+        self.shape = shape
+    def forward(self, x):
+        return x.view(*self.shape)
+
+class VAE(nn.Module):
+
+    def __init__(self, latent_dim):
+        super(VAE, self).__init__()
+        self.latent_dim = latent_dim
+        
+        # encoder module
+        self.encoder = nn.Sequential(
+            nn.Conv2d(1, image_size, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size),
+            nn.LeakyReLU(),
+            nn.Conv2d(image_size, image_size * 2, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size * 2),
+            nn.LeakyReLU(),
+            nn.Conv2d(image_size * 2, image_size * 4, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size * 4),
+            nn.LeakyReLU(),
+            nn.Conv2d(image_size * 4, image_size * 8, kernel_size= 3, stride= 2, padding  = 1),
+            nn.BatchNorm2d(image_size * 8),
+            nn.LeakyReLU()
+        )
+        
+        # latent space means and (log) variances
+        self.latent_mean = nn.Linear(896, latent_dim)
+        self.latent_log_var = nn.Linear(896, latent_dim)
+        
+        # decoder module
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, image_size * 8),
+            View((-1, image_size * 8, 1, 1)),
+            nn.ConvTranspose2d(image_size * 8, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = False),
+            nn.BatchNorm2d(image_size * 4),
+            nn.LeakyReLU(),
+            # 8 * 8
+            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.BatchNorm2d(image_size * 2),
+            nn.LeakyReLU(),
+            # 16 x 16
+            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = False),
+            nn.BatchNorm2d(image_size),
+            nn.LeakyReLU(),
+            # 28 x 28
+            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.Sigmoid()
+        )
+        
+    def encode(self, input): 
+        result = self.encoder(input)
+        result = torch.flatten(result, start_dim = 1)
+        mean = self.latent_mean(result)
+        log_var = self.latent_log_var(result)
+        return [mean, log_var]
+        
+    def decode(self, z):
+        result = self.decoder(z)
+        return result
+        
+    def reparameterize(self, mean, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps * std + mean
+        
+    def forward(self, input):
+        mean, log_var = self.encode(input)
+        z = self.reparameterize(mean, log_var)
+        return [self.decode(z), input, mean, log_var]
+        
+    def loss_function(self, reconstruction, input, mean, log_var):
+        reconstruction_loss = F.binary_cross_entropy(reconstruction, input, reduction='sum')
+        kl_loss = -0.5 * torch.sum(1 + log_var - mean ** 2 - log_var.exp())
+        loss = reconstruction_loss + kl_loss
+        return loss, reconstruction_loss, kl_loss
+        
+    def sample(self, num_samples, current_device):
+        z = torch.randn(num_samples, self.latent_dim)
+        z = z.to(current_device)
+        samples = self.decode(z)
+        return samples
+
+model = VAE(latent_dim = 2).to(device)
+```
+
+### Training the VAE
+
+We train the model for 5 epochs. Training code is just a few lines, as the model itself contains all the logic.
+
+
+```{python, eval = FALSE}
+optimizer = optim.Adam(model.parameters(), lr = 1e-3)
+
+num_epochs = 5
+
+img_list  = []
+
+for epoch in range(num_epochs):
+    for i, data in enumerate(dataloader, 0):
+        data = data[0].to(device)
+        optimizer.zero_grad()
+        reconstruction, input, mean, log_var = model(data)
+        loss, reconstruction_loss, kl_loss = model.loss_function(reconstruction, input, mean, log_var)
+        loss.backward()
+        optimizer.step()
+        # Output training stats
+        if i % 50 == 0:
+            print('[%d/%d][%d/%d]\tLoss: %.2f\tReconstruction: %.2f\tKL: %.2f'
+                  % (epoch, num_epochs, i, len(dataloader),
+                     loss.item(), reconstruction_loss.item(), kl_loss.item()))
+            with torch.no_grad():
+              generated = model.sample(64, device)
+              img_list.append(utils.make_grid(generated, padding=2, normalize=True))
+
+
+```
+
+Above, we chose a latent dimension of 128 for the VAE. This is how generated images look as training progresses:
+
+```{r, eval = FALSE, fig.asp = 1, fig.width = 8}
+library(reticulate)
+library(dplyr)
+
+index <- seq(1, length(py$img_list), length.out = 16)
+# these have 3 channels! (probably due to torchvision.utils.make_grid)
+# size is 3 x 242 x 242
+images <- py$img_list[index]
+
+par(mfrow = c(4,4), mar = rep(0.2, 4))
+rasterize <- function(x) {
+     x <- x$cpu()$numpy()
+     x <- aperm(x, perm = c(2, 3, 1))
+     as.raster(x)
+}
+images %>%
+   purrr::map(rasterize) %>%
+   purrr::iwalk(~{plot(.x)})
+```
+
+
+
+For comparison, let's re-run training with a latent space dimensionality of 2. This is how artifacts over time look now:
+
+```{r}
+knitr::include_graphics("images/vae_2.png")
+```
+
+
+On the other hand, now we can try and visualize the latent space.
+
+```{r, eval = FALSE, fig.asp = 1, fig.width = 8}
+torch <- import("torch")
+n <- 8  
+digit_size <- 28
+
+# we will sample n points within [-4, 4] standard deviations
+grid_x <- seq(-4, 4, length.out = n)
+grid_y <- seq(-4, 4, length.out = n)
+
+rows <- NULL
+for(i in 1:length(grid_x)){
+  column <- NULL
+  for(j in 1:length(grid_y)){
+    z_sample <- torch$tensor(list(i, j), dtype = torch$float32)$cuda()
+    column <- rbind(column, py$model$decode(z_sample)$cpu()$detach()$numpy()[1, 1, , ] %>% matrix(ncol = digit_size))
+  }
+  rows <- cbind(rows, column)
+}
+rows %>% as.raster() %>% plot()
+
+
+```
+
+TBD: beta / info VAE?
+

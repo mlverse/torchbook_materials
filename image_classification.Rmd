@@ -139,7 +139,7 @@ inputs[0].shape
 --  which means that for plotting using `as.raster`, we need to reshape images such that channels come last.
 
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, fig.asp = 1, fig.width = 8}
 library(reticulate)
 library(dplyr)
 
@@ -153,7 +153,7 @@ images <- images * 255
 images[images > 255] <- 255
 images[images < 0] <- 0
 
-par(mfcol = c(4,4), mar = rep(1, 4), oma = rep(0.2, 4))
+par(mfcol = c(4,4), mar = rep(1, 4))
 
 images %>%
   purrr::array_tree(1) %>%
@@ -161,6 +161,11 @@ images %>%
   purrr::map(as.raster, max = 255) %>%
   purrr::iwalk(~{plot(.x); title(.y)})
 ```
+
+```{r}
+knitr::include_graphics("images/image_classif_birds.png")
+```
+
 
 ## Model
 

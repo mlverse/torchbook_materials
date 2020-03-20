@@ -38,17 +38,22 @@ images.device
 
 ... of which, let's plot the first 16:
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, fig.asp=1, fig.width=8}
 library(reticulate)
 library(dplyr)
 
 index <- 1:16
 images <- py$images$numpy()[index,,,] 
 
-par(mfcol = c(4,4), mar = c(0, 0, 0, 0))
+par(mfrow = c(4,4), mar = rep(0.2, 4))
 images %>%
   purrr::array_tree(1) %>%
-  purrr::map(function(img) image(img, col = gray.colors(n = 255), xaxt = 'n', yaxt = 'n', asp = 1))
+  purrr::map(as.raster) %>%
+  purrr::iwalk(~{plot(.x)})
+```
+
+```{r}
+knitr::include_graphics("images/gan_real.png")
 ```
 
 
@@ -252,11 +257,13 @@ for epoch in range(num_epochs):
 
 Now let's see samples of generated images, spread out over training time:
 
-```{r, eval = FALSE}
+```{r, eval = FALSE,  fig.asp=1, fig.width=8}
 index <- seq(1, length(py$img_list), length.out = 16)
+# these have 3 channels! (probably due to torchvision.utils.make_grid)
+# size is 3 x 242 x 242
 images <- py$img_list[index]
 
-par(mfcol = c(4,4), mar = rep(0, 4), oma = rep(0, 4))
+par(mfrow = c(4,4), mar = rep(0.2, 4))
 rasterize <- function(x) {
      x <- x$numpy()
      x <- aperm(x, perm = c(2, 3, 1))
@@ -267,19 +274,31 @@ images %>%
    purrr::iwalk(~{plot(.x)})
 ```
 
+```{r}
+knitr::include_graphics("images/gan_over_time.png")
+```
+
+
 To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch: 
 
 ```{python, eval = FALSE}
 new = generator(fixed_noise).cpu().detach().numpy()
 ```
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, fig.asp=1, fig.width=8}
+# dim 64 x 28 x 28 because drop 
 images <- py$new[,1,,] 
+images[images < 0] <- 0
 
-par(mfcol = c(8,8), mar = c(0, 0, 0, 0))
+par(mfrow = c(8,8), mar = rep(0.2, 4))
 images %>%
   purrr::array_tree(1) %>%
-  purrr::map(function(img) image(img, col = gray.colors(n = 255), xaxt = 'n', yaxt = 'n', asp = 1))
+  purrr::map(as.raster) %>%
+  purrr::iwalk(~{plot(.x)})
+```
+
+```{r}
+knitr::include_graphics("images/gan_over_time.png")
 ```
 
 We can also inspect how the respective losses developed over time:
