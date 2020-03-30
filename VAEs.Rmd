@@ -78,19 +78,19 @@ class VAE(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, image_size * 8),
             View((-1, image_size * 8, 1, 1)),
-            nn.ConvTranspose2d(image_size * 8, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = False),
+            nn.ConvTranspose2d(image_size * 8, image_size * 4, kernel_size = 4, stride = 1, padding = 0),
             nn.BatchNorm2d(image_size * 4),
             nn.LeakyReLU(),
             # 8 * 8
-            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1),
             nn.BatchNorm2d(image_size * 2),
             nn.LeakyReLU(),
             # 16 x 16
-            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = False),
+            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2),
             nn.BatchNorm2d(image_size),
             nn.LeakyReLU(),
             # 28 x 28
-            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1),
             nn.Sigmoid()
         )
         
@@ -127,18 +127,18 @@ class VAE(nn.Module):
         samples = self.decode(z)
         return samples
 
-model = VAE(latent_dim = 2).to(device)
+model = VAE(latent_dim = 128).to(device)
 ```
 
-### Training the VAE
+## Training the VAE
 
-We train the model for 5 epochs. Training code is just a few lines, as the model itself contains all the logic.
+We train the model for 3 epochs. Training code is just a few lines, as the model itself contains all the logic.
 
 
 ```{python, eval = FALSE}
 optimizer = optim.Adam(model.parameters(), lr = 1e-3)
 
-num_epochs = 5
+num_epochs = 3
 
 img_list  = []
 
@@ -184,31 +184,74 @@ images %>%
    purrr::iwalk(~{plot(.x)})
 ```
 
-
-
 For comparison, let's re-run training with a latent space dimensionality of 2. This is how artifacts over time look now:
 
 ```{r}
-knitr::include_graphics("images/vae_2.png")
+knitr::include_graphics("images/vae_128.png")
 ```
 
 
-On the other hand, now we can try and visualize the latent space.
+On the other hand, we can now visualize the latent space. 
+
+## Latent space
+
+```{python, eval = FALSE}
+kmnist_test = torchvision.datasets.KMNIST("data/kmnist", train = False, transform = transform)
+test_loader = torch.utils.data.DataLoader(kmnist_test, batch_size=10000, shuffle = False, num_workers = 8)
+
+model.eval()
+print(model.training)
+
+with torch.no_grad():
+  inputs, labels = next(iter(test_loader))
+  inputs = inputs.to(device)
+  encoded = model.encode(inputs)
+  
+labels = labels.cpu().numpy()
+encoded = encoded[1].cpu().numpy()
+
+```
+
 
 ```{r, eval = FALSE, fig.asp = 1, fig.width = 8}
+library(ggplot2)
+library(dplyr)
+library(reticulate)
+
+encoded <- py$encoded
+labels <- py$labels
+
+encoded %>%
+   as.data.frame() %>% 
+   mutate(class = as.factor(labels)) %>%
+   ggplot(aes(x = V1, y = V2, colour = class)) + geom_point() +
+   coord_fixed(xlim = c(-8, -1.5), ylim = c(-8, -1.5))
+
+```
+
+```{r}
+knitr::include_graphics("images/vae_2_latent.png")
+```
+
+
+Unfortunately, with a latent space dimensionality of 2, both dimensions end up strongly correlated, which is not something we would want. That notwithstanding, let's see how we would explore transitions in that latent space.
+
+```{r, eval = FALSE, fig.width = 8, fig.asp = 1}
 torch <- import("torch")
 n <- 8  
 digit_size <- 28
 
-# we will sample n points within [-4, 4] standard deviations
-grid_x <- seq(-4, 4, length.out = n)
-grid_y <- seq(-4, 4, length.out = n)
+grid_x <- seq(-8, 8, length.out = n)
+grid_y <- seq(-8, 8, length.out = n)
+
+py$model$eval()
+py$model$training
 
 rows <- NULL
 for(i in 1:length(grid_x)){
   column <- NULL
   for(j in 1:length(grid_y)){
-    z_sample <- torch$tensor(list(i, j), dtype = torch$float32)$cuda()
+    z_sample <- torch$tensor(list(grid_x[i], grid_y[j]), dtype = torch$float32)$cuda()
     column <- rbind(column, py$model$decode(z_sample)$cpu()$detach()$numpy()[1, 1, , ] %>% matrix(ncol = digit_size))
   }
   rows <- cbind(rows, column)
@@ -218,5 +261,11 @@ rows %>% as.raster() %>% plot()
 
 ```
 
-TBD: beta / info VAE?
 
+
+```{r}
+knitr::include_graphics("images/vae_2_grid.png")
+```
+
+Not too bad, though, for a latent dimensionality of 2 and a pretty complex dataset. 
+ 

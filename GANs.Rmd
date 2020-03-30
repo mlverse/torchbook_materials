@@ -171,7 +171,7 @@ disc_optimizer = optim.Adam(discriminator.parameters(), lr = lr, betas = (beta1,
 gen_optimizer = optim.Adam(generator.parameters(), lr = lr, betas = (beta1, 0.999))
 ```
 
-### Training loop
+## Training loop
 
 In every epoch, the training loop consists of three parts. 
 

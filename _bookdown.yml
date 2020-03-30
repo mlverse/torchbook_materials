@@ -20,6 +20,7 @@ rmd_files:
     "deep_learning_classical_applications.Rmd",
     "image_classification.Rmd",
     "GANs.Rmd",
+    "VAEs.Rmd",
 
 
     #"Intermediate_deep_learning.Rmd",
