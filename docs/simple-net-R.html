@@ -375,17 +375,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="simple-net-R.html#cb6-1"></a>first_ten_rows =<span class="st"> </span>x[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>, ]</span>
 <span id="cb6-2"><a href="simple-net-R.html#cb6-2"></a>first_ten_rows</span></code></pre></div>
 <pre><code>## &lt;rray&lt;dbl&gt;[,3][10]&gt;
-##              [,1]       [,2]        [,3]
-##  [1,] -0.86311543 -0.2738667 -0.79092860
-##  [2,]  2.22020219 -0.5302978 -0.23217598
-##  [3,]  1.05162952  0.9249955  0.01900744
-##  [4,]  2.98216105 -1.0900041  0.58411130
-##  [5,] -0.02647023 -0.5448429  0.53439087
-##  [6,]  2.87966937  1.0116127  0.60892090
-##  [7,]  0.54013676  0.1829598 -1.70087164
-##  [8,]  0.14599807  0.3332745  0.75749815
-##  [9,] -1.11570494  0.3250525 -0.33898053
-## [10,] -0.89620632  1.3566718 -0.10366001</code></pre>
+##             [,1]       [,2]       [,3]
+##  [1,] -0.8018103  0.5232357 -0.4976763
+##  [2,]  0.2084184 -0.6117711 -0.2821686
+##  [3,] -0.5707484 -0.4272654 -1.6404700
+##  [4,] -1.2050749  0.2614719  0.4622365
+##  [5,]  0.1364720 -0.4452550  0.2929454
+##  [6,] -0.0485285 -0.5040694 -0.1729509
+##  [7,] -1.9564042  1.1712243  1.3033751
+##  [8,] -0.8265342  1.5883638  1.2700707
+##  [9,]  0.2930114 -0.7506448  0.5437157
+## [10,]  0.5711420  0.1050799  1.1015971</code></pre>
 <p>We also need the weight matrices <span class="math inline">\(w1\)</span> and <span class="math inline">\(w2\)</span>, as well as the biases <span class="math inline">\(b1\)</span> and <span class="math inline">\(b2\)</span>.</p>
 </div>
 <div id="initialize-weights-and-biases" class="section level3" number="2.2.2">
@@ -456,26 +456,26 @@ It then uses the gradients to update the parameters.</p>
 <span id="cb9-42"><a href="simple-net-R.html#cb9-42"></a>    w1 &lt;-<span class="st"> </span>w1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w1</span>
 <span id="cb9-43"><a href="simple-net-R.html#cb9-43"></a>    b1 &lt;-<span class="st"> </span>b1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b1</span>
 <span id="cb9-44"><a href="simple-net-R.html#cb9-44"></a>}</span></code></pre></div>
-<pre><code>## Epoch: 10 , loss: 273.5556 
-## Epoch: 20 , loss: 167.8743 
-## Epoch: 30 , loss: 137.6218 
-## Epoch: 40 , loss: 122.9959 
-## Epoch: 50 , loss: 113.9372 
-## Epoch: 60 , loss: 107.4881 
-## Epoch: 70 , loss: 102.5606 
-## Epoch: 80 , loss: 98.3416 
-## Epoch: 90 , loss: 94.73058 
-## Epoch: 100 , loss: 91.93095 
-## Epoch: 110 , loss: 89.62278 
-## Epoch: 120 , loss: 87.51824 
-## Epoch: 130 , loss: 85.76446 
-## Epoch: 140 , loss: 84.25532 
-## Epoch: 150 , loss: 82.90089 
-## Epoch: 160 , loss: 81.58216 
-## Epoch: 170 , loss: 80.42611 
-## Epoch: 180 , loss: 79.45966 
-## Epoch: 190 , loss: 78.69111 
-## Epoch: 200 , loss: 78.0633</code></pre>
+<pre><code>## Epoch: 10 , loss: 198.4497 
+## Epoch: 20 , loss: 151.997 
+## Epoch: 30 , loss: 130.2929 
+## Epoch: 40 , loss: 117.9214 
+## Epoch: 50 , loss: 109.6249 
+## Epoch: 60 , loss: 103.5566 
+## Epoch: 70 , loss: 98.8641 
+## Epoch: 80 , loss: 95.46027 
+## Epoch: 90 , loss: 92.84742 
+## Epoch: 100 , loss: 90.76739 
+## Epoch: 110 , loss: 89.07068 
+## Epoch: 120 , loss: 87.77117 
+## Epoch: 130 , loss: 86.69824 
+## Epoch: 140 , loss: 85.91055 
+## Epoch: 150 , loss: 85.24424 
+## Epoch: 160 , loss: 84.63623 
+## Epoch: 170 , loss: 84.14554 
+## Epoch: 180 , loss: 83.68054 
+## Epoch: 190 , loss: 83.23096 
+## Epoch: 200 , loss: 82.77759</code></pre>
 <p>In the next chapter, we start introducing torch. Optimization will still be performed manually, but instead of <code>rray</code> we are going to use torch <em>tensors</em>.</p>
 </div>
 <div id="complete-code" class="section level3" number="2.2.4">
@@ -637,26 +637,26 @@ It then uses the gradients to update the parameters.</p>
 <span id="cb12-74"><a href="simple-net-R.html#cb12-74"></a>    b2 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_b2</span>
 <span id="cb12-75"><a href="simple-net-R.html#cb12-75"></a>    w1 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_w1</span>
 <span id="cb12-76"><a href="simple-net-R.html#cb12-76"></a>    b1 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_b1</span></code></pre></div>
-<pre><code>## 0 1961.3537084437428
-## 10 301.3833906430809
-## 20 178.35699307049282
-## 30 136.5191861215038
-## 40 120.03739560370337
-## 50 112.23947598127361
-## 60 107.87566287307726
-## 70 104.86132708289831
-## 80 102.64182492480157
-## 90 100.79008491426778
-## 100 98.84064722943131
-## 110 97.18724724719996
-## 120 95.68862685730107
-## 130 94.31247579762946
-## 140 93.06742188440978
-## 150 91.94196928824357
-## 160 90.88871963851729
-## 170 89.91832124874513
-## 180 89.04681804468176
-## 190 88.24454673932402</code></pre>
+<pre><code>## 0 1446.5763131031401
+## 10 411.00640217506356
+## 20 246.33598619237029
+## 30 176.88875370957376
+## 40 142.25067423975997
+## 50 123.60972072203597
+## 60 112.35698346070978
+## 70 105.11060564585442
+## 80 100.45898244099156
+## 90 97.19591893982005
+## 100 94.74218295618041
+## 110 92.80528277452842
+## 120 91.22449226256178
+## 130 89.85847157401066
+## 140 88.67931308719042
+## 150 87.56703106918245
+## 160 86.45014912868277
+## 170 85.38296082564722
+## 180 84.36684366990974
+## 190 83.36914724356586</code></pre>
 
 </div>
 </div>

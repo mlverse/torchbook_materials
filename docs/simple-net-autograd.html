@@ -252,7 +252,7 @@ If we now perform some operation on that tensor, assigning the result to <code>y
 <div class="sourceCode" id="cb142"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb142-1"><a href="simple-net-autograd.html#cb142-1"></a>y <span class="op">=</span> x.mean()</span></code></pre></div>
 <p>we find that <code>y</code> now has a non-empty <code>grad_fn</code> that tells torch how to compute the gradient of <code>y</code> with respect to <code>x</code>:</p>
 <div class="sourceCode" id="cb143"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb143-1"><a href="simple-net-autograd.html#cb143-1"></a>y.grad_fn</span></code></pre></div>
-<pre><code>## &lt;MeanBackward0 object at 0x7f39619be750&gt;</code></pre>
+<pre><code>## &lt;MeanBackward0 object at 0x7fbd89500910&gt;</code></pre>
 <p>Actual computation of gradients is triggered by calling <code>backward()</code> on the output tensor.</p>
 <div class="sourceCode" id="cb145"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb145-1"><a href="simple-net-autograd.html#cb145-1"></a>y.backward()</span></code></pre></div>
 <p>That executed, <code>x</code> now has a non-empty field <code>grad</code> that stores the gradient of <code>y</code> with respect to <code>x</code>:</p>
@@ -276,26 +276,26 @@ If we now perform some operation on that tensor, assigning the result to <code>y
 <span id="cb149-2"><a href="simple-net-autograd.html#cb149-2"></a>out.grad_fn</span>
 <span id="cb149-3"><a href="simple-net-autograd.html#cb149-3"></a></span>
 <span id="cb149-4"><a href="simple-net-autograd.html#cb149-4"></a><span class="co"># how to compute the gradient for the multiplication by 3 in z = y.pow(2) * 3</span></span></code></pre></div>
-<pre><code>## &lt;MeanBackward0 object at 0x7f39619a8c10&gt;</code></pre>
+<pre><code>## &lt;MeanBackward0 object at 0x7fbd89989650&gt;</code></pre>
 <div class="sourceCode" id="cb151"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb151-1"><a href="simple-net-autograd.html#cb151-1"></a>out.grad_fn.next_functions</span>
 <span id="cb151-2"><a href="simple-net-autograd.html#cb151-2"></a></span>
 <span id="cb151-3"><a href="simple-net-autograd.html#cb151-3"></a><span class="co"># how to compute the gradient for pow in z = y.pow(2) * 3</span></span></code></pre></div>
-<pre><code>## ((&lt;MulBackward0 object at 0x7f39619b2d90&gt;, 0),)</code></pre>
+<pre><code>## ((&lt;MulBackward0 object at 0x7fbd89a0f450&gt;, 0),)</code></pre>
 <div class="sourceCode" id="cb153"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb153-1"><a href="simple-net-autograd.html#cb153-1"></a>out.grad_fn.next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions</span>
 <span id="cb153-2"><a href="simple-net-autograd.html#cb153-2"></a></span>
 <span id="cb153-3"><a href="simple-net-autograd.html#cb153-3"></a><span class="co"># how to compute the gradient for the multiplication in y = x * (x + 2)</span></span></code></pre></div>
-<pre><code>## ((&lt;PowBackward0 object at 0x7f39619ccfd0&gt;, 0), (None, 0))</code></pre>
+<pre><code>## ((&lt;PowBackward0 object at 0x7fbd893d6610&gt;, 0), (None, 0))</code></pre>
 <div class="sourceCode" id="cb155"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb155-1"><a href="simple-net-autograd.html#cb155-1"></a>out.grad_fn.next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions</span>
 <span id="cb155-2"><a href="simple-net-autograd.html#cb155-2"></a></span>
 <span id="cb155-3"><a href="simple-net-autograd.html#cb155-3"></a><span class="co"># how to compute the gradient for the two branches of y = x * (x + 2),</span></span>
 <span id="cb155-4"><a href="simple-net-autograd.html#cb155-4"></a><span class="co"># where the left branch is a leaf node (AccumulateGrad for x1)</span></span></code></pre></div>
-<pre><code>## ((&lt;MulBackward0 object at 0x7f39619c9250&gt;, 0),)</code></pre>
+<pre><code>## ((&lt;MulBackward0 object at 0x7fbd89a0f6d0&gt;, 0),)</code></pre>
 <div class="sourceCode" id="cb157"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb157-1"><a href="simple-net-autograd.html#cb157-1"></a>out.grad_fn.next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions</span>
 <span id="cb157-2"><a href="simple-net-autograd.html#cb157-2"></a></span>
 <span id="cb157-3"><a href="simple-net-autograd.html#cb157-3"></a><span class="co"># here we arrive at the other leaf node (AccumulateGrad for x2)</span></span></code></pre></div>
-<pre><code>## ((&lt;AccumulateGrad object at 0x7f39619c9350&gt;, 0), (&lt;AddBackward0 object at 0x7f39619c9210&gt;, 0))</code></pre>
+<pre><code>## ((&lt;AccumulateGrad object at 0x7fbd89a0f7d0&gt;, 0), (&lt;AddBackward0 object at 0x7fbd89a0f3d0&gt;, 0))</code></pre>
 <div class="sourceCode" id="cb159"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb159-1"><a href="simple-net-autograd.html#cb159-1"></a>out.grad_fn.next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">1</span>][<span class="dv">0</span>].next_functions</span></code></pre></div>
-<pre><code>## ((&lt;AccumulateGrad object at 0x7f39619ab990&gt;, 0), (None, 0))</code></pre>
+<pre><code>## ((&lt;AccumulateGrad object at 0x7fbd89a0f850&gt;, 0), (None, 0))</code></pre>
 <p>After calling <code>out.backward()</code>, all tensors in the graph will have their respective gradients created. Without our calls to <code>retain_grad</code> above, <code>z.grad</code> and <code>y.grad</code> would be empty:</p>
 <div class="sourceCode" id="cb161"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb161-1"><a href="simple-net-autograd.html#cb161-1"></a>out.backward()</span>
 <span id="cb161-2"><a href="simple-net-autograd.html#cb161-2"></a></span>
@@ -381,26 +381,26 @@ If we now perform some operation on that tensor, assigning the result to <code>y
 <span id="cb169-64"><a href="simple-net-autograd.html#cb169-64"></a>        b1.grad.zero_()<span class="op">;</span></span>
 <span id="cb169-65"><a href="simple-net-autograd.html#cb169-65"></a>        b2.grad.zero_()<span class="op">;</span></span>
 <span id="cb169-66"><a href="simple-net-autograd.html#cb169-66"></a> </span></code></pre></div>
-<pre><code>## 0 15574.9052734375
-## 10 282.6145935058594
-## 20 178.201171875
-## 30 140.4932861328125
-## 40 121.07102966308594
-## 50 109.83460998535156
-## 60 102.58517456054688
-## 70 97.77085876464844
-## 80 94.29365539550781
-## 90 91.60527801513672
-## 100 89.34579467773438
-## 110 87.4442138671875
-## 120 85.80703735351562
-## 130 84.41175842285156
-## 140 83.1871337890625
-## 150 82.0877685546875
-## 160 80.97804260253906
-## 170 79.94309997558594
-## 180 78.96126556396484
-## 190 78.11006927490234</code></pre>
+<pre><code>## 0 1183.815185546875
+## 10 246.14181518554688
+## 20 165.94049072265625
+## 30 132.57644653320312
+## 40 116.63894653320312
+## 50 108.57292175292969
+## 60 103.59114074707031
+## 70 100.14640808105469
+## 80 97.37820434570312
+## 90 95.00691223144531
+## 100 92.87724304199219
+## 110 91.08377838134766
+## 120 89.64207458496094
+## 130 88.3702392578125
+## 140 87.16461181640625
+## 150 86.04962158203125
+## 160 85.02876281738281
+## 170 84.121826171875
+## 180 83.27958679199219
+## 190 82.4944839477539</code></pre>
 <p>We still manually compute the forward pass, and we still manually update the weights. In the last two chapters of this section, we’ll see how these parts of the logic can be made more modular and reusable, as well.</p>
 
 </div>
