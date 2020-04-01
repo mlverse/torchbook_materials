@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 3 Modifying the simple network to use torch tensors | Torch book</title>
+  <meta name="description" content="tbd" />
+  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 3 Modifying the simple network to use torch tensors | Torch book" />
+  <meta property="og:type" content="book" />
+  <meta property="og:url" content="tbd" />
+  <meta property="og:image" content="tbdcover.png" />
+  <meta property="og:description" content="tbd" />
+  <meta name="github-repo" content="tbd" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 3 Modifying the simple network to use torch tensors | Torch book" />
+  
+  <meta name="twitter:description" content="tbd" />
+  <meta name="twitter:image" content="tbdcover.png" />
+
+<meta name="author" content="tbd" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="simple-net-R.html"/>
+<link rel="next" href="simple-net-autograd.html"/>
+<script src="libs/header-attrs-2.1/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a>
+<ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#license"><i class="fa fa-check"></i>License</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#introduction-1"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+</ul></li>
+<li class="part"><span><b>I Using Torch</b></span></li>
+<li class="chapter" data-level="" data-path="using-torch-intro.html"><a href="using-torch-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="2" data-path="simple-net-R.html"><a href="simple-net-R.html"><i class="fa fa-check"></i><b>2</b> A simple neural network in R</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#whats-in-a-network"><i class="fa fa-check"></i><b>2.1</b> What’s in a network?</a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="simple-net-R.html"><a href="simple-net-R.html#gradient-descent"><i class="fa fa-check"></i><b>2.1.1</b> Gradient descent</a></li>
+<li class="chapter" data-level="2.1.2" data-path="simple-net-R.html"><a href="simple-net-R.html#from-linear-regression-to-a-simple-network"><i class="fa fa-check"></i><b>2.1.2</b> From linear regression to a simple network</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#a-simple-network"><i class="fa fa-check"></i><b>2.2</b> A simple network</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#simulate-data"><i class="fa fa-check"></i><b>2.2.1</b> Simulate data</a></li>
+<li class="chapter" data-level="2.2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#initialize-weights-and-biases"><i class="fa fa-check"></i><b>2.2.2</b> Initialize weights and biases</a></li>
+<li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
+<li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>2.3</b> Appendix: Python code</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#simple-network-torchified-step-1"><i class="fa fa-check"></i><b>3.1</b> Simple network torchified, step 1</a></li>
+<li class="chapter" data-level="3.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#more-on-tensors"><i class="fa fa-check"></i><b>3.2</b> More on tensors</a>
+<ul>
+<li class="chapter" data-level="3.2.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#creating-tensors"><i class="fa fa-check"></i><b>3.2.1</b> Creating tensors</a></li>
+<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-from-and-to-r"><i class="fa fa-check"></i><b>3.2.2</b> Conversion from and to R</a></li>
+<li class="chapter" data-level="3.2.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#indexing-and-slicing-tensors"><i class="fa fa-check"></i><b>3.2.3</b> Indexing and slicing tensors</a></li>
+<li class="chapter" data-level="3.2.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#reshaping-tensors"><i class="fa fa-check"></i><b>3.2.4</b> Reshaping tensors</a></li>
+<li class="chapter" data-level="3.2.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.2.5</b> Operations on tensors</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#modules"><i class="fa fa-check"></i><b>5.1</b> Modules</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#layers-as-modules"><i class="fa fa-check"></i><b>5.1.1</b> Layers as modules</a></li>
+<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using torch optimizers</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-torch.optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>torch.optim</code></a></li>
+</ul></li>
+<li class="part"><span><b>II Deep learning: classical applications</b></span></li>
+<li class="chapter" data-level="" data-path="deeplearning-applications-intro.html"><a href="deeplearning-applications-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-transformation"><i class="fa fa-check"></i><b>7.1</b> Data loading and transformation</a></li>
+<li class="chapter" data-level="7.2" data-path="image-classification.html"><a href="image-classification.html#model"><i class="fa fa-check"></i><b>7.2</b> Model</a></li>
+<li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
+<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>8</b> Generative adversarial networks</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>8.1</b> Dataset</a></li>
+<li class="chapter" data-level="8.2" data-path="gans.html"><a href="gans.html#model-1"><i class="fa fa-check"></i><b>8.2</b> Model</a>
+<ul>
+<li class="chapter" data-level="8.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>8.2.1</b> Generator</a></li>
+<li class="chapter" data-level="8.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>8.2.2</b> Discriminator</a></li>
+<li class="chapter" data-level="8.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>8.2.3</b> Optimizers and loss function</a></li>
+</ul></li>
+<li class="chapter" data-level="8.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>8.3</b> Training loop</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>9</b> Variational autoencoders</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>9.1</b> Dataset</a></li>
+<li class="chapter" data-level="9.2" data-path="vaes.html"><a href="vaes.html#model-2"><i class="fa fa-check"></i><b>9.2</b> Model</a></li>
+<li class="chapter" data-level="9.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>9.3</b> Training the VAE</a></li>
+<li class="chapter" data-level="9.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>9.4</b> Latent space</a></li>
+</ul></li>
+<li class="part"><span><b>III Intermediate deep learning</b></span></li>
+<li class="chapter" data-level="" data-path="intermediate-DL-intro.html"><a href="intermediate-DL-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="10" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>10</b> Sequence-to-sequence models with attention</a></li>
+<li class="chapter" data-level="11" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>11</b> Pytorch transformer modules</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Torch book</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="simple_net_tensors" class="section level1" number="3">
+<h1><span class="header-section-number">Chapter 3</span> Modifying the simple network to use torch tensors</h1>
+<p>Our first step of “torchifying” the network is to use torch <em>tensors</em> instead of <code>rray</code>. This means:</p>
+<ul>
+<li>We create data structures directly as torch tensors, e.g.using <code>torch.randn()</code> instead of <code>rray(rnorm...)</code>.</li>
+<li>We use methods on these tensors to create new tensors from existing ones, e.g. by matrix multiplication (<code>my_tensor.mm(other_tensor)</code>), setting negative elements to 0 (<code>my_tensor.clamp()</code>) or matrix transposition (<code>my_tensor.t()</code>).</li>
+</ul>
+<p>Apart from these changes, everything else stays the same (for now).
+We directly show the modified code for you to run, and then, go into more detail on tensor creation, indexing, broadcasting and that essential question – how do I run this on a GPU?</p>
+<div id="simple-network-torchified-step-1" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Simple network torchified, step 1</h2>
+<p>Again, if you’re just starting out, don’t worry about the details; you will never have to calculate gradients yourself this way.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="simple-net-tensors.html#cb14-1"></a></span>
+<span id="cb14-2"><a href="simple-net-tensors.html#cb14-2"></a><span class="im">import</span> torch</span>
+<span id="cb14-3"><a href="simple-net-tensors.html#cb14-3"></a></span>
+<span id="cb14-4"><a href="simple-net-tensors.html#cb14-4"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb14-5"><a href="simple-net-tensors.html#cb14-5"></a></span>
+<span id="cb14-6"><a href="simple-net-tensors.html#cb14-6"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb14-7"><a href="simple-net-tensors.html#cb14-7"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb14-8"><a href="simple-net-tensors.html#cb14-8"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb14-9"><a href="simple-net-tensors.html#cb14-9"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb14-10"><a href="simple-net-tensors.html#cb14-10"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb14-11"><a href="simple-net-tensors.html#cb14-11"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb14-12"><a href="simple-net-tensors.html#cb14-12"></a></span>
+<span id="cb14-13"><a href="simple-net-tensors.html#cb14-13"></a><span class="co"># create random data</span></span>
+<span id="cb14-14"><a href="simple-net-tensors.html#cb14-14"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
+<span id="cb14-15"><a href="simple-net-tensors.html#cb14-15"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
+<span id="cb14-16"><a href="simple-net-tensors.html#cb14-16"></a></span>
+<span id="cb14-17"><a href="simple-net-tensors.html#cb14-17"></a></span>
+<span id="cb14-18"><a href="simple-net-tensors.html#cb14-18"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
+<span id="cb14-19"><a href="simple-net-tensors.html#cb14-19"></a></span>
+<span id="cb14-20"><a href="simple-net-tensors.html#cb14-20"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb14-21"><a href="simple-net-tensors.html#cb14-21"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb14-22"><a href="simple-net-tensors.html#cb14-22"></a><span class="co"># weights connecting input to hidden layer</span></span>
+<span id="cb14-23"><a href="simple-net-tensors.html#cb14-23"></a>w1 <span class="op">=</span> torch.randn(d_in, d_hidden)</span>
+<span id="cb14-24"><a href="simple-net-tensors.html#cb14-24"></a><span class="co"># weights connecting hidden to output layer</span></span>
+<span id="cb14-25"><a href="simple-net-tensors.html#cb14-25"></a>w2 <span class="op">=</span> torch.randn(d_hidden, d_out)</span>
+<span id="cb14-26"><a href="simple-net-tensors.html#cb14-26"></a></span>
+<span id="cb14-27"><a href="simple-net-tensors.html#cb14-27"></a><span class="co"># hidden layer bias</span></span>
+<span id="cb14-28"><a href="simple-net-tensors.html#cb14-28"></a>b1 <span class="op">=</span> torch.zeros((<span class="dv">1</span>, d_hidden))</span>
+<span id="cb14-29"><a href="simple-net-tensors.html#cb14-29"></a><span class="co"># output layer bias</span></span>
+<span id="cb14-30"><a href="simple-net-tensors.html#cb14-30"></a>b2 <span class="op">=</span> torch.zeros((<span class="dv">1</span>, d_out))</span>
+<span id="cb14-31"><a href="simple-net-tensors.html#cb14-31"></a></span>
+<span id="cb14-32"><a href="simple-net-tensors.html#cb14-32"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
+<span id="cb14-33"><a href="simple-net-tensors.html#cb14-33"></a></span>
+<span id="cb14-34"><a href="simple-net-tensors.html#cb14-34"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span id="cb14-35"><a href="simple-net-tensors.html#cb14-35"></a></span>
+<span id="cb14-36"><a href="simple-net-tensors.html#cb14-36"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb14-37"><a href="simple-net-tensors.html#cb14-37"></a></span>
+<span id="cb14-38"><a href="simple-net-tensors.html#cb14-38"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
+<span id="cb14-39"><a href="simple-net-tensors.html#cb14-39"></a>    </span>
+<span id="cb14-40"><a href="simple-net-tensors.html#cb14-40"></a>    <span class="co">### -------- Forward pass -------- </span></span>
+<span id="cb14-41"><a href="simple-net-tensors.html#cb14-41"></a>    </span>
+<span id="cb14-42"><a href="simple-net-tensors.html#cb14-42"></a>    <span class="co"># compute pre-activations of hidden layers (dim: 100 x 32)</span></span>
+<span id="cb14-43"><a href="simple-net-tensors.html#cb14-43"></a>    h <span class="op">=</span> x.mm(w1) <span class="op">+</span> b1</span>
+<span id="cb14-44"><a href="simple-net-tensors.html#cb14-44"></a>    <span class="co"># apply activation function (dim: 100 x 32)</span></span>
+<span id="cb14-45"><a href="simple-net-tensors.html#cb14-45"></a>    h_relu <span class="op">=</span> h.clamp(<span class="bu">min</span> <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb14-46"><a href="simple-net-tensors.html#cb14-46"></a>    <span class="co"># compute output (dim: 100 x 1)</span></span>
+<span id="cb14-47"><a href="simple-net-tensors.html#cb14-47"></a>    y_pred <span class="op">=</span> h_relu.mm(w2) <span class="op">+</span> b2</span>
+<span id="cb14-48"><a href="simple-net-tensors.html#cb14-48"></a></span>
+<span id="cb14-49"><a href="simple-net-tensors.html#cb14-49"></a>    <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb14-50"><a href="simple-net-tensors.html#cb14-50"></a>    loss <span class="op">=</span> (y_pred <span class="op">-</span> y).<span class="bu">pow</span>(<span class="dv">2</span>).<span class="bu">sum</span>().item()</span>
+<span id="cb14-51"><a href="simple-net-tensors.html#cb14-51"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss)</span>
+<span id="cb14-52"><a href="simple-net-tensors.html#cb14-52"></a></span>
+<span id="cb14-53"><a href="simple-net-tensors.html#cb14-53"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
+<span id="cb14-54"><a href="simple-net-tensors.html#cb14-54"></a>    </span>
+<span id="cb14-55"><a href="simple-net-tensors.html#cb14-55"></a>    <span class="co"># gradient of loss w.r.t. prediction (dim: 100 x 1)</span></span>
+<span id="cb14-56"><a href="simple-net-tensors.html#cb14-56"></a>    grad_y_pred <span class="op">=</span> <span class="fl">2.0</span> <span class="op">*</span> (y_pred <span class="op">-</span> y)</span>
+<span id="cb14-57"><a href="simple-net-tensors.html#cb14-57"></a>    <span class="co"># gradient of loss w.r.t. w2 (dim: 32 x 1)</span></span>
+<span id="cb14-58"><a href="simple-net-tensors.html#cb14-58"></a>    grad_w2 <span class="op">=</span> h_relu.t().mm(grad_y_pred)</span>
+<span id="cb14-59"><a href="simple-net-tensors.html#cb14-59"></a>    <span class="co"># gradient of loss w.r.t. hidden activation (dim: 100 x 32)</span></span>
+<span id="cb14-60"><a href="simple-net-tensors.html#cb14-60"></a>    grad_h_relu <span class="op">=</span> grad_y_pred.mm(w2.t())</span>
+<span id="cb14-61"><a href="simple-net-tensors.html#cb14-61"></a>    <span class="co"># gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)</span></span>
+<span id="cb14-62"><a href="simple-net-tensors.html#cb14-62"></a>    grad_h <span class="op">=</span> grad_h_relu.clone()</span>
+<span id="cb14-63"><a href="simple-net-tensors.html#cb14-63"></a>    grad_h[h <span class="op">&lt;</span> <span class="dv">0</span>] <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb14-64"><a href="simple-net-tensors.html#cb14-64"></a>    <span class="co"># gradient of loss w.r.t. b2 (shape: ())</span></span>
+<span id="cb14-65"><a href="simple-net-tensors.html#cb14-65"></a>    grad_b2 <span class="op">=</span> grad_y_pred.<span class="bu">sum</span>()</span>
+<span id="cb14-66"><a href="simple-net-tensors.html#cb14-66"></a>    </span>
+<span id="cb14-67"><a href="simple-net-tensors.html#cb14-67"></a>    <span class="co"># gradient of loss w.r.t. w1 (dim: 3 x 32)</span></span>
+<span id="cb14-68"><a href="simple-net-tensors.html#cb14-68"></a>    grad_w1 <span class="op">=</span> x.t().mm(grad_h)</span>
+<span id="cb14-69"><a href="simple-net-tensors.html#cb14-69"></a>    <span class="co"># gradient of loss w.r.t. b1 (shape: (32, ))</span></span>
+<span id="cb14-70"><a href="simple-net-tensors.html#cb14-70"></a>    grad_b1 <span class="op">=</span> grad_h.<span class="bu">sum</span>(axis <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb14-71"><a href="simple-net-tensors.html#cb14-71"></a></span>
+<span id="cb14-72"><a href="simple-net-tensors.html#cb14-72"></a>    <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb14-73"><a href="simple-net-tensors.html#cb14-73"></a>    </span>
+<span id="cb14-74"><a href="simple-net-tensors.html#cb14-74"></a>    w2 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_w2</span>
+<span id="cb14-75"><a href="simple-net-tensors.html#cb14-75"></a>    b2 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_b2</span>
+<span id="cb14-76"><a href="simple-net-tensors.html#cb14-76"></a>    w1 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_w1</span>
+<span id="cb14-77"><a href="simple-net-tensors.html#cb14-77"></a>    b1 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_b1</span></code></pre></div>
+<pre><code>## 0 2594.117919921875
+## 10 145.6177215576172
+## 20 96.41925048828125
+## 30 80.46802520751953
+## 40 72.34801483154297
+## 50 67.63543701171875
+## 60 64.2032699584961
+## 70 62.10703659057617
+## 80 60.60144805908203
+## 90 59.45829772949219
+## 100 58.52149200439453
+## 110 57.71238327026367
+## 120 57.03559875488281
+## 130 56.410057067871094
+## 140 55.83657455444336
+## 150 55.38410568237305
+## 160 54.97311782836914
+## 170 54.60407638549805
+## 180 54.261844635009766
+## 190 53.93277359008789</code></pre>
+</div>
+<div id="more-on-tensors" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> More on tensors</h2>
+<p>Now let’s get a bit more background on tensors. There will be more in the next chapter; for now, we stay with what is needed to fully understand their use in the above example.</p>
+<div id="creating-tensors" class="section level3" number="3.2.1">
+<h3><span class="header-section-number">3.2.1</span> Creating tensors</h3>
+<p>Tensors can be created by specifying individual values:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb16-1"><a href="simple-net-tensors.html#cb16-1"></a>t <span class="op">=</span> torch.tensor([[<span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">5</span>, <span class="dv">6</span>]])</span>
+<span id="cb16-2"><a href="simple-net-tensors.html#cb16-2"></a>t</span></code></pre></div>
+<pre><code>## tensor([[1, 2],
+##         [3, 4],
+##         [5, 6]])</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="simple-net-tensors.html#cb18-1"></a>t <span class="op">=</span> torch.tensor([<span class="va">True</span>, <span class="va">False</span>])</span>
+<span id="cb18-2"><a href="simple-net-tensors.html#cb18-2"></a>t</span></code></pre></div>
+<pre><code>## tensor([ True, False])</code></pre>
+<p>Or as “bulk operations”, as in “give me an array of <some characteristic>, of shape n1 x n2”:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb20-1"><a href="simple-net-tensors.html#cb20-1"></a>t <span class="op">=</span> torch.randn(<span class="dv">3</span>, <span class="dv">3</span>)</span>
+<span id="cb20-2"><a href="simple-net-tensors.html#cb20-2"></a>t</span></code></pre></div>
+<pre><code>## tensor([[ 1.4350,  1.6493,  0.0892],
+##         [-0.5452,  0.2555, -0.9453],
+##         [ 1.3078, -1.5637,  0.4776]])</code></pre>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb22-1"><a href="simple-net-tensors.html#cb22-1"></a>t <span class="op">=</span> torch.zeros(<span class="dv">4</span>, <span class="dv">2</span>)</span>
+<span id="cb22-2"><a href="simple-net-tensors.html#cb22-2"></a>t</span></code></pre></div>
+<pre><code>## tensor([[0., 0.],
+##         [0., 0.],
+##         [0., 0.],
+##         [0., 0.]])</code></pre>
+<p>If no <code>dtype</code> is specified, torch will infer it from the data. For example:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb24-1"><a href="simple-net-tensors.html#cb24-1"></a>t <span class="op">=</span> torch.tensor([<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span>])</span>
+<span id="cb24-2"><a href="simple-net-tensors.html#cb24-2"></a>t.dtype</span></code></pre></div>
+<pre><code>## torch.int64</code></pre>
+<p>But we can explicitly pass a different dtype if we want:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb26-1"><a href="simple-net-tensors.html#cb26-1"></a>t <span class="op">=</span> torch.tensor([<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span>], dtype <span class="op">=</span> torch.int32)</span>
+<span id="cb26-2"><a href="simple-net-tensors.html#cb26-2"></a>t.dtype</span></code></pre></div>
+<pre><code>## torch.int32</code></pre>
+<p>Torch tensors live on a <em>device</em>. By default, this will be the CPU:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb28-1"><a href="simple-net-tensors.html#cb28-1"></a>t.device</span></code></pre></div>
+<pre><code>## device(type=&#39;cpu&#39;)</code></pre>
+<p>But we could also define a tensor to live on, for example, the GPU:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb30-1"><a href="simple-net-tensors.html#cb30-1"></a>t <span class="op">=</span> torch.tensor([<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span>], device <span class="op">=</span> <span class="st">&quot;cuda&quot;</span>)</span>
+<span id="cb30-2"><a href="simple-net-tensors.html#cb30-2"></a>t.device</span></code></pre></div>
+<pre><code>## device(type=&#39;cuda&#39;, index=0)</code></pre>
+<p>We’ll talk more about devices below.</p>
+<p>There is another very important parameter to the tensor creation functions: <code>requires_grad</code>. This one we’ll discuss in the next chapter on <em>autograd</em>.</p>
+</div>
+<div id="conversion-from-and-to-r" class="section level3" number="3.2.2">
+<h3><span class="header-section-number">3.2.2</span> Conversion from and to R</h3>
+<p>TBD - depends on how we do it</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb32-1"><a href="simple-net-tensors.html#cb32-1"></a>t <span class="op">=</span> torch.tensor([[<span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">5</span>, <span class="dv">6</span>]])</span>
+<span id="cb32-2"><a href="simple-net-tensors.html#cb32-2"></a>t_ <span class="op">=</span> t.cpu().numpy()</span></code></pre></div>
+<p>Note: in Python these share storage!</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb33-1"><a href="simple-net-tensors.html#cb33-1"></a>t_[<span class="dv">0</span>, <span class="dv">0</span>] <span class="op">=</span> <span class="dv">23</span></span>
+<span id="cb33-2"><a href="simple-net-tensors.html#cb33-2"></a>t_</span></code></pre></div>
+<pre><code>## array([[23,  2],
+##        [ 3,  4],
+##        [ 5,  6]])</code></pre>
+<div class="sourceCode" id="cb35"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb35-1"><a href="simple-net-tensors.html#cb35-1"></a>t</span></code></pre></div>
+<pre><code>## tensor([[23,  2],
+##         [ 3,  4],
+##         [ 5,  6]])</code></pre>
+<div class="sourceCode" id="cb37"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb37-1"><a href="simple-net-tensors.html#cb37-1"></a>t__ <span class="op">=</span> torch.from_numpy(t_)</span>
+<span id="cb37-2"><a href="simple-net-tensors.html#cb37-2"></a>t__</span></code></pre></div>
+<pre><code>## tensor([[23,  2],
+##         [ 3,  4],
+##         [ 5,  6]])</code></pre>
+</div>
+<div id="indexing-and-slicing-tensors" class="section level3" number="3.2.3">
+<h3><span class="header-section-number">3.2.3</span> Indexing and slicing tensors</h3>
+<p>TBD - assuming that this will work like in R</p>
+</div>
+<div id="reshaping-tensors" class="section level3" number="3.2.4">
+<h3><span class="header-section-number">3.2.4</span> Reshaping tensors</h3>
+<p>The need to reshape tensors occurs quite often in practice. For performance reasons, it is important to know whether a reshaping operation does or does not copy data.</p>
+<p><code>torch.view()</code> is the most commonly used reshaping operation.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb39-1"><a href="simple-net-tensors.html#cb39-1"></a>t1 <span class="op">=</span> torch.tensor([[<span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">5</span>, <span class="dv">6</span>]])</span>
+<span id="cb39-2"><a href="simple-net-tensors.html#cb39-2"></a>t1</span></code></pre></div>
+<pre><code>## tensor([[1, 2],
+##         [3, 4],
+##         [5, 6]])</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb41-1"><a href="simple-net-tensors.html#cb41-1"></a>t2 <span class="op">=</span> t1.view((<span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb41-2"><a href="simple-net-tensors.html#cb41-2"></a>t2</span></code></pre></div>
+<pre><code>## tensor([[1, 2, 3],
+##         [4, 5, 6]])</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb43-1"><a href="simple-net-tensors.html#cb43-1"></a>t3 <span class="op">=</span> t1.view(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>)</span>
+<span id="cb43-2"><a href="simple-net-tensors.html#cb43-2"></a>t3</span></code></pre></div>
+<pre><code>## tensor([[[1],
+##          [2],
+##          [3]],
+## 
+##         [[4],
+##          [5],
+##          [6]]])</code></pre>
+<div class="sourceCode" id="cb45"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb45-1"><a href="simple-net-tensors.html#cb45-1"></a>t3.shape</span></code></pre></div>
+<pre><code>## torch.Size([2, 3, 1])</code></pre>
+<div class="sourceCode" id="cb47"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb47-1"><a href="simple-net-tensors.html#cb47-1"></a>t4 <span class="op">=</span> t1.view((<span class="op">-</span><span class="dv">1</span>, <span class="dv">6</span>))</span>
+<span id="cb47-2"><a href="simple-net-tensors.html#cb47-2"></a>t4</span></code></pre></div>
+<pre><code>## tensor([[1, 2, 3, 4, 5, 6]])</code></pre>
+<div class="sourceCode" id="cb49"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb49-1"><a href="simple-net-tensors.html#cb49-1"></a>t4.shape</span></code></pre></div>
+<pre><code>## torch.Size([1, 6])</code></pre>
+<p>The returned tensor shares storage with the input tensor. To verify:</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb51-1"><a href="simple-net-tensors.html#cb51-1"></a>t1.storage().data_ptr()</span></code></pre></div>
+<pre><code>## 94035258062912</code></pre>
+<div class="sourceCode" id="cb53"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb53-1"><a href="simple-net-tensors.html#cb53-1"></a>t2.storage().data_ptr()</span></code></pre></div>
+<pre><code>## 94035258062912</code></pre>
+<p>What differs is the storage metadata torch keeps about both tensors. A tensor’s <code>stride</code> argument tracks, for every dimension, how many elements have to be traversed to arrive at its next unit (row or column, in two dimensions). For <code>t1</code> above, of shape 3x2, we have to skip over 2 elements to arrive at the next row. To arrive at the next column though, in every row we just have to skip a single entry:</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb55-1"><a href="simple-net-tensors.html#cb55-1"></a>t1.stride()</span></code></pre></div>
+<pre><code>## (2, 1)</code></pre>
+<p>For <code>t2</code>, of shape 3x2, the distance between column elements is the same, but the distance between rows now is 3:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb57-1"><a href="simple-net-tensors.html#cb57-1"></a>t2.stride()</span></code></pre></div>
+<pre><code>## (3, 1)</code></pre>
+<p>There are cases where <code>view()</code> will not work. This can happen when a tensor was obtained via an operation, other than <code>view()</code>, that only changes <em>strides</em>.</p>
+<p>One example is <code>transpose()</code>:</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb59-1"><a href="simple-net-tensors.html#cb59-1"></a>t1 <span class="op">=</span> torch.tensor([[<span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">5</span>, <span class="dv">6</span>]])</span>
+<span id="cb59-2"><a href="simple-net-tensors.html#cb59-2"></a>t2 <span class="op">=</span> t1.t()</span>
+<span id="cb59-3"><a href="simple-net-tensors.html#cb59-3"></a>t2.stride()</span></code></pre></div>
+<pre><code>## (1, 2)</code></pre>
+<p>These tensors, in torch terminology, are not “contiguous”.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>
+One way to reshape them is use <code>contiguous()</code> on them before:</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb61-1"><a href="simple-net-tensors.html#cb61-1"></a>t1 <span class="op">=</span> torch.tensor([[<span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">5</span>, <span class="dv">6</span>]])</span>
+<span id="cb61-2"><a href="simple-net-tensors.html#cb61-2"></a>t2 <span class="op">=</span> t1.t()</span>
+<span id="cb61-3"><a href="simple-net-tensors.html#cb61-3"></a></span>
+<span id="cb61-4"><a href="simple-net-tensors.html#cb61-4"></a>t2.is_contiguous()</span></code></pre></div>
+<pre><code>## False</code></pre>
+<div class="sourceCode" id="cb63"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb63-1"><a href="simple-net-tensors.html#cb63-1"></a>t2.view(<span class="dv">6</span>)</span></code></pre></div>
+<pre><code>## Error in py_call_impl(callable, dots$args, dots$keywords): RuntimeError: view size is not compatible with input tensor&#39;s size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.</code></pre>
+<div class="sourceCode" id="cb65"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb65-1"><a href="simple-net-tensors.html#cb65-1"></a>t3 <span class="op">=</span> t2.contiguous()</span>
+<span id="cb65-2"><a href="simple-net-tensors.html#cb65-2"></a>t3.stride()</span></code></pre></div>
+<pre><code>## (3, 1)</code></pre>
+<div class="sourceCode" id="cb67"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb67-1"><a href="simple-net-tensors.html#cb67-1"></a>t3.view(<span class="dv">6</span>)</span></code></pre></div>
+<pre><code>## tensor([1, 3, 5, 2, 4, 6])</code></pre>
+<p>Alternatively, we can use <code>reshape()</code>. <code>reshape()</code> defaults to <code>view()</code>-like behavior if possible; otherwise it will create a physical copy.</p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb69-1"><a href="simple-net-tensors.html#cb69-1"></a>t2.storage().data_ptr()</span></code></pre></div>
+<pre><code>## 94036340009216</code></pre>
+<div class="sourceCode" id="cb71"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb71-1"><a href="simple-net-tensors.html#cb71-1"></a>t4 <span class="op">=</span> t2.reshape(<span class="dv">6</span>)</span>
+<span id="cb71-2"><a href="simple-net-tensors.html#cb71-2"></a>t4.storage().data_ptr()</span></code></pre></div>
+<pre><code>## 94036338663424</code></pre>
+<p>A special case is adding or removing a singleton dimension. <code>torch.unsqueeze()</code> adds a dimension of size <code>1</code> at a place specified by <code>dim</code>:</p>
+<div class="sourceCode" id="cb73"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb73-1"><a href="simple-net-tensors.html#cb73-1"></a>t1 <span class="op">=</span> torch.randint(low <span class="op">=</span> <span class="dv">3</span>, high <span class="op">=</span> <span class="dv">7</span>, size <span class="op">=</span> (<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>))</span>
+<span id="cb73-2"><a href="simple-net-tensors.html#cb73-2"></a>t1</span></code></pre></div>
+<pre><code>## tensor([[[3, 3, 5],
+##          [4, 4, 5],
+##          [3, 3, 6]],
+## 
+##         [[5, 6, 3],
+##          [3, 5, 6],
+##          [4, 5, 4]],
+## 
+##         [[3, 5, 4],
+##          [3, 6, 4],
+##          [6, 5, 6]]])</code></pre>
+<div class="sourceCode" id="cb75"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb75-1"><a href="simple-net-tensors.html#cb75-1"></a>t2 <span class="op">=</span> t1.unsqueeze(dim <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb75-2"><a href="simple-net-tensors.html#cb75-2"></a>t2.size()</span></code></pre></div>
+<pre><code>## torch.Size([1, 3, 3, 3])</code></pre>
+<div class="sourceCode" id="cb77"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb77-1"><a href="simple-net-tensors.html#cb77-1"></a>t2</span></code></pre></div>
+<pre><code>## tensor([[[[3, 3, 5],
+##           [4, 4, 5],
+##           [3, 3, 6]],
+## 
+##          [[5, 6, 3],
+##           [3, 5, 6],
+##           [4, 5, 4]],
+## 
+##          [[3, 5, 4],
+##           [3, 6, 4],
+##           [6, 5, 6]]]])</code></pre>
+<div class="sourceCode" id="cb79"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb79-1"><a href="simple-net-tensors.html#cb79-1"></a>t3 <span class="op">=</span> t1.unsqueeze(dim <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb79-2"><a href="simple-net-tensors.html#cb79-2"></a>t3.size()</span></code></pre></div>
+<pre><code>## torch.Size([3, 1, 3, 3])</code></pre>
+<div class="sourceCode" id="cb81"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb81-1"><a href="simple-net-tensors.html#cb81-1"></a>t3</span></code></pre></div>
+<pre><code>## tensor([[[[3, 3, 5],
+##           [4, 4, 5],
+##           [3, 3, 6]]],
+## 
+## 
+##         [[[5, 6, 3],
+##           [3, 5, 6],
+##           [4, 5, 4]]],
+## 
+## 
+##         [[[3, 5, 4],
+##           [3, 6, 4],
+##           [6, 5, 6]]]])</code></pre>
+<p>Conversely, <code>torch.squeeze()</code> removes singleton dimensions:</p>
+<div class="sourceCode" id="cb83"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb83-1"><a href="simple-net-tensors.html#cb83-1"></a>t4 <span class="op">=</span> t3.squeeze()</span>
+<span id="cb83-2"><a href="simple-net-tensors.html#cb83-2"></a>t4.size()</span></code></pre></div>
+<pre><code>## torch.Size([3, 3, 3])</code></pre>
+</div>
+<div id="operations-on-tensors" class="section level3" number="3.2.5">
+<h3><span class="header-section-number">3.2.5</span> Operations on tensors</h3>
+<p>Tensor methods normally return references to new objects. Here, <code>t1</code> is not modified:</p>
+<div class="sourceCode" id="cb85"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb85-1"><a href="simple-net-tensors.html#cb85-1"></a>t1 <span class="op">=</span> torch.tensor([[<span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">5</span>, <span class="dv">6</span>]])</span>
+<span id="cb85-2"><a href="simple-net-tensors.html#cb85-2"></a>t2 <span class="op">=</span> t1.clone()</span>
+<span id="cb85-3"><a href="simple-net-tensors.html#cb85-3"></a>t1.add(t2)</span></code></pre></div>
+<pre><code>## tensor([[ 2,  4],
+##         [ 6,  8],
+##         [10, 12]])</code></pre>
+<div class="sourceCode" id="cb87"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb87-1"><a href="simple-net-tensors.html#cb87-1"></a>t1</span></code></pre></div>
+<pre><code>## tensor([[1, 2],
+##         [3, 4],
+##         [5, 6]])</code></pre>
+<p>Often, there are variants for mutating operations; these are discernible by a trailing underscore:</p>
+<div class="sourceCode" id="cb89"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb89-1"><a href="simple-net-tensors.html#cb89-1"></a>t1.add_(t2)</span></code></pre></div>
+<pre><code>## tensor([[ 2,  4],
+##         [ 6,  8],
+##         [10, 12]])</code></pre>
+<div class="sourceCode" id="cb91"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb91-1"><a href="simple-net-tensors.html#cb91-1"></a>t1</span></code></pre></div>
+<pre><code>## tensor([[ 2,  4],
+##         [ 6,  8],
+##         [10, 12]])</code></pre>
+<p>Alternatively, you can of course assign the new object to a new reference variable:</p>
+<div class="sourceCode" id="cb93"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb93-1"><a href="simple-net-tensors.html#cb93-1"></a>t3 <span class="op">=</span> t1.add(t1)</span>
+<span id="cb93-2"><a href="simple-net-tensors.html#cb93-2"></a>t3</span></code></pre></div>
+<pre><code>## tensor([[ 4,  8],
+##         [12, 16],
+##         [20, 24]])</code></pre>
+<p>Torch provides a bunch of mathematical operations on tensors; we’ll encounter some of them in the rest of this book.</p>
+</div>
+</div>
+<div id="broadcasting" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Broadcasting</h2>
+<p>We often have to perform operations on tensors with shapes that don’t match exactly.</p>
+<p>Unsurprisingly, we can add a scalar to a tensor:</p>
+<div class="sourceCode" id="cb95"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb95-1"><a href="simple-net-tensors.html#cb95-1"></a>t <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">5</span>])</span>
+<span id="cb95-2"><a href="simple-net-tensors.html#cb95-2"></a>t <span class="op">+</span> <span class="dv">22</span></span></code></pre></div>
+<pre><code>## tensor([[20.7246, 22.4309, 23.0712, 21.9910, 21.5205],
+##         [20.9430, 21.2160, 21.7859, 22.5640, 21.3041],
+##         [23.0046, 19.8480, 21.8497, 25.0753, 22.6005]])</code></pre>
+<p>The same will work if we add tensor of size 1:</p>
+<div class="sourceCode" id="cb97"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb97-1"><a href="simple-net-tensors.html#cb97-1"></a>t <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">5</span>])</span>
+<span id="cb97-2"><a href="simple-net-tensors.html#cb97-2"></a>t <span class="op">+</span> torch.tensor([<span class="dv">22</span>])</span></code></pre></div>
+<pre><code>## tensor([[20.6738, 22.5659, 22.1945, 20.6124, 21.1891],
+##         [21.6282, 22.6040, 19.1938, 23.2499, 21.9462],
+##         [21.7473, 22.2181, 22.5259, 22.1507, 21.4452]])</code></pre>
+<p>Adding tensors of different sizes normally won’t work:</p>
+<div class="sourceCode" id="cb99"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb99-1"><a href="simple-net-tensors.html#cb99-1"></a>t1 <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">5</span>])</span>
+<span id="cb99-2"><a href="simple-net-tensors.html#cb99-2"></a>t2 <span class="op">=</span> torch.randn([<span class="dv">5</span>,<span class="dv">5</span>])</span>
+<span id="cb99-3"><a href="simple-net-tensors.html#cb99-3"></a>t1.add(t2)</span></code></pre></div>
+<pre><code>## Error in py_call_impl(callable, dots$args, dots$keywords): RuntimeError: The size of tensor a (3) must match the size of tensor b (5) at non-singleton dimension 0</code></pre>
+<p>However, under certain conditions, one or both tensors may be virtually expanded to have both tensors match up. This behavior is called <em>broadcasting</em>, and is identical to that of Python’s NumPy.</p>
+<p>The rules are</p>
+<ol style="list-style-type: decimal">
+<li>We align array shapes, <em>starting from the right</em>. E.g.:</li>
+</ol>
+<pre><code>   # t1, shape:     8  1  6  1
+   # t2, shape:        7  1  5</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li><p>Starting to look from the right, the sizes along aligned axes either have to match exactly, or one of them has to be 1: In which case the latter is broadcast to the one not equal to 1.</p>
+<p>In the above example, this is the case for the second-from-last dimension. This now gives</p></li>
+</ol>
+<pre><code>   # t1, shape:     8  1  6  1
+   # t2, shape:        7  6  5</code></pre>
+<p>, with broadcasting happening in <code>t2</code>.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>If on the left, one of the arrays has an additional axis (or more than one), the other is virtually expanded to have a 1 in that place, in which case broadcasting will happen as stated in (2).</li>
+</ol>
+<pre><code>   # t1, shape:     8  1  6  1
+   # t2, shape:        7  1  5</code></pre>
+<p>This is the case with <code>t1</code>s leftmost dimension. First, there’s a virtual expansion</p>
+<pre><code>   # t1, shape:     8  1  6  1
+   # t2, shape:     1  7  1  5</code></pre>
+<p>and then, broadcasting happens:</p>
+<pre><code>   # t1, shape:     8  1  6  1
+   # t2, shape:     8  7  1  5</code></pre>
+<p>According to the rules, our above example</p>
+<div class="sourceCode" id="cb106"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb106-1"><a href="simple-net-tensors.html#cb106-1"></a>t1 <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">5</span>])</span>
+<span id="cb106-2"><a href="simple-net-tensors.html#cb106-2"></a>t2 <span class="op">=</span> torch.randn([<span class="dv">5</span>,<span class="dv">5</span>])</span>
+<span id="cb106-3"><a href="simple-net-tensors.html#cb106-3"></a>t1.add(t2)</span></code></pre></div>
+<pre><code>## Error in py_call_impl(callable, dots$args, dots$keywords): RuntimeError: The size of tensor a (3) must match the size of tensor b (5) at non-singleton dimension 0</code></pre>
+<p>could be modified in various ways that <em>would</em> allow for adding two tensors:</p>
+<div class="sourceCode" id="cb108"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb108-1"><a href="simple-net-tensors.html#cb108-1"></a>t1 <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">5</span>])</span>
+<span id="cb108-2"><a href="simple-net-tensors.html#cb108-2"></a>t2 <span class="op">=</span> torch.randn([<span class="dv">1</span>,<span class="dv">5</span>])</span>
+<span id="cb108-3"><a href="simple-net-tensors.html#cb108-3"></a>t1.add(t2)</span></code></pre></div>
+<pre><code>## tensor([[-1.7790, -1.8737, -2.1458, -1.5990, -1.3359],
+##         [-1.8533, -2.5608, -3.1343,  1.1770, -1.7599],
+##         [-1.2139, -2.1614, -3.8135,  1.2349, -3.7451]])</code></pre>
+<div class="sourceCode" id="cb110"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb110-1"><a href="simple-net-tensors.html#cb110-1"></a>t1 <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">5</span>])</span>
+<span id="cb110-2"><a href="simple-net-tensors.html#cb110-2"></a>t2 <span class="op">=</span> torch.randn([<span class="dv">5</span>])</span>
+<span id="cb110-3"><a href="simple-net-tensors.html#cb110-3"></a>t1.add(t2)</span></code></pre></div>
+<pre><code>## tensor([[-2.0257, -0.1375,  3.5505,  0.7995, -1.5937],
+##         [-1.6238, -1.9729,  3.4600, -0.4331, -0.7550],
+##         [-2.4202, -1.3190,  2.6964, -0.5679,  0.4990]])</code></pre>
+<div class="sourceCode" id="cb112"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb112-1"><a href="simple-net-tensors.html#cb112-1"></a>t1 <span class="op">=</span> torch.randn([<span class="dv">1</span>,<span class="dv">5</span>])</span>
+<span id="cb112-2"><a href="simple-net-tensors.html#cb112-2"></a>t2 <span class="op">=</span> torch.randn([<span class="dv">3</span>,<span class="dv">1</span>])</span>
+<span id="cb112-3"><a href="simple-net-tensors.html#cb112-3"></a>t1.add(t2)</span></code></pre></div>
+<pre><code>## tensor([[-1.1072, -1.8084, -0.4975,  0.5963,  0.0492],
+##         [-1.4407, -2.1419, -0.8310,  0.2628, -0.2843],
+##         [-1.8004, -2.5016, -1.1907, -0.0968, -0.6440]])</code></pre>
+<p>As a nice final example, through broadcasting, an outer product can be computed like so:</p>
+<div class="sourceCode" id="cb114"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb114-1"><a href="simple-net-tensors.html#cb114-1"></a>t1 <span class="op">=</span> torch.tensor([<span class="fl">0.0</span>, <span class="fl">10.0</span>, <span class="fl">20.0</span>, <span class="fl">30.0</span>])</span>
+<span id="cb114-2"><a href="simple-net-tensors.html#cb114-2"></a>t1.shape</span></code></pre></div>
+<pre><code>## torch.Size([4])</code></pre>
+<div class="sourceCode" id="cb116"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb116-1"><a href="simple-net-tensors.html#cb116-1"></a>t2 <span class="op">=</span> torch.tensor([<span class="fl">1.0</span>, <span class="fl">2.0</span>, <span class="fl">3.0</span>])</span>
+<span id="cb116-2"><a href="simple-net-tensors.html#cb116-2"></a>t2.shape</span></code></pre></div>
+<pre><code>## torch.Size([3])</code></pre>
+<div class="sourceCode" id="cb118"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb118-1"><a href="simple-net-tensors.html#cb118-1"></a>t1.view(<span class="dv">4</span>,<span class="dv">1</span>) <span class="op">*</span> t2</span></code></pre></div>
+<pre><code>## tensor([[ 0.,  0.,  0.],
+##         [10., 20., 30.],
+##         [20., 40., 60.],
+##         [30., 60., 90.]])</code></pre>
+</div>
+<div id="running-on-gpu" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> Running on GPU</h2>
+<p>To check if your GPU(s) is/are visible to torch, run</p>
+<div class="sourceCode" id="cb120"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb120-1"><a href="simple-net-tensors.html#cb120-1"></a>torch.cuda.is_available()</span></code></pre></div>
+<pre><code>## True</code></pre>
+<div class="sourceCode" id="cb122"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb122-1"><a href="simple-net-tensors.html#cb122-1"></a>torch.cuda.device_count()</span></code></pre></div>
+<pre><code>## 1</code></pre>
+<p>Above, we already saw that tensors can be created <em>on</em> a device, like so</p>
+<div class="sourceCode" id="cb124"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb124-1"><a href="simple-net-tensors.html#cb124-1"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda&quot;</span>)</span>
+<span id="cb124-2"><a href="simple-net-tensors.html#cb124-2"></a>t <span class="op">=</span> torch.ones((<span class="dv">2</span>, <span class="dv">2</span>), device <span class="op">=</span> device) </span></code></pre></div>
+<p>Tensors previously created on the CPU can be moved to GPU, and vice versa:</p>
+<div class="sourceCode" id="cb125"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb125-1"><a href="simple-net-tensors.html#cb125-1"></a>t <span class="op">=</span> t.cuda()</span>
+<span id="cb125-2"><a href="simple-net-tensors.html#cb125-2"></a>t</span></code></pre></div>
+<pre><code>## tensor([[1., 1.],
+##         [1., 1.]], device=&#39;cuda:0&#39;)</code></pre>
+<div class="sourceCode" id="cb127"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb127-1"><a href="simple-net-tensors.html#cb127-1"></a>t <span class="op">=</span> t.cpu()</span>
+<span id="cb127-2"><a href="simple-net-tensors.html#cb127-2"></a>t</span></code></pre></div>
+<pre><code>## tensor([[1., 1.],
+##         [1., 1.]])</code></pre>
+<p>Naturally, we don’t have to specify a device for every single tensor.
+To perform a whole computation on the GPU, put everything in a <em>with</em> block. This will use the first GPU, as determined by <em>cuda</em>:</p>
+<div class="sourceCode" id="cb129"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb129-1"><a href="simple-net-tensors.html#cb129-1"></a><span class="cf">with</span> torch.cuda.device(<span class="dv">0</span>):</span>
+<span id="cb129-2"><a href="simple-net-tensors.html#cb129-2"></a>    t1 <span class="op">=</span> torch.ones((<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb129-3"><a href="simple-net-tensors.html#cb129-3"></a>    t2 <span class="op">=</span> torch.randn((<span class="dv">2</span>,<span class="dv">4</span>))</span>
+<span id="cb129-4"><a href="simple-net-tensors.html#cb129-4"></a>    t1.mm(t2)</span></code></pre></div>
+<pre><code>## tensor([[-0.1786, -0.3831, -0.2206, -0.8747],
+##         [-0.1786, -0.3831, -0.2206, -0.8747]])</code></pre>
+<p>Still less granular, we can set a default device to use for all tensors created:</p>
+<div class="sourceCode" id="cb131"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb131-1"><a href="simple-net-tensors.html#cb131-1"></a>torch.set_default_tensor_type(<span class="st">&quot;torch.cuda.FloatTensor&quot;</span>)</span>
+<span id="cb131-2"><a href="simple-net-tensors.html#cb131-2"></a>t <span class="op">=</span> torch.tensor(<span class="dv">25</span>)</span>
+<span id="cb131-3"><a href="simple-net-tensors.html#cb131-3"></a>t</span></code></pre></div>
+<pre><code>## tensor(25)</code></pre>
+<p>Torch offers detailed information on GPU memory usage, e.g.</p>
+<div class="sourceCode" id="cb133"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb133-1"><a href="simple-net-tensors.html#cb133-1"></a>torch.cuda.memory_summary()</span></code></pre></div>
+<pre><code>## &#39;|===========================================================================|\n|                  PyTorch CUDA memory summary, device ID 0                 |\n|---------------------------------------------------------------------------|\n|            CUDA OOMs: 0            |        cudaMalloc retries: 0         |\n|===========================================================================|\n|        Metric         | Cur Usage  | Peak Usage | Tot Alloc  | Tot Freed  |\n|---------------------------------------------------------------------------|\n| Allocated memory      |    1024 B  |  133120 B  |  408064 B  |  407040 B  |\n|       from large pool |       0 B  |       0 B  |       0 B  |       0 B  |\n|       from small pool |    1024 B  |  133120 B  |  408064 B  |  407040 B  |\n|---------------------------------------------------------------------------|\n| Active memory         |    1024 B  |  133120 B  |  408064 B  |  407040 B  |\n|       from large pool |       0 B  |       0 B  |       0 B  |       0 B  |\n|       from small pool |    1024 B  |  133120 B  |  408064 B  |  407040 B  |\n|---------------------------------------------------------------------------|\n| GPU reserved memory   |    2048 KB |    2048 KB |    2048 KB |       0 B  |\n|       from large pool |       0 KB |       0 KB |       0 KB |       0 B  |\n|       from small pool |    2048 KB |    2048 KB |    2048 KB |       0 B  |\n|---------------------------------------------------------------------------|\n| Non-releasable memory |    2047 KB |    2047 KB |    4492 KB |    2445 KB |\n|       from large pool |       0 KB |       0 KB |       0 KB |       0 KB |\n|       from small pool |    2047 KB |    2047 KB |    4492 KB |    2445 KB |\n|---------------------------------------------------------------------------|\n| Allocations           |       2    |       7    |      31    |      29    |\n|       from large pool |       0    |       0    |       0    |       0    |\n|       from small pool |       2    |       7    |      31    |      29    |\n|---------------------------------------------------------------------------|\n| Active allocs         |       2    |       7    |      31    |      29    |\n|       from large pool |       0    |       0    |       0    |       0    |\n|       from small pool |       2    |       7    |      31    |      29    |\n|---------------------------------------------------------------------------|\n| GPU reserved segments |       1    |       1    |       1    |       0    |\n|       from large pool |       0    |       0    |       0    |       0    |\n|       from small pool |       1    |       1    |       1    |       0    |\n|---------------------------------------------------------------------------|\n| Non-releasable allocs |       1    |       3    |      13    |      12    |\n|       from large pool |       0    |       0    |       0    |       0    |\n|       from small pool |       1    |       3    |      13    |      12    |\n|===========================================================================|\n&#39;</code></pre>
+<p>To quickly determine memory allocated, run</p>
+<div class="sourceCode" id="cb135"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb135-1"><a href="simple-net-tensors.html#cb135-1"></a>torch.cuda.memory_allocated()</span></code></pre></div>
+<pre><code>## 1024</code></pre>
+<p>This is memory actually occupied by tensors having valid references. This is not always identical to memory claimed by torch, as torch caches memory. To see the amount reserved by the caching allocator, see</p>
+<div class="sourceCode" id="cb137"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb137-1"><a href="simple-net-tensors.html#cb137-1"></a>torch.cuda.memory_reserved()</span></code></pre></div>
+<pre><code>## 2097152</code></pre>
+<p>To actually restore unused memory to Cuda, issue</p>
+<div class="sourceCode" id="cb139"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb139-1"><a href="simple-net-tensors.html#cb139-1"></a>torch.cuda.empty_cache()</span></code></pre></div>
+<p>Here is a quick experiment illustrating the process, also referring memory usage as indicated by <code>nvidia-smi</code>. This was run in a fresh session.</p>
+<div class="sourceCode" id="cb140"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb140-1"><a href="simple-net-tensors.html#cb140-1"></a><span class="co"># nvidia-smi before: 559 MiB</span></span>
+<span id="cb140-2"><a href="simple-net-tensors.html#cb140-2"></a></span>
+<span id="cb140-3"><a href="simple-net-tensors.html#cb140-3"></a>torch.set_default_tensor_type(torch.cuda.FloatTensor)</span>
+<span id="cb140-4"><a href="simple-net-tensors.html#cb140-4"></a>t <span class="op">=</span> torch.randn((<span class="dv">1000</span>, <span class="dv">1000</span>, <span class="dv">500</span>))</span>
+<span id="cb140-5"><a href="simple-net-tensors.html#cb140-5"></a>torch.cuda.memory_allocated()</span>
+<span id="cb140-6"><a href="simple-net-tensors.html#cb140-6"></a><span class="op">&gt;</span> <span class="dv">2000683008</span></span>
+<span id="cb140-7"><a href="simple-net-tensors.html#cb140-7"></a>torch.cuda.memory_reserved()</span>
+<span id="cb140-8"><a href="simple-net-tensors.html#cb140-8"></a><span class="op">&gt;</span> <span class="dv">2000683008</span></span>
+<span id="cb140-9"><a href="simple-net-tensors.html#cb140-9"></a><span class="co"># nvidia-smi with tensor allocated: 2891 MiB</span></span>
+<span id="cb140-10"><a href="simple-net-tensors.html#cb140-10"></a></span>
+<span id="cb140-11"><a href="simple-net-tensors.html#cb140-11"></a><span class="kw">del</span> t</span>
+<span id="cb140-12"><a href="simple-net-tensors.html#cb140-12"></a>torch.cuda.memory_allocated()</span>
+<span id="cb140-13"><a href="simple-net-tensors.html#cb140-13"></a><span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb140-14"><a href="simple-net-tensors.html#cb140-14"></a>torch.cuda.memory_reserved()</span>
+<span id="cb140-15"><a href="simple-net-tensors.html#cb140-15"></a><span class="op">&gt;</span> <span class="dv">2000683008</span></span>
+<span id="cb140-16"><a href="simple-net-tensors.html#cb140-16"></a><span class="co"># nvidia-smi after deleting reference: 2891 MiB</span></span>
+<span id="cb140-17"><a href="simple-net-tensors.html#cb140-17"></a></span>
+<span id="cb140-18"><a href="simple-net-tensors.html#cb140-18"></a>torch.cuda.empty_cache()</span>
+<span id="cb140-19"><a href="simple-net-tensors.html#cb140-19"></a>torch.cuda.memory_reserved()</span>
+<span id="cb140-20"><a href="simple-net-tensors.html#cb140-20"></a><span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb140-21"><a href="simple-net-tensors.html#cb140-21"></a><span class="co"># nvidia-smi after emptying cache: 982 MiB</span></span></code></pre></div>
+<p>That’s it for a first introduction to torch tensors. In the next chapter, we continue our torchification of the simple network.</p>
+
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="3">
+<li id="fn3"><p>Although it may sound like, “contiguous” does not correspond to what we’d call “contiguous in memory” in casual language.<a href="simple-net-tensors.html#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="simple-net-R.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="simple-net-autograd.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

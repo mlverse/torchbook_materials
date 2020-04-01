@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 7 Classifying images | Torch book</title>
+  <meta name="description" content="tbd" />
+  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 7 Classifying images | Torch book" />
+  <meta property="og:type" content="book" />
+  <meta property="og:url" content="tbd" />
+  <meta property="og:image" content="tbdcover.png" />
+  <meta property="og:description" content="tbd" />
+  <meta name="github-repo" content="tbd" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 7 Classifying images | Torch book" />
+  
+  <meta name="twitter:description" content="tbd" />
+  <meta name="twitter:image" content="tbdcover.png" />
+
+<meta name="author" content="tbd" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="deeplearning-applications-intro.html"/>
+<link rel="next" href="gans.html"/>
+<script src="libs/header-attrs-2.1/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a>
+<ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#license"><i class="fa fa-check"></i>License</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#introduction-1"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+</ul></li>
+<li class="part"><span><b>I Using Torch</b></span></li>
+<li class="chapter" data-level="" data-path="using-torch-intro.html"><a href="using-torch-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="2" data-path="simple-net-R.html"><a href="simple-net-R.html"><i class="fa fa-check"></i><b>2</b> A simple neural network in R</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#whats-in-a-network"><i class="fa fa-check"></i><b>2.1</b> What’s in a network?</a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="simple-net-R.html"><a href="simple-net-R.html#gradient-descent"><i class="fa fa-check"></i><b>2.1.1</b> Gradient descent</a></li>
+<li class="chapter" data-level="2.1.2" data-path="simple-net-R.html"><a href="simple-net-R.html#from-linear-regression-to-a-simple-network"><i class="fa fa-check"></i><b>2.1.2</b> From linear regression to a simple network</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#a-simple-network"><i class="fa fa-check"></i><b>2.2</b> A simple network</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#simulate-data"><i class="fa fa-check"></i><b>2.2.1</b> Simulate data</a></li>
+<li class="chapter" data-level="2.2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#initialize-weights-and-biases"><i class="fa fa-check"></i><b>2.2.2</b> Initialize weights and biases</a></li>
+<li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
+<li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>2.3</b> Appendix: Python code</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#simple-network-torchified-step-1"><i class="fa fa-check"></i><b>3.1</b> Simple network torchified, step 1</a></li>
+<li class="chapter" data-level="3.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#more-on-tensors"><i class="fa fa-check"></i><b>3.2</b> More on tensors</a>
+<ul>
+<li class="chapter" data-level="3.2.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#creating-tensors"><i class="fa fa-check"></i><b>3.2.1</b> Creating tensors</a></li>
+<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-from-and-to-r"><i class="fa fa-check"></i><b>3.2.2</b> Conversion from and to R</a></li>
+<li class="chapter" data-level="3.2.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#indexing-and-slicing-tensors"><i class="fa fa-check"></i><b>3.2.3</b> Indexing and slicing tensors</a></li>
+<li class="chapter" data-level="3.2.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#reshaping-tensors"><i class="fa fa-check"></i><b>3.2.4</b> Reshaping tensors</a></li>
+<li class="chapter" data-level="3.2.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.2.5</b> Operations on tensors</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#modules"><i class="fa fa-check"></i><b>5.1</b> Modules</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#layers-as-modules"><i class="fa fa-check"></i><b>5.1.1</b> Layers as modules</a></li>
+<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using torch optimizers</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-torch.optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>torch.optim</code></a></li>
+</ul></li>
+<li class="part"><span><b>II Deep learning: classical applications</b></span></li>
+<li class="chapter" data-level="" data-path="deeplearning-applications-intro.html"><a href="deeplearning-applications-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-transformation"><i class="fa fa-check"></i><b>7.1</b> Data loading and transformation</a></li>
+<li class="chapter" data-level="7.2" data-path="image-classification.html"><a href="image-classification.html#model"><i class="fa fa-check"></i><b>7.2</b> Model</a></li>
+<li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
+<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>8</b> Generative adversarial networks</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>8.1</b> Dataset</a></li>
+<li class="chapter" data-level="8.2" data-path="gans.html"><a href="gans.html#model-1"><i class="fa fa-check"></i><b>8.2</b> Model</a>
+<ul>
+<li class="chapter" data-level="8.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>8.2.1</b> Generator</a></li>
+<li class="chapter" data-level="8.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>8.2.2</b> Discriminator</a></li>
+<li class="chapter" data-level="8.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>8.2.3</b> Optimizers and loss function</a></li>
+</ul></li>
+<li class="chapter" data-level="8.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>8.3</b> Training loop</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>9</b> Variational autoencoders</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>9.1</b> Dataset</a></li>
+<li class="chapter" data-level="9.2" data-path="vaes.html"><a href="vaes.html#model-2"><i class="fa fa-check"></i><b>9.2</b> Model</a></li>
+<li class="chapter" data-level="9.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>9.3</b> Training the VAE</a></li>
+<li class="chapter" data-level="9.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>9.4</b> Latent space</a></li>
+</ul></li>
+<li class="part"><span><b>III Intermediate deep learning</b></span></li>
+<li class="chapter" data-level="" data-path="intermediate-DL-intro.html"><a href="intermediate-DL-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="10" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>10</b> Sequence-to-sequence models with attention</a></li>
+<li class="chapter" data-level="11" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>11</b> Pytorch transformer modules</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Torch book</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="image_classification" class="section level1" number="7">
+<h1><span class="header-section-number">Chapter 7</span> Classifying images</h1>
+<p>As our first real deep learning application, we’ll pick image classification, arguably the scene of deep learning’s first “official breakthrough”. As explained in the introduction, we aim to make this text readable by both newcomers and experienced users of other frameworks (e.g., TensorFlow).
+Consequently, we may quickly characterize commonly-used-in-deep-learning features, but rely on you looking up mathematical details yourself; instead, we’ll focus on torch mechanics, which should be relevant to both types of audiences.</p>
+<p>Our example setup will differentiate birds by species. In image classification, especially on motifs so close to what’s contained in <a href="">ImageNet</a>, it is rare to start from scratch: Pre-trained – pre-trained, mostly, on that same ImageNet dataset, that is – models exist, and we can repurpose them to fit our own data, still benefiting from their compositional feature-extraction capabilities.</p>
+<p>Concretely, we will use Resnet, one of several classic computer vision models provided by torchvision, and attach our own classification layer on top. If you are looking for how to code a convolutional neural network from scratch, you can pick up related information in the following chapter on generative adversarial networks.</p>
+<div id="data-loading-and-transformation" class="section level2" number="7.1">
+<h2><span class="header-section-number">7.1</span> Data loading and transformation</h2>
+<p>The example dataset used here is available on Kaggle (<a href="https://www.kaggle.com/gpiosenka/100-bird-species/data" class="uri">https://www.kaggle.com/gpiosenka/100-bird-species/data</a>). It is very “un-noisy”, which is why, the number of classes notwithstanding (130!), accuracy will turn out to be very good.</p>
+<div class="sourceCode" id="cb218"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb218-1"><a href="image-classification.html#cb218-1"></a><span class="im">import</span> torch</span>
+<span id="cb218-2"><a href="image-classification.html#cb218-2"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb218-3"><a href="image-classification.html#cb218-3"></a><span class="im">import</span> torchvision</span>
+<span id="cb218-4"><a href="image-classification.html#cb218-4"></a><span class="im">from</span> torchvision <span class="im">import</span> transforms, datasets, models</span>
+<span id="cb218-5"><a href="image-classification.html#cb218-5"></a><span class="im">import</span> os</span></code></pre></div>
+<div class="sourceCode" id="cb219"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb219-1"><a href="image-classification.html#cb219-1"></a><span class="co"># https://www.kaggle.com/gpiosenka/100-bird-species/data</span></span>
+<span id="cb219-2"><a href="image-classification.html#cb219-2"></a>data_dir <span class="op">=</span> <span class="st">&#39;data/bird_species&#39;</span></span></code></pre></div>
+<p>The data set being so clean, we’ll want to introduce random noise (<em>data augmentation</em>) on the training set to enhance model resiliency.</p>
+<p>In torchvision, data augmentation steps are added as part of an <em>image processing pipeline</em> that also takes care of resizing / cropping images, converting them to torch tensors, and possibly, normalizing them according to the model’s expectations. Here they are, deterministic on validation and test sets, but including random components for the training set:</p>
+<div class="sourceCode" id="cb220"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb220-1"><a href="image-classification.html#cb220-1"></a>data_transforms <span class="op">=</span> {</span>
+<span id="cb220-2"><a href="image-classification.html#cb220-2"></a>    <span class="st">&#39;train&#39;</span>: transforms.Compose([</span>
+<span id="cb220-3"><a href="image-classification.html#cb220-3"></a>        transforms.RandomResizedCrop(<span class="dv">224</span>),</span>
+<span id="cb220-4"><a href="image-classification.html#cb220-4"></a>        transforms.ColorJitter(),</span>
+<span id="cb220-5"><a href="image-classification.html#cb220-5"></a>        transforms.RandomHorizontalFlip(),</span>
+<span id="cb220-6"><a href="image-classification.html#cb220-6"></a>        transforms.ToTensor(),</span>
+<span id="cb220-7"><a href="image-classification.html#cb220-7"></a>        transforms.Normalize([<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>], [<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>])</span>
+<span id="cb220-8"><a href="image-classification.html#cb220-8"></a>    ]),</span>
+<span id="cb220-9"><a href="image-classification.html#cb220-9"></a>    <span class="st">&#39;valid&#39;</span>: transforms.Compose([</span>
+<span id="cb220-10"><a href="image-classification.html#cb220-10"></a>        transforms.Resize(<span class="dv">256</span>),</span>
+<span id="cb220-11"><a href="image-classification.html#cb220-11"></a>        transforms.CenterCrop(<span class="dv">224</span>),</span>
+<span id="cb220-12"><a href="image-classification.html#cb220-12"></a>        transforms.ToTensor(),</span>
+<span id="cb220-13"><a href="image-classification.html#cb220-13"></a>        transforms.Normalize([<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>], [<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>])</span>
+<span id="cb220-14"><a href="image-classification.html#cb220-14"></a>    ]),</span>
+<span id="cb220-15"><a href="image-classification.html#cb220-15"></a>    <span class="st">&#39;test&#39;</span>: transforms.Compose([</span>
+<span id="cb220-16"><a href="image-classification.html#cb220-16"></a>        transforms.Resize(<span class="dv">256</span>),</span>
+<span id="cb220-17"><a href="image-classification.html#cb220-17"></a>        transforms.CenterCrop(<span class="dv">224</span>),</span>
+<span id="cb220-18"><a href="image-classification.html#cb220-18"></a>        transforms.ToTensor(),</span>
+<span id="cb220-19"><a href="image-classification.html#cb220-19"></a>        transforms.Normalize([<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>], [<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>])</span>
+<span id="cb220-20"><a href="image-classification.html#cb220-20"></a>    ]),</span>
+<span id="cb220-21"><a href="image-classification.html#cb220-21"></a>}</span>
+<span id="cb220-22"><a href="image-classification.html#cb220-22"></a></span>
+<span id="cb220-23"><a href="image-classification.html#cb220-23"></a>data_transforms</span></code></pre></div>
+<pre><code>## {&#39;train&#39;: Compose(
+##     RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333), interpolation=PIL.Image.BILINEAR)
+##     ColorJitter(brightness=None, contrast=None, saturation=None, hue=None)
+##     RandomHorizontalFlip(p=0.5)
+##     ToTensor()
+##     Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+## ), &#39;valid&#39;: Compose(
+##     Resize(size=256, interpolation=PIL.Image.BILINEAR)
+##     CenterCrop(size=(224, 224))
+##     ToTensor()
+##     Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+## ), &#39;test&#39;: Compose(
+##     Resize(size=256, interpolation=PIL.Image.BILINEAR)
+##     CenterCrop(size=(224, 224))
+##     ToTensor()
+##     Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+## )}</code></pre>
+<p><code>ImageFolder</code> is a subtype of dataset that encapsulates information about where the images reside, and what transformations to apply. Here, we create such a dataset for each of training, validation and test set:</p>
+<div class="sourceCode" id="cb222"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb222-1"><a href="image-classification.html#cb222-1"></a>image_datasets <span class="op">=</span> {x: datasets.ImageFolder(os.path.join(data_dir, x),</span>
+<span id="cb222-2"><a href="image-classification.html#cb222-2"></a>                                          data_transforms[x])</span>
+<span id="cb222-3"><a href="image-classification.html#cb222-3"></a>                  <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>, <span class="st">&#39;test&#39;</span>]}</span>
+<span id="cb222-4"><a href="image-classification.html#cb222-4"></a>image_datasets</span></code></pre></div>
+<pre><code>## {&#39;train&#39;: Dataset ImageFolder
+##     Number of datapoints: 17038
+##     Root location: data/bird_species/train
+##     StandardTransform
+## Transform: Compose(
+##                RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333), interpolation=PIL.Image.BILINEAR)
+##                ColorJitter(brightness=None, contrast=None, saturation=None, hue=None)
+##                RandomHorizontalFlip(p=0.5)
+##                ToTensor()
+##                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+##            ), &#39;valid&#39;: Dataset ImageFolder
+##     Number of datapoints: 650
+##     Root location: data/bird_species/valid
+##     StandardTransform
+## Transform: Compose(
+##                Resize(size=256, interpolation=PIL.Image.BILINEAR)
+##                CenterCrop(size=(224, 224))
+##                ToTensor()
+##                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+##            ), &#39;test&#39;: Dataset ImageFolder
+##     Number of datapoints: 650
+##     Root location: data/bird_species/test
+##     StandardTransform
+## Transform: Compose(
+##                Resize(size=256, interpolation=PIL.Image.BILINEAR)
+##                CenterCrop(size=(224, 224))
+##                ToTensor()
+##                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+##            )}</code></pre>
+<p><code>ImageFolder</code> objects expect the different classes of images to reside each in their own folder. In our example, this is in fact the case; for example, here is the directory layout for the first three classes in the test set:</p>
+<pre><code>data/test/ALBATROSS/
+ - data/test/ALBATROSS/1.jpg
+ - data/test/ALBATROSS/2.jpg
+ - data/test/ALBATROSS/3.jpg
+ - data/test/ALBATROSS/4.jpg
+ - data/test/ALBATROSS/5.jpg
+ 
+data/test/&#39;ALEXANDRINE PARAKEET&#39;/
+ - data/test/&#39;ALEXANDRINE PARAKEET&#39;/1.jpg
+ - data/test/&#39;ALEXANDRINE PARAKEET&#39;/2.jpg
+ - data/test/&#39;ALEXANDRINE PARAKEET&#39;/3.jpg
+ - data/test/&#39;ALEXANDRINE PARAKEET&#39;/4.jpg
+ - data/test/&#39;ALEXANDRINE PARAKEET&#39;/5.jpg
+ 
+ data/test/&#39;AMERICAN BITTERN&#39;/
+ - data/test/&#39;AMERICAN BITTERN&#39;/1.jpg
+ - data/test/&#39;AMERICAN BITTERN&#39;/2.jpg
+ - data/test/&#39;AMERICAN BITTERN&#39;/3.jpg
+ - data/test/&#39;AMERICAN BITTERN&#39;/4.jpg
+ - data/test/&#39;AMERICAN BITTERN&#39;/5.jpg</code></pre>
+<p>From those specifications, <code>DataLoaders</code> are created. These objects, in addition to what to load and which transformations to apply, know things like: many items to load in a batch, whether they should be shuffled, and whether to parallelize the transformations.</p>
+<div class="sourceCode" id="cb225"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb225-1"><a href="image-classification.html#cb225-1"></a>dataloaders <span class="op">=</span> {x: torch.utils.data.DataLoader(image_datasets[x], batch_size<span class="op">=</span><span class="dv">16</span>,</span>
+<span id="cb225-2"><a href="image-classification.html#cb225-2"></a>                                             shuffle<span class="op">=</span><span class="va">True</span>, num_workers<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb225-3"><a href="image-classification.html#cb225-3"></a>              <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>, <span class="st">&#39;test&#39;</span>]}</span>
+<span id="cb225-4"><a href="image-classification.html#cb225-4"></a>dataloaders</span></code></pre></div>
+<pre><code>## {&#39;train&#39;: &lt;torch.utils.data.dataloader.DataLoader object at 0x7f3960080450&gt;, &#39;valid&#39;: &lt;torch.utils.data.dataloader.DataLoader object at 0x7f39603aca10&gt;, &#39;test&#39;: &lt;torch.utils.data.dataloader.DataLoader object at 0x7f3960080490&gt;}</code></pre>
+<p>How many items are there in each set?</p>
+<div class="sourceCode" id="cb227"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb227-1"><a href="image-classification.html#cb227-1"></a>dataset_sizes <span class="op">=</span> {x: <span class="bu">len</span>(image_datasets[x]) <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>, <span class="st">&#39;test&#39;</span>]}</span>
+<span id="cb227-2"><a href="image-classification.html#cb227-2"></a>dataset_sizes</span></code></pre></div>
+<pre><code>## {&#39;train&#39;: 17038, &#39;valid&#39;: 650, &#39;test&#39;: 650}</code></pre>
+<p>Datasets know what classes there are:</p>
+<div class="sourceCode" id="cb229"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb229-1"><a href="image-classification.html#cb229-1"></a>class_names <span class="op">=</span> image_datasets[<span class="st">&#39;train&#39;</span>].classes</span>
+<span id="cb229-2"><a href="image-classification.html#cb229-2"></a>class_names</span></code></pre></div>
+<pre><code>## [&#39;ALBATROSS&#39;, &#39;ALEXANDRINE PARAKEET&#39;, &#39;AMERICAN BITTERN&#39;, &#39;AMERICAN GOLDFINCH&#39;, &#39;AMERICAN KESTREL&#39;, &#39;AMERICAN REDSTART&#39;, &#39;ANHINGA&#39;, &#39;ANNAS HUMMINGBIRD&#39;, &#39;BALD EAGLE&#39;, &#39;BALTIMORE ORIOLE&#39;, &#39;BANANAQUIT&#39;, &#39;BAR-TAILED GODWIT&#39;, &#39;BARN OWL&#39;, &#39;BARN SWALLOW&#39;, &#39;BAY-BREASTED WARBLER&#39;, &#39;BELTED KINGFISHER&#39;, &#39;BIRD OF PARADISE&#39;, &#39;BLACK FRANCOLIN&#39;, &#39;BLACK SKIMMER&#39;, &#39;BLACK-CAPPED CHICKADEE&#39;, &#39;BLACK-NECKED GREBE&#39;, &#39;BLACKBURNIAM WARBLER&#39;, &#39;BLUE HERON&#39;, &#39;BOBOLINK&#39;, &#39;BROWN THRASHER&#39;, &#39;CACTUS WREN&#39;, &#39;CALIFORNIA CONDOR&#39;, &#39;CALIFORNIA GULL&#39;, &#39;CALIFORNIA QUAIL&#39;, &#39;CAPE MAY WARBLER&#39;, &#39;CHARA DE COLLAR&#39;, &#39;CHIPPING SPARROW&#39;, &#39;CINNAMON TEAL&#39;, &#39;COCK OF THE  ROCK&#39;, &#39;COCKATOO&#39;, &#39;COMMON LOON&#39;, &#39;COMMON POORWILL&#39;, &#39;COMMON STARLING&#39;, &#39;COUCHS KINGBIRD&#39;, &#39;CRESTED AUKLET&#39;, &#39;CRESTED CARACARA&#39;, &#39;CROW&#39;, &#39;CROWNED PIGEON&#39;, &#39;CURL CRESTED ARACURI&#39;, &#39;DARK EYED JUNCO&#39;, &#39;DOWNY WOODPECKER&#39;, &#39;EASTERN BLUEBIRD&#39;, &#39;EASTERN ROSELLA&#39;, &#39;EASTERN TOWEE&#39;, &#39;ELEGANT TROGON&#39;, &#39;EMPEROR PENGUIN&#39;, &#39;EVENING GROSBEAK&#39;, &#39;FLAME TANAGER&#39;, &#39;FLAMINGO&#39;, &#39;FRIGATE&#39;, &#39;GLOSSY IBIS&#39;, &#39;GOLD WING WARBLER&#39;, &#39;GOLDEN CHLOROPHONIA&#39;, &#39;GOLDEN EAGLE&#39;, &#39;GOLDEN PHEASANT&#39;, &#39;GOULDIAN FINCH&#39;, &#39;GRAY CATBIRD&#39;, &#39;GRAY PARTRIDGE&#39;, &#39;GREY PLOVER&#39;, &#39;HAWAIIAN GOOSE&#39;, &#39;HOODED MERGANSER&#39;, &#39;HOOPOES&#39;, &#39;HOUSE FINCH&#39;, &#39;HOUSE SPARROW&#39;, &#39;HYACINTH MACAW&#39;, &#39;INDIGO BUNTING&#39;, &#39;JABIRU&#39;, &#39;LARK BUNTING&#39;, &#39;LILAC ROLLER&#39;, &#39;LONG-EARED OWL&#39;, &#39;MALLARD DUCK&#39;, &#39;MANDRIN DUCK&#39;, &#39;MARABOU STORK&#39;, &#39;MOURNING DOVE&#39;, &#39;MYNA&#39;, &#39;NICOBAR PIGEON&#39;, &#39;NORTHERN CARDINAL&#39;, &#39;NORTHERN FLICKER&#39;, &#39;NORTHERN GOSHAWK&#39;, &#39;NORTHERN MOCKINGBIRD&#39;, &#39;OSTRICH&#39;, &#39;PAINTED BUNTIG&#39;, &#39;PARADISE TANAGER&#39;, &#39;PARUS MAJOR&#39;, &#39;PEACOCK&#39;, &#39;PELICAN&#39;, &#39;PEREGRINE FALCON&#39;, &#39;PINK ROBIN&#39;, &#39;PUFFIN&#39;, &#39;PURPLE FINCH&#39;, &#39;PURPLE GALLINULE&#39;, &#39;PURPLE MARTIN&#39;, &#39;QUETZAL&#39;, &#39;RAINBOW LORIKEET&#39;, &#39;RED FACED CORMORANT&#39;, &#39;RED HEADED WOODPECKER&#39;, &#39;RED THROATED BEE EATER&#39;, &#39;RED WINGED BLACKBIRD&#39;, &#39;RED WISKERED BULBUL&#39;, &#39;RING-NECKED PHEASANT&#39;, &#39;ROADRUNNER&#39;, &#39;ROBIN&#39;, &#39;ROUGH LEG BUZZARD&#39;, &#39;RUBY THROATED HUMMINGBIRD&#39;, &#39;SAND MARTIN&#39;, &#39;SCARLET IBIS&#39;, &#39;SCARLET MACAW&#39;, &#39;SNOWY EGRET&#39;, &#39;SPLENDID WREN&#39;, &#39;STORK BILLED KINGFISHER&#39;, &#39;STRAWBERRY FINCH&#39;, &#39;TEAL DUCK&#39;, &#39;TIT MOUSE&#39;, &#39;TOUCHAN&#39;, &#39;TRUMPTER SWAN&#39;, &#39;TURKEY VULTURE&#39;, &#39;TURQUOISE MOTMOT&#39;, &#39;VARIED THRUSH&#39;, &#39;VENEZUELIAN TROUPIAL&#39;, &#39;VERMILION FLYCATHER&#39;, &#39;VIOLET GREEN SWALLOW&#39;, &#39;WESTERN MEADOWLARK&#39;, &#39;WILSONS BIRD OF PARADISE&#39;, &#39;WOOD DUCK&#39;, &#39;YELLOW HEADED BLACKBIRD&#39;]</code></pre>
+<p>Next, let’s view a few images from the test set. We can retrieve the first batch – images and corresponding classes – by calling <code>next()</code> on a dataset’s iterator:</p>
+<div class="sourceCode" id="cb231"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb231-1"><a href="image-classification.html#cb231-1"></a>inputs, classes <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(dataloaders[<span class="st">&#39;test&#39;</span>]))</span>
+<span id="cb231-2"><a href="image-classification.html#cb231-2"></a>inputs.shape</span></code></pre></div>
+<p>The classes are integers, to be used as indexes into the vector of class names:</p>
+<div class="sourceCode" id="cb232"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb232-1"><a href="image-classification.html#cb232-1"></a>classes</span></code></pre></div>
+<p><code>toTensor()</code> converts images to tensors of shape <code>num_channels x height x width</code></p>
+<div class="sourceCode" id="cb233"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb233-1"><a href="image-classification.html#cb233-1"></a>inputs[<span class="dv">0</span>].shape</span></code></pre></div>
+<p>– which means that for plotting using <code>as.raster</code>, we need to reshape images such that channels come last.</p>
+<div class="sourceCode" id="cb234"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb234-1"><a href="image-classification.html#cb234-1"></a><span class="kw">library</span>(reticulate)</span>
+<span id="cb234-2"><a href="image-classification.html#cb234-2"></a><span class="kw">library</span>(dplyr)</span>
+<span id="cb234-3"><a href="image-classification.html#cb234-3"></a></span>
+<span id="cb234-4"><a href="image-classification.html#cb234-4"></a>index &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">16</span></span>
+<span id="cb234-5"><a href="image-classification.html#cb234-5"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>inputs<span class="op">$</span><span class="kw">numpy</span>()[index,,,] <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb234-6"><a href="image-classification.html#cb234-6"></a><span class="st">  </span><span class="kw">aperm</span>(<span class="dt">perm =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb234-7"><a href="image-classification.html#cb234-7"></a>mean &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>)</span>
+<span id="cb234-8"><a href="image-classification.html#cb234-8"></a>std &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>)</span>
+<span id="cb234-9"><a href="image-classification.html#cb234-9"></a>images &lt;-<span class="st"> </span>std <span class="op">*</span><span class="st"> </span>images <span class="op">+</span><span class="st"> </span>mean</span>
+<span id="cb234-10"><a href="image-classification.html#cb234-10"></a>images &lt;-<span class="st"> </span>images <span class="op">*</span><span class="st"> </span><span class="dv">255</span></span>
+<span id="cb234-11"><a href="image-classification.html#cb234-11"></a>images[images <span class="op">&gt;</span><span class="st"> </span><span class="dv">255</span>] &lt;-<span class="st"> </span><span class="dv">255</span></span>
+<span id="cb234-12"><a href="image-classification.html#cb234-12"></a>images[images <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb234-13"><a href="image-classification.html#cb234-13"></a></span>
+<span id="cb234-14"><a href="image-classification.html#cb234-14"></a><span class="kw">par</span>(<span class="dt">mfcol =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="dv">1</span>, <span class="dv">4</span>))</span>
+<span id="cb234-15"><a href="image-classification.html#cb234-15"></a></span>
+<span id="cb234-16"><a href="image-classification.html#cb234-16"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb234-17"><a href="image-classification.html#cb234-17"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb234-18"><a href="image-classification.html#cb234-18"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">set_names</span>(py<span class="op">$</span>class_names[py<span class="op">$</span>classes<span class="op">$</span><span class="kw">numpy</span>()[index] <span class="op">+</span><span class="st"> </span><span class="dv">1</span>]) <span class="op">%&gt;%</span></span>
+<span id="cb234-19"><a href="image-classification.html#cb234-19"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster, <span class="dt">max =</span> <span class="dv">255</span>) <span class="op">%&gt;%</span></span>
+<span id="cb234-20"><a href="image-classification.html#cb234-20"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x); <span class="kw">title</span>(.y)})</span></code></pre></div>
+<div class="sourceCode" id="cb235"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb235-1"><a href="image-classification.html#cb235-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/image_classif_birds.png&quot;</span>)</span></code></pre></div>
+<p><img src="images/image_classif_birds.png" width="384" /></p>
+</div>
+<div id="model" class="section level2" number="7.2">
+<h2><span class="header-section-number">7.2</span> Model</h2>
+<p>The backbone of our model is a pre-trained instance of Resnet.</p>
+<div class="sourceCode" id="cb236"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb236-1"><a href="image-classification.html#cb236-1"></a>model <span class="op">=</span> models.resnet18(pretrained<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb236-2"><a href="image-classification.html#cb236-2"></a>model</span></code></pre></div>
+<p>We will modify the model’s output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it was trained for. This means we only need to train a single layer – the one we’re going to add. We <em>could</em> perform backpropagation through the complete model, trying to fine-tune Resnet’s weights as well, but that would have a significant effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet’s weights, those located iin the layers directly preceding the output – you might want to experiment with this at home.)</p>
+<div class="sourceCode" id="cb237"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb237-1"><a href="image-classification.html#cb237-1"></a><span class="cf">for</span> param <span class="kw">in</span> model.parameters():</span>
+<span id="cb237-2"><a href="image-classification.html#cb237-2"></a>    param.requires_grad <span class="op">=</span> <span class="va">False</span></span></code></pre></div>
+<p>To replace the output layer, the model is just modified in-place:</p>
+<div class="sourceCode" id="cb238"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb238-1"><a href="image-classification.html#cb238-1"></a>num_features <span class="op">=</span> model.fc.in_features</span>
+<span id="cb238-2"><a href="image-classification.html#cb238-2"></a></span>
+<span id="cb238-3"><a href="image-classification.html#cb238-3"></a>model.fc <span class="op">=</span> torch.nn.Linear(num_features, <span class="bu">len</span>(class_names))</span></code></pre></div>
+</div>
+<div id="training" class="section level2" number="7.3">
+<h2><span class="header-section-number">7.3</span> Training</h2>
+<p>For training, we use cross entropy loss and stochastic gradient descent.</p>
+<div class="sourceCode" id="cb239"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb239-1"><a href="image-classification.html#cb239-1"></a>criterion <span class="op">=</span> torch.nn.CrossEntropyLoss()</span>
+<span id="cb239-2"><a href="image-classification.html#cb239-2"></a></span>
+<span id="cb239-3"><a href="image-classification.html#cb239-3"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr<span class="op">=</span><span class="fl">1e-1</span>)</span></code></pre></div>
+<p>We set the learning rate to 0.1, but that was just a formality. As became widely known to <a href="">fast.ai’s deep learning lectures</a>, it always makes sense to spend some time upfront to determine a good learning rate, and then during training, evolve the learning rate according to some proven algorithm. While out-of-the-box, torch does not provide a tool like fast.ai’s learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger’s blog. Algorithms like one-cycle learning <span class="citation">(Smith and Topin <a href="#ref-abs-1708-07120" role="doc-biblioref">2017</a>)</span>, cyclical learning rates <span class="citation">(Smith <a href="#ref-Smith15a" role="doc-biblioref">2015</a>)</span>, or cosine annealing with warm restarts <span class="citation">(Loshchilov and Hutter <a href="#ref-LoshchilovH16a" role="doc-biblioref">2016</a>)</span> are, however, implemented in torch, and we’ll make use of <code>lr_scheduler.OneCycleLR</code> once we’ve determined an appropriate value for the required parameter <code>max_lr</code>.</p>
+<p>Here is how to find a good learning rate, from <a href="https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html">Sylvain Gugger</a>:</p>
+<div class="sourceCode" id="cb240"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb240-1"><a href="image-classification.html#cb240-1"></a><span class="co"># from: https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html</span></span>
+<span id="cb240-2"><a href="image-classification.html#cb240-2"></a></span>
+<span id="cb240-3"><a href="image-classification.html#cb240-3"></a><span class="im">import</span> math</span>
+<span id="cb240-4"><a href="image-classification.html#cb240-4"></a></span>
+<span id="cb240-5"><a href="image-classification.html#cb240-5"></a><span class="kw">def</span> find_lr(init_value <span class="op">=</span> <span class="fl">1e-8</span>, final_value<span class="op">=</span><span class="fl">10.</span>, beta <span class="op">=</span> <span class="fl">0.98</span>):</span>
+<span id="cb240-6"><a href="image-classification.html#cb240-6"></a>    num <span class="op">=</span> <span class="bu">len</span>(dataloaders[<span class="st">&#39;train&#39;</span>])<span class="op">-</span><span class="dv">1</span></span>
+<span id="cb240-7"><a href="image-classification.html#cb240-7"></a>    mult <span class="op">=</span> (final_value <span class="op">/</span> init_value) <span class="op">**</span> (<span class="dv">1</span><span class="op">/</span>num)</span>
+<span id="cb240-8"><a href="image-classification.html#cb240-8"></a>    lr <span class="op">=</span> init_value</span>
+<span id="cb240-9"><a href="image-classification.html#cb240-9"></a>    optimizer.param_groups[<span class="dv">0</span>][<span class="st">&#39;lr&#39;</span>] <span class="op">=</span> lr</span>
+<span id="cb240-10"><a href="image-classification.html#cb240-10"></a>    avg_loss <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb240-11"><a href="image-classification.html#cb240-11"></a>    best_loss <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb240-12"><a href="image-classification.html#cb240-12"></a>    batch_num <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb240-13"><a href="image-classification.html#cb240-13"></a>    losses <span class="op">=</span> []</span>
+<span id="cb240-14"><a href="image-classification.html#cb240-14"></a>    log_lrs <span class="op">=</span> []</span>
+<span id="cb240-15"><a href="image-classification.html#cb240-15"></a>    <span class="cf">for</span> data <span class="kw">in</span> dataloaders[<span class="st">&#39;train&#39;</span>]:</span>
+<span id="cb240-16"><a href="image-classification.html#cb240-16"></a>        batch_num <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb240-17"><a href="image-classification.html#cb240-17"></a>        <span class="co">#As before, get the loss for this mini-batch of inputs/outputs</span></span>
+<span id="cb240-18"><a href="image-classification.html#cb240-18"></a>        inputs,labels <span class="op">=</span> data</span>
+<span id="cb240-19"><a href="image-classification.html#cb240-19"></a>        optimizer.zero_grad()</span>
+<span id="cb240-20"><a href="image-classification.html#cb240-20"></a>        outputs <span class="op">=</span> model(inputs)</span>
+<span id="cb240-21"><a href="image-classification.html#cb240-21"></a>        loss <span class="op">=</span> criterion(outputs, labels)</span>
+<span id="cb240-22"><a href="image-classification.html#cb240-22"></a>        <span class="co">#Compute the smoothed loss</span></span>
+<span id="cb240-23"><a href="image-classification.html#cb240-23"></a>        avg_loss <span class="op">=</span> beta <span class="op">*</span> avg_loss <span class="op">+</span> (<span class="dv">1</span><span class="op">-</span>beta) <span class="op">*</span>loss.item()</span>
+<span id="cb240-24"><a href="image-classification.html#cb240-24"></a>        smoothed_loss <span class="op">=</span> avg_loss <span class="op">/</span> (<span class="dv">1</span> <span class="op">-</span> beta<span class="op">**</span>batch_num)</span>
+<span id="cb240-25"><a href="image-classification.html#cb240-25"></a>        <span class="co">#Stop if the loss is exploding</span></span>
+<span id="cb240-26"><a href="image-classification.html#cb240-26"></a>        <span class="cf">if</span> batch_num <span class="op">&gt;</span> <span class="dv">1</span> <span class="kw">and</span> smoothed_loss <span class="op">&gt;</span> <span class="dv">4</span> <span class="op">*</span> best_loss:</span>
+<span id="cb240-27"><a href="image-classification.html#cb240-27"></a>            <span class="cf">return</span> log_lrs, losses</span>
+<span id="cb240-28"><a href="image-classification.html#cb240-28"></a>        <span class="co">#Record the best loss</span></span>
+<span id="cb240-29"><a href="image-classification.html#cb240-29"></a>        <span class="cf">if</span> smoothed_loss <span class="op">&lt;</span> best_loss <span class="kw">or</span> batch_num<span class="op">==</span><span class="dv">1</span>:</span>
+<span id="cb240-30"><a href="image-classification.html#cb240-30"></a>            best_loss <span class="op">=</span> smoothed_loss</span>
+<span id="cb240-31"><a href="image-classification.html#cb240-31"></a>        <span class="co">#Store the values</span></span>
+<span id="cb240-32"><a href="image-classification.html#cb240-32"></a>        losses.append(smoothed_loss)</span>
+<span id="cb240-33"><a href="image-classification.html#cb240-33"></a>        log_lrs.append(math.log10(lr))</span>
+<span id="cb240-34"><a href="image-classification.html#cb240-34"></a>        <span class="co">#Do the SGD step</span></span>
+<span id="cb240-35"><a href="image-classification.html#cb240-35"></a>        loss.backward()</span>
+<span id="cb240-36"><a href="image-classification.html#cb240-36"></a>        optimizer.step()</span>
+<span id="cb240-37"><a href="image-classification.html#cb240-37"></a>        <span class="co">#Update the lr for the next step</span></span>
+<span id="cb240-38"><a href="image-classification.html#cb240-38"></a>        lr <span class="op">*=</span> mult</span>
+<span id="cb240-39"><a href="image-classification.html#cb240-39"></a>        optimizer.param_groups[<span class="dv">0</span>][<span class="st">&#39;lr&#39;</span>] <span class="op">=</span> lr</span>
+<span id="cb240-40"><a href="image-classification.html#cb240-40"></a>    <span class="cf">return</span> log_lrs, losses</span>
+<span id="cb240-41"><a href="image-classification.html#cb240-41"></a>    </span>
+<span id="cb240-42"><a href="image-classification.html#cb240-42"></a>logs,losses <span class="op">=</span> find_lr()</span></code></pre></div>
+<div class="sourceCode" id="cb241"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb241-1"><a href="image-classification.html#cb241-1"></a>df =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">logs =</span> py<span class="op">$</span>logs[<span class="dv">10</span><span class="op">:</span>(<span class="kw">length</span>(py<span class="op">$</span>logs) <span class="op">-</span><span class="st"> </span><span class="dv">5</span>)], <span class="dt">losses =</span> py<span class="op">$</span>losses[<span class="dv">10</span><span class="op">:</span>(<span class="kw">length</span>(py<span class="op">$</span>losses) <span class="op">-</span><span class="st"> </span><span class="dv">5</span>)])</span>
+<span id="cb241-2"><a href="image-classification.html#cb241-2"></a></span>
+<span id="cb241-3"><a href="image-classification.html#cb241-3"></a><span class="kw">library</span>(ggplot2)</span>
+<span id="cb241-4"><a href="image-classification.html#cb241-4"></a><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(logs, losses)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>()</span></code></pre></div>
+<p>The best learning rate is not the exact one where loss is at a minimum, instead, it should be picked somewhat earlier on the curve, while loss still decreases. We’ll try 0.05 here.</p>
+<p><code>OneCycleLR</code> will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the whole training period:</p>
+<div class="sourceCode" id="cb242"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb242-1"><a href="image-classification.html#cb242-1"></a>num_epochs <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb242-2"><a href="image-classification.html#cb242-2"></a>lr_scheduler <span class="op">=</span> torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr <span class="op">=</span> <span class="fl">0.05</span>, epochs <span class="op">=</span> num_epochs, steps_per_epoch<span class="op">=</span><span class="bu">len</span>(dataloaders[<span class="st">&#39;train&#39;</span>]))</span></code></pre></div>
+<p>Now we train for ten epochs. In every epoch, we iterate over both training and validation sets; performing optimization on the training set while just calculating accuracy on the test set. Note that <code>lr_scheduler.step()</code> has to be called explicitly after each batch, and it has to be called <em>after</em> <code>optimizer.step()</code>.</p>
+<div class="sourceCode" id="cb243"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb243-1"><a href="image-classification.html#cb243-1"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda:0&quot;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span>)</span>
+<span id="cb243-2"><a href="image-classification.html#cb243-2"></a>model <span class="op">=</span> model.to(device)</span>
+<span id="cb243-3"><a href="image-classification.html#cb243-3"></a></span>
+<span id="cb243-4"><a href="image-classification.html#cb243-4"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
+<span id="cb243-5"><a href="image-classification.html#cb243-5"></a></span>
+<span id="cb243-6"><a href="image-classification.html#cb243-6"></a>        <span class="bu">print</span>(<span class="st">&#39;Epoch </span><span class="sc">{}</span><span class="st">/</span><span class="sc">{}</span><span class="st">&#39;</span>.<span class="bu">format</span>(epoch, num_epochs <span class="op">-</span> <span class="dv">1</span>))</span>
+<span id="cb243-7"><a href="image-classification.html#cb243-7"></a>        <span class="bu">print</span>(<span class="st">&#39;-&#39;</span> <span class="op">*</span> <span class="dv">10</span>)</span>
+<span id="cb243-8"><a href="image-classification.html#cb243-8"></a>        </span>
+<span id="cb243-9"><a href="image-classification.html#cb243-9"></a>        <span class="cf">for</span> phase <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>]:</span>
+<span id="cb243-10"><a href="image-classification.html#cb243-10"></a>        </span>
+<span id="cb243-11"><a href="image-classification.html#cb243-11"></a>            <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb243-12"><a href="image-classification.html#cb243-12"></a>                model.train() </span>
+<span id="cb243-13"><a href="image-classification.html#cb243-13"></a>            <span class="cf">else</span>:</span>
+<span id="cb243-14"><a href="image-classification.html#cb243-14"></a>                model.<span class="bu">eval</span>()   </span>
+<span id="cb243-15"><a href="image-classification.html#cb243-15"></a>            running_loss <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb243-16"><a href="image-classification.html#cb243-16"></a>            running_num_correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb243-17"><a href="image-classification.html#cb243-17"></a>            </span>
+<span id="cb243-18"><a href="image-classification.html#cb243-18"></a>            <span class="cf">for</span> inputs, labels <span class="kw">in</span> dataloaders[phase]:</span>
+<span id="cb243-19"><a href="image-classification.html#cb243-19"></a>                inputs <span class="op">=</span> inputs.to(device)</span>
+<span id="cb243-20"><a href="image-classification.html#cb243-20"></a>                labels <span class="op">=</span> labels.to(device)</span>
+<span id="cb243-21"><a href="image-classification.html#cb243-21"></a>                </span>
+<span id="cb243-22"><a href="image-classification.html#cb243-22"></a>                optimizer.zero_grad()</span>
+<span id="cb243-23"><a href="image-classification.html#cb243-23"></a>                </span>
+<span id="cb243-24"><a href="image-classification.html#cb243-24"></a>                <span class="cf">with</span> torch.set_grad_enabled(phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>):</span>
+<span id="cb243-25"><a href="image-classification.html#cb243-25"></a>                    outputs <span class="op">=</span> model(inputs)</span>
+<span id="cb243-26"><a href="image-classification.html#cb243-26"></a>                    _, preds <span class="op">=</span> torch.<span class="bu">max</span>(outputs, <span class="dv">1</span>)</span>
+<span id="cb243-27"><a href="image-classification.html#cb243-27"></a>                    loss <span class="op">=</span> criterion(outputs, labels)</span>
+<span id="cb243-28"><a href="image-classification.html#cb243-28"></a>                    </span>
+<span id="cb243-29"><a href="image-classification.html#cb243-29"></a>                    <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb243-30"><a href="image-classification.html#cb243-30"></a>                        loss.backward()</span>
+<span id="cb243-31"><a href="image-classification.html#cb243-31"></a>                        optimizer.step()</span>
+<span id="cb243-32"><a href="image-classification.html#cb243-32"></a>                        lr_scheduler.step()</span>
+<span id="cb243-33"><a href="image-classification.html#cb243-33"></a>                        </span>
+<span id="cb243-34"><a href="image-classification.html#cb243-34"></a>                running_loss <span class="op">+=</span> loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
+<span id="cb243-35"><a href="image-classification.html#cb243-35"></a>                running_num_correct <span class="op">+=</span> torch.<span class="bu">sum</span>(preds <span class="op">==</span> labels.data)</span>
+<span id="cb243-36"><a href="image-classification.html#cb243-36"></a>                </span>
+<span id="cb243-37"><a href="image-classification.html#cb243-37"></a>            epoch_loss <span class="op">=</span> running_loss <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb243-38"><a href="image-classification.html#cb243-38"></a>            epoch_acc <span class="op">=</span> running_num_correct.double() <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb243-39"><a href="image-classification.html#cb243-39"></a>            <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Loss: </span><span class="sc">{:.4f}</span><span class="st"> Acc: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(</span>
+<span id="cb243-40"><a href="image-classification.html#cb243-40"></a>                phase, epoch_loss, epoch_acc))</span>
+<span id="cb243-41"><a href="image-classification.html#cb243-41"></a>        <span class="bu">print</span>()</span></code></pre></div>
+</div>
+<div id="performance-on-the-test-set" class="section level2" number="7.4">
+<h2><span class="header-section-number">7.4</span> Performance on the test set</h2>
+<p>Finally, we calculate accuracy on the test set:</p>
+<div class="sourceCode" id="cb244"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb244-1"><a href="image-classification.html#cb244-1"></a>phase <span class="op">=</span> <span class="st">&#39;test&#39;</span></span>
+<span id="cb244-2"><a href="image-classification.html#cb244-2"></a><span class="cf">with</span> torch.no_grad():</span>
+<span id="cb244-3"><a href="image-classification.html#cb244-3"></a>        running_num_correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb244-4"><a href="image-classification.html#cb244-4"></a>        <span class="cf">for</span> inputs, labels <span class="kw">in</span> dataloaders[phase]:</span>
+<span id="cb244-5"><a href="image-classification.html#cb244-5"></a>            inputs <span class="op">=</span> inputs.to(device)</span>
+<span id="cb244-6"><a href="image-classification.html#cb244-6"></a>            labels <span class="op">=</span> labels.to(device)</span>
+<span id="cb244-7"><a href="image-classification.html#cb244-7"></a>            outputs <span class="op">=</span> model(inputs)</span>
+<span id="cb244-8"><a href="image-classification.html#cb244-8"></a>            _, preds <span class="op">=</span> torch.<span class="bu">max</span>(outputs, <span class="dv">1</span>)</span>
+<span id="cb244-9"><a href="image-classification.html#cb244-9"></a>            running_num_correct <span class="op">+=</span> torch.<span class="bu">sum</span>(preds <span class="op">==</span> labels.data)</span>
+<span id="cb244-10"><a href="image-classification.html#cb244-10"></a>        <span class="bu">print</span>(<span class="st">&#39;test accuracy: </span><span class="sc">{:4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(running_num_correct.double()<span class="op">/</span> dataset_sizes[phase]))</span></code></pre></div>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-LoshchilovH16a">
+<p>Loshchilov, Ilya, and Frank Hutter. 2016. “SGDR: Stochastic Gradient Descent with Restarts.” <em>CoRR</em> abs/1608.03983. <a href="http://arxiv.org/abs/1608.03983">http://arxiv.org/abs/1608.03983</a>.</p>
+</div>
+<div id="ref-Smith15a">
+<p>Smith, Leslie N. 2015. “No More Pesky Learning Rate Guessing Games.” <em>CoRR</em> abs/1506.01186. <a href="http://arxiv.org/abs/1506.01186">http://arxiv.org/abs/1506.01186</a>.</p>
+</div>
+<div id="ref-abs-1708-07120">
+<p>Smith, Leslie N., and Nicholay Topin. 2017. “Super-Convergence: Very Fast Training of Residual Networks Using Large Learning Rates.” <em>CoRR</em> abs/1708.07120. <a href="http://arxiv.org/abs/1708.07120">http://arxiv.org/abs/1708.07120</a>.</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="deeplearning-applications-intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="gans.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

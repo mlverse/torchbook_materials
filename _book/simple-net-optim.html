@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 6 Using torch optimizers | Torch book</title>
+  <meta name="description" content="tbd" />
+  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 6 Using torch optimizers | Torch book" />
+  <meta property="og:type" content="book" />
+  <meta property="og:url" content="tbd" />
+  <meta property="og:image" content="tbdcover.png" />
+  <meta property="og:description" content="tbd" />
+  <meta name="github-repo" content="tbd" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 6 Using torch optimizers | Torch book" />
+  
+  <meta name="twitter:description" content="tbd" />
+  <meta name="twitter:image" content="tbdcover.png" />
+
+<meta name="author" content="tbd" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="simple-net-modules.html"/>
+<link rel="next" href="deeplearning-applications-intro.html"/>
+<script src="libs/header-attrs-2.1/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a>
+<ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#license"><i class="fa fa-check"></i>License</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#introduction-1"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+</ul></li>
+<li class="part"><span><b>I Using Torch</b></span></li>
+<li class="chapter" data-level="" data-path="using-torch-intro.html"><a href="using-torch-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="2" data-path="simple-net-R.html"><a href="simple-net-R.html"><i class="fa fa-check"></i><b>2</b> A simple neural network in R</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#whats-in-a-network"><i class="fa fa-check"></i><b>2.1</b> What’s in a network?</a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="simple-net-R.html"><a href="simple-net-R.html#gradient-descent"><i class="fa fa-check"></i><b>2.1.1</b> Gradient descent</a></li>
+<li class="chapter" data-level="2.1.2" data-path="simple-net-R.html"><a href="simple-net-R.html#from-linear-regression-to-a-simple-network"><i class="fa fa-check"></i><b>2.1.2</b> From linear regression to a simple network</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#a-simple-network"><i class="fa fa-check"></i><b>2.2</b> A simple network</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#simulate-data"><i class="fa fa-check"></i><b>2.2.1</b> Simulate data</a></li>
+<li class="chapter" data-level="2.2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#initialize-weights-and-biases"><i class="fa fa-check"></i><b>2.2.2</b> Initialize weights and biases</a></li>
+<li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
+<li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>2.3</b> Appendix: Python code</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#simple-network-torchified-step-1"><i class="fa fa-check"></i><b>3.1</b> Simple network torchified, step 1</a></li>
+<li class="chapter" data-level="3.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#more-on-tensors"><i class="fa fa-check"></i><b>3.2</b> More on tensors</a>
+<ul>
+<li class="chapter" data-level="3.2.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#creating-tensors"><i class="fa fa-check"></i><b>3.2.1</b> Creating tensors</a></li>
+<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-from-and-to-r"><i class="fa fa-check"></i><b>3.2.2</b> Conversion from and to R</a></li>
+<li class="chapter" data-level="3.2.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#indexing-and-slicing-tensors"><i class="fa fa-check"></i><b>3.2.3</b> Indexing and slicing tensors</a></li>
+<li class="chapter" data-level="3.2.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#reshaping-tensors"><i class="fa fa-check"></i><b>3.2.4</b> Reshaping tensors</a></li>
+<li class="chapter" data-level="3.2.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.2.5</b> Operations on tensors</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#modules"><i class="fa fa-check"></i><b>5.1</b> Modules</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#layers-as-modules"><i class="fa fa-check"></i><b>5.1.1</b> Layers as modules</a></li>
+<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using torch optimizers</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-torch.optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>torch.optim</code></a></li>
+</ul></li>
+<li class="part"><span><b>II Deep learning: classical applications</b></span></li>
+<li class="chapter" data-level="" data-path="deeplearning-applications-intro.html"><a href="deeplearning-applications-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-transformation"><i class="fa fa-check"></i><b>7.1</b> Data loading and transformation</a></li>
+<li class="chapter" data-level="7.2" data-path="image-classification.html"><a href="image-classification.html#model"><i class="fa fa-check"></i><b>7.2</b> Model</a></li>
+<li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
+<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>8</b> Generative adversarial networks</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>8.1</b> Dataset</a></li>
+<li class="chapter" data-level="8.2" data-path="gans.html"><a href="gans.html#model-1"><i class="fa fa-check"></i><b>8.2</b> Model</a>
+<ul>
+<li class="chapter" data-level="8.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>8.2.1</b> Generator</a></li>
+<li class="chapter" data-level="8.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>8.2.2</b> Discriminator</a></li>
+<li class="chapter" data-level="8.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>8.2.3</b> Optimizers and loss function</a></li>
+</ul></li>
+<li class="chapter" data-level="8.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>8.3</b> Training loop</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>9</b> Variational autoencoders</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>9.1</b> Dataset</a></li>
+<li class="chapter" data-level="9.2" data-path="vaes.html"><a href="vaes.html#model-2"><i class="fa fa-check"></i><b>9.2</b> Model</a></li>
+<li class="chapter" data-level="9.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>9.3</b> Training the VAE</a></li>
+<li class="chapter" data-level="9.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>9.4</b> Latent space</a></li>
+</ul></li>
+<li class="part"><span><b>III Intermediate deep learning</b></span></li>
+<li class="chapter" data-level="" data-path="intermediate-DL-intro.html"><a href="intermediate-DL-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="10" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>10</b> Sequence-to-sequence models with attention</a></li>
+<li class="chapter" data-level="11" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>11</b> Pytorch transformer modules</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Torch book</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="simple_net_optim" class="section level1" number="6">
+<h1><span class="header-section-number">Chapter 6</span> Using torch optimizers</h1>
+<p>So far, we have been updating model parameters ourselves, following a simple algorithm: The calculated gradients told us which direction, on the loss curve, was “downward”; the learning rate told us how big a step to take in that direction. This is a straightforward implementation of <em>gradient descent</em>.</p>
+<p>However, more sophisticated optimization algorithms exist, and many of these are provided by torch: for example, <a href="">Rmsprop</a>, <a href="">Adam</a>, or <a href="">Adadelta</a>. In this chapter, we’ll see how to replace our manual updates using <code>SGD</code>, torch’s stochastic gradient descent optimizer.</p>
+<div id="torch-optimizers" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> Torch optimizers</h2>
+<p>For demonstration, here is a very simple network, consisting of just a single linear layer, and a single data point to call the model on.</p>
+<div class="sourceCode" id="cb201"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb201-1"><a href="simple-net-optim.html#cb201-1"></a><span class="im">import</span> torch</span>
+<span id="cb201-2"><a href="simple-net-optim.html#cb201-2"></a>model <span class="op">=</span> torch.nn.Linear(<span class="dv">3</span>, <span class="dv">1</span>)</span>
+<span id="cb201-3"><a href="simple-net-optim.html#cb201-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
+<pre><code>## [(&#39;weight&#39;, Parameter containing:
+## tensor([[ 0.2598, -0.0845, -0.5585]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([0.5634], requires_grad=True))]</code></pre>
+<div class="sourceCode" id="cb203"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb203-1"><a href="simple-net-optim.html#cb203-1"></a>data  <span class="op">=</span> torch.randn(<span class="dv">1</span>, <span class="dv">3</span>)</span></code></pre></div>
+<p>On creation, an optimizer is told what parameters to work on:</p>
+<div class="sourceCode" id="cb204"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb204-1"><a href="simple-net-optim.html#cb204-1"></a>opt <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.01</span>)</span>
+<span id="cb204-2"><a href="simple-net-optim.html#cb204-2"></a>opt</span></code></pre></div>
+<pre><code>## SGD (
+## Parameter Group 0
+##     dampening: 0
+##     lr: 0.01
+##     momentum: 0
+##     nesterov: False
+##     weight_decay: 0
+## )</code></pre>
+<p>At any time, we can inspect those parameters:</p>
+<div class="sourceCode" id="cb206"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb206-1"><a href="simple-net-optim.html#cb206-1"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
+<pre><code>## [Parameter containing:
+## tensor([[ 0.2598, -0.0845, -0.5585]], requires_grad=True), Parameter containing:
+## tensor([0.5634], requires_grad=True)]</code></pre>
+<p>Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the parameters, as we can see both from the model <em>and</em> the optimizer objects:</p>
+<div class="sourceCode" id="cb208"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb208-1"><a href="simple-net-optim.html#cb208-1"></a>out <span class="op">=</span> model(data)</span>
+<span id="cb208-2"><a href="simple-net-optim.html#cb208-2"></a>out.backward()</span>
+<span id="cb208-3"><a href="simple-net-optim.html#cb208-3"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
+<pre><code>## [Parameter containing:
+## tensor([[ 0.2598, -0.0845, -0.5585]], requires_grad=True), Parameter containing:
+## tensor([0.5634], requires_grad=True)]</code></pre>
+<div class="sourceCode" id="cb210"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb210-1"><a href="simple-net-optim.html#cb210-1"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
+<pre><code>## [(&#39;weight&#39;, Parameter containing:
+## tensor([[ 0.2598, -0.0845, -0.5585]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([0.5634], requires_grad=True))]</code></pre>
+<p>Calling <code>step()</code> on the optimizer actually does the updates:</p>
+<div class="sourceCode" id="cb212"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb212-1"><a href="simple-net-optim.html#cb212-1"></a>opt.step()</span>
+<span id="cb212-2"><a href="simple-net-optim.html#cb212-2"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
+<pre><code>## [Parameter containing:
+## tensor([[ 0.2568, -0.0747, -0.5532]], requires_grad=True), Parameter containing:
+## tensor([0.5534], requires_grad=True)]</code></pre>
+<div class="sourceCode" id="cb214"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb214-1"><a href="simple-net-optim.html#cb214-1"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
+<pre><code>## [(&#39;weight&#39;, Parameter containing:
+## tensor([[ 0.2568, -0.0747, -0.5532]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([0.5534], requires_grad=True))]</code></pre>
+<p>If we perform optimization in a loop, as we’d usually do with neural networks, we need to make sure we call <code>optimizer.zero_grad()</code> on every step, as otherwise gradients would be accumulated.
+We’ll see this in our final version of the network.</p>
+</div>
+<div id="simple-net-with-torch.optim" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> Simple net with <code>torch.optim</code></h2>
+<div class="sourceCode" id="cb216"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb216-1"><a href="simple-net-optim.html#cb216-1"></a></span>
+<span id="cb216-2"><a href="simple-net-optim.html#cb216-2"></a><span class="im">import</span> torch</span>
+<span id="cb216-3"><a href="simple-net-optim.html#cb216-3"></a></span>
+<span id="cb216-4"><a href="simple-net-optim.html#cb216-4"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb216-5"><a href="simple-net-optim.html#cb216-5"></a></span>
+<span id="cb216-6"><a href="simple-net-optim.html#cb216-6"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb216-7"><a href="simple-net-optim.html#cb216-7"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb216-8"><a href="simple-net-optim.html#cb216-8"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb216-9"><a href="simple-net-optim.html#cb216-9"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb216-10"><a href="simple-net-optim.html#cb216-10"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb216-11"><a href="simple-net-optim.html#cb216-11"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb216-12"><a href="simple-net-optim.html#cb216-12"></a></span>
+<span id="cb216-13"><a href="simple-net-optim.html#cb216-13"></a><span class="co"># create random data</span></span>
+<span id="cb216-14"><a href="simple-net-optim.html#cb216-14"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
+<span id="cb216-15"><a href="simple-net-optim.html#cb216-15"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
+<span id="cb216-16"><a href="simple-net-optim.html#cb216-16"></a></span>
+<span id="cb216-17"><a href="simple-net-optim.html#cb216-17"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
+<span id="cb216-18"><a href="simple-net-optim.html#cb216-18"></a></span>
+<span id="cb216-19"><a href="simple-net-optim.html#cb216-19"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb216-20"><a href="simple-net-optim.html#cb216-20"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb216-21"><a href="simple-net-optim.html#cb216-21"></a></span>
+<span id="cb216-22"><a href="simple-net-optim.html#cb216-22"></a>model <span class="op">=</span> torch.nn.Sequential(</span>
+<span id="cb216-23"><a href="simple-net-optim.html#cb216-23"></a>    torch.nn.Linear(d_in, d_hidden),</span>
+<span id="cb216-24"><a href="simple-net-optim.html#cb216-24"></a>    torch.nn.ReLU(),</span>
+<span id="cb216-25"><a href="simple-net-optim.html#cb216-25"></a>    torch.nn.Linear(d_hidden, d_out),</span>
+<span id="cb216-26"><a href="simple-net-optim.html#cb216-26"></a>)</span>
+<span id="cb216-27"><a href="simple-net-optim.html#cb216-27"></a></span>
+<span id="cb216-28"><a href="simple-net-optim.html#cb216-28"></a>mse_loss <span class="op">=</span> torch.nn.MSELoss(reduction<span class="op">=</span><span class="st">&#39;sum&#39;</span>)</span>
+<span id="cb216-29"><a href="simple-net-optim.html#cb216-29"></a></span>
+<span id="cb216-30"><a href="simple-net-optim.html#cb216-30"></a></span>
+<span id="cb216-31"><a href="simple-net-optim.html#cb216-31"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb216-32"><a href="simple-net-optim.html#cb216-32"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span id="cb216-33"><a href="simple-net-optim.html#cb216-33"></a></span>
+<span id="cb216-34"><a href="simple-net-optim.html#cb216-34"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> learning_rate)</span>
+<span id="cb216-35"><a href="simple-net-optim.html#cb216-35"></a></span>
+<span id="cb216-36"><a href="simple-net-optim.html#cb216-36"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
+<span id="cb216-37"><a href="simple-net-optim.html#cb216-37"></a>    </span>
+<span id="cb216-38"><a href="simple-net-optim.html#cb216-38"></a>    <span class="co">### -------- Forward pass -------- </span></span>
+<span id="cb216-39"><a href="simple-net-optim.html#cb216-39"></a></span>
+<span id="cb216-40"><a href="simple-net-optim.html#cb216-40"></a>    y_pred <span class="op">=</span> model(x)</span>
+<span id="cb216-41"><a href="simple-net-optim.html#cb216-41"></a></span>
+<span id="cb216-42"><a href="simple-net-optim.html#cb216-42"></a>    <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb216-43"><a href="simple-net-optim.html#cb216-43"></a>    loss <span class="op">=</span> mse_loss(y_pred, y)</span>
+<span id="cb216-44"><a href="simple-net-optim.html#cb216-44"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
+<span id="cb216-45"><a href="simple-net-optim.html#cb216-45"></a></span>
+<span id="cb216-46"><a href="simple-net-optim.html#cb216-46"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
+<span id="cb216-47"><a href="simple-net-optim.html#cb216-47"></a></span>
+<span id="cb216-48"><a href="simple-net-optim.html#cb216-48"></a>    <span class="co"># Still need to zero out the gradients before the backward pass, only this time, on the optimizer object</span></span>
+<span id="cb216-49"><a href="simple-net-optim.html#cb216-49"></a>    optimizer.zero_grad()</span>
+<span id="cb216-50"><a href="simple-net-optim.html#cb216-50"></a>    </span>
+<span id="cb216-51"><a href="simple-net-optim.html#cb216-51"></a>    <span class="co"># gradients are still computed on the loss tensor</span></span>
+<span id="cb216-52"><a href="simple-net-optim.html#cb216-52"></a>    loss.backward()</span>
+<span id="cb216-53"><a href="simple-net-optim.html#cb216-53"></a> </span>
+<span id="cb216-54"><a href="simple-net-optim.html#cb216-54"></a>    <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb216-55"><a href="simple-net-optim.html#cb216-55"></a>    </span>
+<span id="cb216-56"><a href="simple-net-optim.html#cb216-56"></a>     <span class="co"># use the ptimizer to update model parameters</span></span>
+<span id="cb216-57"><a href="simple-net-optim.html#cb216-57"></a>    optimizer.step()</span></code></pre></div>
+<pre><code>## 0 263.6422119140625
+## 10 211.86318969726562
+## 20 176.5721893310547
+## 30 150.87503051757812
+## 40 132.05267333984375
+## 50 118.44341278076172
+## 60 108.76519012451172
+## 70 102.24427032470703
+## 80 97.95272827148438
+## 90 95.17156982421875
+## 100 93.38272857666016
+## 110 92.21443176269531
+## 120 91.4269027709961
+## 130 90.86753845214844
+## 140 90.46516418457031
+## 150 90.14163970947266
+## 160 89.85883331298828
+## 170 89.60894775390625
+## 180 89.37763977050781
+## 190 89.15847778320312</code></pre>
+<p>At this point, we’re fully completed the transformation; the network has been fully torchified. In the next section, we’ll see classical applications of deep learning for supervised and unsupervised learning.</p>
+
+</div>
+</div>
+
+
+
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="simple-net-modules.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="deeplearning-applications-intro.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
