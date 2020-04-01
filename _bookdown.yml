@@ -19,6 +19,7 @@ rmd_files:
 
     "deep_learning_classical_applications.Rmd",
     "image_classification.Rmd",
+    # tbd add sth with tabular data!
     "GANs.Rmd",
     "VAEs.Rmd",
 
@@ -27,14 +28,17 @@ rmd_files:
     "seq_to_seq_with_attention.Rmd",
     "transformer_modules.Rmd",
     ## segmentation
-    ## adversarial
+    ## advanced VAEs or other unsupervised stuff
 
 
     #"Probabilistic_deep_learning.Rmd",
     ## Bayesian
     ## Flows
 
+
     #"Research_topics.Rmd",
+    ## adversarial
+    ## federated learning and/or diff. privacy
     ## spherical CNNs
     ## causality
 
