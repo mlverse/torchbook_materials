@@ -23,11 +23,11 @@ rmd_files:
     "VAEs.Rmd",
 
 
-    #"Intermediate_deep_learning.Rmd",
-    ## adversarial
-    ## transformers
-    ## spatial attention
+    "intermediate_deep_learning.Rmd",
+    "seq_to_seq_with_attention.Rmd",
+    "transformer_modules.Rmd",
     ## segmentation
+    ## adversarial
 
 
     #"Probabilistic_deep_learning.Rmd",
