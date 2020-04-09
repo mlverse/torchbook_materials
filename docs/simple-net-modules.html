@@ -251,8 +251,8 @@ This would create a linear layer that expects an input with three features, and 
 <p>It has two parameters, “weight” and “bias”, which we can inspect using <code>named_parameters()</code>:</p>
 <div class="sourceCode" id="cb172"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb172-1"><a href="simple-net-modules.html#cb172-1"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> l.named_parameters()]</span></code></pre></div>
 <pre><code>## [(&#39;weight&#39;, Parameter containing:
-## tensor([[-0.2096, -0.0117, -0.0049]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
-## tensor([0.1999], requires_grad=True))]</code></pre>
+## tensor([[-0.3864,  0.5664, -0.3310]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([-0.5313], requires_grad=True))]</code></pre>
 <p>Both parameters have automatically been initialized for us.</p>
 <p>Modules are callable; calling a module runs its <code>forward()</code> method, which for a linear layer just matrix-multiplies the input with the weights and adds the bias.</p>
 <p>Let’s try this:</p>
@@ -260,19 +260,19 @@ This would create a linear layer that expects an input with three features, and 
 <span id="cb174-2"><a href="simple-net-modules.html#cb174-2"></a>out <span class="op">=</span> l(data)</span></code></pre></div>
 <p>The output is a tensor that not just contains data</p>
 <div class="sourceCode" id="cb175"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb175-1"><a href="simple-net-modules.html#cb175-1"></a>out.data</span></code></pre></div>
-<pre><code>## tensor([[-0.0824],
-##         [ 0.1475],
-##         [ 0.2671],
-##         [ 0.3736],
-##         [ 0.0043],
-##         [ 0.2461],
-##         [ 0.1599],
-##         [ 0.4921],
-##         [-0.1449],
-##         [ 0.3287]])</code></pre>
+<pre><code>## tensor([[-0.2520],
+##         [ 0.8220],
+##         [ 0.9449],
+##         [-1.0024],
+##         [-0.9482],
+##         [-1.2086],
+##         [-0.6046],
+##         [-0.0255],
+##         [-0.1467],
+##         [-0.1248]])</code></pre>
 <p>but also, knows what has to be done to obtain gradients:</p>
 <div class="sourceCode" id="cb177"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb177-1"><a href="simple-net-modules.html#cb177-1"></a>out.grad_fn</span></code></pre></div>
-<pre><code>## &lt;AddmmBackward object at 0x7fbd8995b850&gt;</code></pre>
+<pre><code>## &lt;AddmmBackward object at 0x7fbd89505790&gt;</code></pre>
 <p>At this point, we’ve effectuated a forward pass, but as we haven’t called <code>backward()</code> no gradients have yet been calculated:</p>
 <div class="sourceCode" id="cb179"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb179-1"><a href="simple-net-modules.html#cb179-1"></a>l.weight.grad</span>
 <span id="cb179-2"><a href="simple-net-modules.html#cb179-2"></a>l.bias.grad</span></code></pre></div>
@@ -290,7 +290,7 @@ But still, it’s interesting to see how to resolve this.</p>
 <div class="sourceCode" id="cb182"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb182-1"><a href="simple-net-modules.html#cb182-1"></a>out.backward(gradient <span class="op">=</span> [torch.Tensor([[<span class="fl">0.1</span>] <span class="op">*</span> <span class="dv">10</span>]).T])</span></code></pre></div>
 <p>Now, <code>l.weight.grad</code> and <code>l.bias.grad</code> <em>will</em> contain the respective gradients:</p>
 <div class="sourceCode" id="cb183"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb183-1"><a href="simple-net-modules.html#cb183-1"></a>l.weight.grad</span></code></pre></div>
-<pre><code>## tensor([[ 0.1014, -0.0981,  0.1239]])</code></pre>
+<pre><code>## tensor([[-0.3015, -0.2194, -0.8597]])</code></pre>
 <div class="sourceCode" id="cb185"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb185-1"><a href="simple-net-modules.html#cb185-1"></a>l.bias.grad</span></code></pre></div>
 <pre><code>## tensor([1.])</code></pre>
 <p>Back to the main thread. <code>torch.nn.Linear</code> is one of the most often used layers in neural networks; we’ll see others (convolutional, recurrent…) in later chapters.
@@ -308,13 +308,13 @@ In usual lingo, combining layers yields <em>models</em>.</p>
 <p>We can use the same technique used on the single linear layer to get an overview of all model parameters:</p>
 <div class="sourceCode" id="cb188"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb188-1"><a href="simple-net-modules.html#cb188-1"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> l.named_parameters()]</span></code></pre></div>
 <pre><code>## [(&#39;weight&#39;, Parameter containing:
-## tensor([[-0.2096, -0.0117, -0.0049]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
-## tensor([0.1999], requires_grad=True))]</code></pre>
+## tensor([[-0.3864,  0.5664, -0.3310]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([-0.5313], requires_grad=True))]</code></pre>
 <p>Individual parameters can just be directly inspected making use of their position in the sequential model, e.g.</p>
 <div class="sourceCode" id="cb190"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb190-1"><a href="simple-net-modules.html#cb190-1"></a>model[<span class="dv">0</span>].bias</span></code></pre></div>
 <pre><code>## Parameter containing:
-## tensor([ 0.5307, -0.5317,  0.1718,  0.5427,  0.4440,  0.3277,  0.3867,  0.5650,
-##         -0.3815, -0.3667, -0.4794, -0.5717,  0.5205, -0.3534,  0.0247,  0.3592],
+## tensor([-0.5337, -0.1954,  0.3943,  0.2265,  0.4248,  0.2658,  0.1947,  0.4777,
+##          0.4744,  0.4837,  0.2389, -0.3940,  0.2787, -0.2829,  0.4120, -0.1351],
 ##        requires_grad=True)</code></pre>
 <p>And just like the simple <code>Linear</code> module, this model can directly be called on data:</p>
 <div class="sourceCode" id="cb192"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb192-1"><a href="simple-net-modules.html#cb192-1"></a>out <span class="op">=</span> model(data)</span></code></pre></div>
@@ -323,8 +323,8 @@ In usual lingo, combining layers yields <em>models</em>.</p>
 <span id="cb193-2"><a href="simple-net-modules.html#cb193-2"></a></span>
 <span id="cb193-3"><a href="simple-net-modules.html#cb193-3"></a><span class="co"># e.g.</span></span>
 <span id="cb193-4"><a href="simple-net-modules.html#cb193-4"></a>model[<span class="dv">0</span>].bias.grad</span></code></pre></div>
-<pre><code>## tensor([ 0.0252,  0.0000, -0.1697, -0.1420,  0.1854,  0.0888,  0.0980, -0.0513,
-##          0.0493,  0.0558,  0.0629,  0.0000,  0.1219, -0.0136, -0.0403, -0.1472])</code></pre>
+<pre><code>## tensor([ 0.0000,  0.0414, -0.0563,  0.0855, -0.0928, -0.0803,  0.0755, -0.1954,
+##          0.0347,  0.1356, -0.0734,  0.0000, -0.1446, -0.0050, -0.1259,  0.0214])</code></pre>
 <p>And placing the composite on the GPU will move all tensors there:</p>
 <div class="sourceCode" id="cb195"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb195-1"><a href="simple-net-modules.html#cb195-1"></a>model.cuda()</span></code></pre></div>
 <pre><code>## Sequential(
@@ -396,26 +396,26 @@ In usual lingo, combining layers yields <em>models</em>.</p>
 <span id="cb199-55"><a href="simple-net-modules.html#cb199-55"></a>    <span class="cf">with</span> torch.no_grad():</span>
 <span id="cb199-56"><a href="simple-net-modules.html#cb199-56"></a>        <span class="cf">for</span> param <span class="kw">in</span> model.parameters():</span>
 <span id="cb199-57"><a href="simple-net-modules.html#cb199-57"></a>            param <span class="op">-=</span> learning_rate <span class="op">*</span> param.grad</span></code></pre></div>
-<pre><code>## 0 296.6641540527344
-## 10 216.34939575195312
-## 20 178.65621948242188
-## 30 154.78781127929688
-## 40 138.50274658203125
-## 50 127.43341064453125
-## 60 120.05257415771484
-## 70 115.14892578125
-## 80 111.86390686035156
-## 90 109.59650421142578
-## 100 107.95120239257812
-## 110 106.71080017089844
-## 120 105.69287109375
-## 130 104.82366943359375
-## 140 104.01974487304688
-## 150 103.290283203125
-## 160 102.6089859008789
-## 170 101.9508285522461
-## 180 101.35169982910156
-## 190 100.78778076171875</code></pre>
+<pre><code>## 0 290.2479248046875
+## 10 208.5567626953125
+## 20 169.98593139648438
+## 30 148.3782196044922
+## 40 136.04608154296875
+## 50 129.1121826171875
+## 60 125.24102783203125
+## 70 123.04261016845703
+## 80 121.73262023925781
+## 90 120.88289642333984
+## 100 120.30876159667969
+## 110 119.86563110351562
+## 120 119.49040985107422
+## 130 119.15786743164062
+## 140 118.84844970703125
+## 150 118.55609130859375
+## 160 118.26005554199219
+## 170 117.97832489013672
+## 180 117.70653533935547
+## 190 117.44355773925781</code></pre>
 <p>The forward pass looks a lot better now; however, we still loop through the model’s parameters and update each one by hand. As a final act of simplification, the next chapter will show how to make use of torch optimizers instead.</p>
 
 </div>

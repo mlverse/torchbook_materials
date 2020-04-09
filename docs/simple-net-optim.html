@@ -247,8 +247,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb201-2"><a href="simple-net-optim.html#cb201-2"></a>model <span class="op">=</span> torch.nn.Linear(<span class="dv">3</span>, <span class="dv">1</span>)</span>
 <span id="cb201-3"><a href="simple-net-optim.html#cb201-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
 <pre><code>## [(&#39;weight&#39;, Parameter containing:
-## tensor([[ 0.4301, -0.5455,  0.5210]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
-## tensor([-0.3271], requires_grad=True))]</code></pre>
+## tensor([[ 0.2182, -0.3097,  0.2328]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([-0.0964], requires_grad=True))]</code></pre>
 <div class="sourceCode" id="cb203"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb203-1"><a href="simple-net-optim.html#cb203-1"></a>data  <span class="op">=</span> torch.randn(<span class="dv">1</span>, <span class="dv">3</span>)</span></code></pre></div>
 <p>On creation, an optimizer is told what parameters to work on:</p>
 <div class="sourceCode" id="cb204"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb204-1"><a href="simple-net-optim.html#cb204-1"></a>opt <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.01</span>)</span>
@@ -264,29 +264,29 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>At any time, we can inspect those parameters:</p>
 <div class="sourceCode" id="cb206"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb206-1"><a href="simple-net-optim.html#cb206-1"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
 <pre><code>## [Parameter containing:
-## tensor([[ 0.4301, -0.5455,  0.5210]], requires_grad=True), Parameter containing:
-## tensor([-0.3271], requires_grad=True)]</code></pre>
+## tensor([[ 0.2182, -0.3097,  0.2328]], requires_grad=True), Parameter containing:
+## tensor([-0.0964], requires_grad=True)]</code></pre>
 <p>Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the parameters, as we can see both from the model <em>and</em> the optimizer objects:</p>
 <div class="sourceCode" id="cb208"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb208-1"><a href="simple-net-optim.html#cb208-1"></a>out <span class="op">=</span> model(data)</span>
 <span id="cb208-2"><a href="simple-net-optim.html#cb208-2"></a>out.backward()</span>
 <span id="cb208-3"><a href="simple-net-optim.html#cb208-3"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
 <pre><code>## [Parameter containing:
-## tensor([[ 0.4301, -0.5455,  0.5210]], requires_grad=True), Parameter containing:
-## tensor([-0.3271], requires_grad=True)]</code></pre>
+## tensor([[ 0.2182, -0.3097,  0.2328]], requires_grad=True), Parameter containing:
+## tensor([-0.0964], requires_grad=True)]</code></pre>
 <div class="sourceCode" id="cb210"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb210-1"><a href="simple-net-optim.html#cb210-1"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
 <pre><code>## [(&#39;weight&#39;, Parameter containing:
-## tensor([[ 0.4301, -0.5455,  0.5210]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
-## tensor([-0.3271], requires_grad=True))]</code></pre>
+## tensor([[ 0.2182, -0.3097,  0.2328]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([-0.0964], requires_grad=True))]</code></pre>
 <p>Calling <code>step()</code> on the optimizer actually does the updates:</p>
 <div class="sourceCode" id="cb212"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb212-1"><a href="simple-net-optim.html#cb212-1"></a>opt.step()</span>
 <span id="cb212-2"><a href="simple-net-optim.html#cb212-2"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
 <pre><code>## [Parameter containing:
-## tensor([[ 0.4380, -0.5668,  0.5247]], requires_grad=True), Parameter containing:
-## tensor([-0.3371], requires_grad=True)]</code></pre>
+## tensor([[ 0.2439, -0.3167,  0.2291]], requires_grad=True), Parameter containing:
+## tensor([-0.1064], requires_grad=True)]</code></pre>
 <div class="sourceCode" id="cb214"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb214-1"><a href="simple-net-optim.html#cb214-1"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
 <pre><code>## [(&#39;weight&#39;, Parameter containing:
-## tensor([[ 0.4380, -0.5668,  0.5247]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
-## tensor([-0.3371], requires_grad=True))]</code></pre>
+## tensor([[ 0.2439, -0.3167,  0.2291]], requires_grad=True)), (&#39;bias&#39;, Parameter containing:
+## tensor([-0.1064], requires_grad=True))]</code></pre>
 <p>If we perform optimization in a loop, as we’d usually do with neural networks, we need to make sure we call <code>optimizer.zero_grad()</code> on every step, as otherwise gradients would be accumulated.
 We’ll see this in our final version of the network.</p>
 </div>
@@ -349,26 +349,26 @@ We’ll see this in our final version of the network.</p>
 <span id="cb216-55"><a href="simple-net-optim.html#cb216-55"></a>    </span>
 <span id="cb216-56"><a href="simple-net-optim.html#cb216-56"></a>     <span class="co"># use the ptimizer to update model parameters</span></span>
 <span id="cb216-57"><a href="simple-net-optim.html#cb216-57"></a>    optimizer.step()</span></code></pre></div>
-<pre><code>## 0 314.8778076171875
-## 10 241.62435913085938
-## 20 190.41995239257812
-## 30 154.4642791748047
-## 40 130.74444580078125
-## 50 115.95309448242188
-## 60 107.07193756103516
-## 70 101.8712158203125
-## 80 98.83194732666016
-## 90 96.94599914550781
-## 100 95.6543197631836
-## 110 94.66555786132812
-## 120 93.83961486816406
-## 130 93.10372161865234
-## 140 92.40504455566406
-## 150 91.73289489746094
-## 160 91.08297729492188
-## 170 90.45381927490234
-## 180 89.83731079101562
-## 190 89.23916625976562</code></pre>
+<pre><code>## 0 354.7101135253906
+## 10 219.86199951171875
+## 20 161.49468994140625
+## 30 132.3680419921875
+## 40 118.11149597167969
+## 50 111.4161148071289
+## 60 108.33258056640625
+## 70 106.86155700683594
+## 80 106.09956359863281
+## 90 105.65040588378906
+## 100 105.35273742675781
+## 110 105.14409637451172
+## 120 104.97238159179688
+## 130 104.82133483886719
+## 140 104.68313598632812
+## 150 104.55563354492188
+## 160 104.43536376953125
+## 170 104.32025146484375
+## 180 104.21676635742188
+## 190 104.12010192871094</code></pre>
 <p>At this point, we’re fully completed the transformation; the network has been fully torchified. In the next section, we’ll see classical applications of deep learning for supervised and unsupervised learning.</p>
 
 </div>
