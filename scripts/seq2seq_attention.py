@@ -57,8 +57,8 @@ trg.vocab.itos[2]
 trg.vocab.itos[3]
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = "cpu"
 batch_size = 8
 
 # Defines an iterator that batches examples of similar lengths together.
@@ -126,7 +126,7 @@ class Encoder(nn.Module):
         # hidden is now bs * decoder_hidden_dim
         return outputs, hidden
 
-encoder = Encoder(num_input_features, encoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, encoder_dropout).cuda()
+encoder = Encoder(num_input_features, encoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, encoder_dropout).to(device)
 
 encoder_output = encoder.forward(batch.src)
 [t.size() for t in encoder_output]
@@ -163,7 +163,7 @@ class Attention(nn.Module):
         attention = torch.sum(energy, dim=2)
         return F.softmax(attention, dim=1)
 
-attention = Attention(encoder_hidden_dim, decoder_hidden_dim, attention_dim).cuda()
+attention = Attention(encoder_hidden_dim, decoder_hidden_dim, attention_dim).to(device)
 
 # first is hidden, second is output
 # first time is encoder hidden, later hidden will be DECODER hidden state!
@@ -195,40 +195,39 @@ class Decoder(nn.Module):
         a = self.attention(decoder_hidden, encoder_outputs)
         # bs * 1 * seq_len
         a = a.unsqueeze(1)
-        # 8, 357, 128
+        # bs * 357 * 128
         encoder_outputs = encoder_outputs.permute(1, 0, 2)
         # bs * 1 * 128
         weighted_encoder_rep = torch.bmm(a, encoder_outputs)
         # 1 * bs * 128
         weighted_encoder_rep = weighted_encoder_rep.permute(1, 0, 2)
+        return weighted_encoder_rep
     def forward(self, input, decoder_hidden, encoder_outputs):
         # 1 * bs
         input = input.unsqueeze(0)
-        # 1 * 8 * 32
+        # 1 * bs * 32
         embedded = self.dropout(self.embedding(input))
         # 1 * bs * 128
         weighted_encoder_rep = self._weighted_encoder_rep(decoder_hidden, encoder_outputs)
         # concatenate input embedding and 
-        # embedded: 1 * 8 * 32
-        # weighted_encoder_rep: 1 * 8 * 128
+        # embedded: 1 * bs * 32
+        # weighted_encoder_rep: 1 * bs * 128
         # rnn_input: 1 * 8 * 160
         rnn_input = torch.cat((embedded, weighted_encoder_rep), dim = 2)
-        # output: 1 * 8 * 64
-        # decoder_hidden: 1 * 8 * 64 (after unsqueeze)
+        # output: 1 * bs * 64
+        # decoder_hidden: 1 * bs * 64 (after unsqueeze)
         output, decoder_hidden = self.rnn(rnn_input, decoder_hidden.unsqueeze(0))
         embedded = embedded.squeeze(0)
         output = output.squeeze(0)
         weighted_encoder_rep = weighted_encoder_rep.squeeze(0)
         output = self.out(torch.cat((output, weighted_encoder_rep, embedded), dim = 1))
-        # output is bs * trg_len
+        # output is bs * num_output_features
         return output, decoder_hidden.squeeze(0)
 
 
-decoder = Decoder(num_output_features, decoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, decoder_dropout, attention).cuda()
+decoder = Decoder(num_output_features, decoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, decoder_dropout, attention).to(device)
 output = batch.trg[0,:]
-decoder.forward(output, decoder_hidden, encoder_outputs)
-
-
+# decoder.forward(output, decoder_hidden, encoder_outputs)
 
 class Seq2Seq(nn.Module):
     def __init__(self, encoder, decoder, device):
@@ -264,6 +263,8 @@ def init_weights(m):
 model.apply(init_weights)
 
 optimizer = optim.Adam(model.parameters())
+pad_idx = trg.vocab.stoi['<pad>']
+criterion = nn.CrossEntropyLoss(ignore_index = pad_idx)
 
 def train(model, iterator, optimizer, criterion, clip):
     model.train()
@@ -272,8 +273,11 @@ def train(model, iterator, optimizer, criterion, clip):
         src = batch.src
         trg = batch.trg
         optimizer.zero_grad()
+        # seq_len * bs * num_output_features
         output = model(src, trg)
+        # ((seq_len - 1) * bs) * num_output_features (output[1:] is (seq_len - 1) * bs * num_output_features))
         output = output[1:].view(-1, output.shape[-1])
+        # (trg_len - 1) 
         trg = trg[1:].view(-1)
         loss = criterion(output, trg)
         loss.backward()
@@ -303,7 +307,7 @@ clip = 1
 best_valid_loss = float('inf')
 
 for epoch in range(n_epochs):
-    train_loss = train(model, train_iterator, optimizer, criterion, CLIP)
+    train_loss = train(model, train_iterator, optimizer, criterion, clip)
     valid_loss = evaluate(model, valid_iterator, criterion)
     print(f'Epoch: {epoch+1:02}')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
