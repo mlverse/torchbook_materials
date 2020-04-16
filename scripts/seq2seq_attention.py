@@ -2,7 +2,6 @@
 
 # https://github.com/bentrevett/pytorch-seq2seq
 
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -15,20 +14,20 @@ import random
 import numpy as np
 import math
 
-src = Field(tokenize = "spacy",
+src_spec = Field(tokenize = "spacy",
             tokenizer_language="en",
             init_token = '<sos>',
             eos_token = '<eos>',
             lower = True)
 
-trg = Field(tokenize = "spacy",
+trg_spec = Field(tokenize = "spacy",
             tokenizer_language="fr",
             init_token = '<sos>',
             eos_token = '<eos>',
             lower = True)
 # Automatically adding <sos> as the first token and <eos> as the last token of each sentence
 #Tokenizing each sentence using the tokenize method
-train_data, valid_data, test_data = IWSLT.splits(exts = ('.en', '.fr'), fields = (src, trg))
+train_data, valid_data, test_data = IWSLT.splits(exts = ('.en', '.fr'), fields = (src_spec, trg_spec))
 len(train_data.examples)
 len(valid_data.examples)
 len(test_data.examples)
@@ -37,28 +36,28 @@ vars(train_data.examples[0])
 vars(train_data.examples[1000])
 vars(train_data.examples[100000])
 
-src.build_vocab(train_data, min_freq = 2)
-trg.build_vocab(train_data, min_freq = 2)
+src_spec.build_vocab(train_data, min_freq = 2)
+trg_spec.build_vocab(train_data, min_freq = 2)
 
-len(src.vocab)
-len(trg.vocab)
+len(src_spec.vocab)
+len(trg_spec.vocab)
 
-src.vocab.stoi 
-trg.vocab.stoi
+src_spec.vocab.stoi 
+trg_spec.vocab.stoi
 
-src.vocab.itos[0]
-src.vocab.itos[1]
-src.vocab.itos[2]
-src.vocab.itos[3]
+src_spec.vocab.itos[0]
+src_spec.vocab.itos[1]
+src_spec.vocab.itos[2]
+src_spec.vocab.itos[3]
 
-trg.vocab.itos[0]
-trg.vocab.itos[1]
-trg.vocab.itos[2]
-trg.vocab.itos[3]
+trg_spec.vocab.itos[0]
+trg_spec.vocab.itos[1]
+trg_spec.vocab.itos[2]
+trg_spec.vocab.itos[3]
 
 
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = "cpu"
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 batch_size = 8
 
 # Defines an iterator that batches examples of similar lengths together.
@@ -71,8 +70,10 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 src_len_in_tokens = (np.array([len(el.src) for el in train_iterator.data()]))
 np.min(src_len_in_tokens), np.median(src_len_in_tokens), np.max(src_len_in_tokens)
 
+
 trg_len_in_tokens = (np.array([len(el.trg) for el in train_iterator.data()]))
 np.min(trg_len_in_tokens), np.median(trg_len_in_tokens), np.max(trg_len_in_tokens)
+np.quantile(trg_len_in_tokens, 0.95)
 
 batch = next(iter(train_iterator))
 batch.src.shape
@@ -81,7 +82,7 @@ batch.trg.shape
 batch.src[ :, 0]
 batch.src[ :, 1]
 
-num_input_features = len(src.vocab)
+num_input_features = len(src_spec.vocab)
 encoder_embedding_dim = 32
 encoder_hidden_dim = 64
 encoder_dropout = 0.5
@@ -173,7 +174,7 @@ a.size()
 
 ###
 
-num_output_features = len(trg.vocab)
+num_output_features = len(trg_spec.vocab)
 decoder_embedding_dim = 32
 decoder_dropout = 0.5
 
@@ -263,13 +264,14 @@ def init_weights(m):
 model.apply(init_weights)
 
 optimizer = optim.Adam(model.parameters())
-pad_idx = trg.vocab.stoi['<pad>']
+pad_idx = trg_spec.vocab.stoi['<pad>']
 criterion = nn.CrossEntropyLoss(ignore_index = pad_idx)
 
 def train(model, iterator, optimizer, criterion, clip):
     model.train()
     epoch_loss = 0
-    for _, batch in enumerate(iterator):
+    for i, batch in enumerate(iterator):
+        if i % 1000 == 0: print(i, end = " ", flush=True)
         src = batch.src
         trg = batch.trg
         optimizer.zero_grad()
@@ -284,6 +286,7 @@ def train(model, iterator, optimizer, criterion, clip):
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
         epoch_loss += loss.item()
+    print()
     return epoch_loss / len(iterator)
 
 def evaluate(model, iterator, criterion):
@@ -300,25 +303,54 @@ def evaluate(model, iterator, criterion):
             epoch_loss += loss.item()
     return epoch_loss / len(iterator)
 
+def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50):
+    model.eval()
+    if isinstance(sentence, str):
+        nlp = spacy.load('en')
+        tokens = [token.text.lower() for token in nlp(sentence)]
+    else:
+        tokens = [token.lower() for token in sentence]
+    tokens = [src_field.init_token] + tokens + [src_field.eos_token]
+    src_indexes = [src_field.vocab.stoi[token] for token in tokens]
+    src_tensor = torch.LongTensor(src_indexes).unsqueeze(1).to(device)
+    src_len = torch.LongTensor([len(src_indexes)]).to(device)
+    with torch.no_grad():
+        encoder_outputs, hidden = model.encoder(src_tensor)
+    trg_indexes = [trg_field.vocab.stoi[trg_field.init_token]]
+    for i in range(max_len):
+        trg_tensor = torch.LongTensor([trg_indexes[-1]]).to(device)
+        with torch.no_grad():
+            output, hidden = model.decoder(trg_tensor, hidden, encoder_outputs)
+            pred_token = output.argmax(1).item()
+            trg_indexes.append(pred_token)
+            print(pred_token)
+            if pred_token == trg_field.vocab.stoi[trg_field.eos_token]: break
+    trg_tokens = [trg_field.vocab.itos[i] for i in trg_indexes]
+    return trg_tokens[1:]
 
-n_epochs = 10
+n_epochs = 20
 clip = 1
 
 best_valid_loss = float('inf')
 
+example_idx = [11, 77, 133, 241, 333, 477, 555, 777]
+
 for epoch in range(n_epochs):
     train_loss = train(model, train_iterator, optimizer, criterion, clip)
     valid_loss = evaluate(model, valid_iterator, criterion)
+    test_loss = evaluate(model, test_iterator, criterion)
     print(f'Epoch: {epoch+1:02}')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
-
-test_loss = evaluate(model, test_iterator, criterion)
-
-print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
-
-
-
-
+    print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+    for i in range(8):
+        example_src = vars(train_data.examples[example_idx[i]])['src']
+        example_trg = vars(train_data.examples[example_idx[i]])['trg']
+        src_sentence = " ".join(i for i in example_src)
+        target_sentence = " ".join(i for i in example_trg)
+        translated_sentence = " ".join(i for i in translation)
+        print("Source: " + src_sentence)
+        print("Target: " + target_sentence)
+        print("Predicted: " + translated_sentence + "\n")
 
 
