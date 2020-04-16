@@ -343,9 +343,11 @@ for epoch in range(n_epochs):
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
     print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+    translation = translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50)
     for i in range(8):
         example_src = vars(train_data.examples[example_idx[i]])['src']
         example_trg = vars(train_data.examples[example_idx[i]])['trg']
+        translation = translate_sentence(example_src, src_spec, trg_spec, model, device)
         src_sentence = " ".join(i for i in example_src)
         target_sentence = " ".join(i for i in example_trg)
         translated_sentence = " ".join(i for i in translation)
