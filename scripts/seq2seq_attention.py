@@ -14,17 +14,19 @@ import random
 import numpy as np
 import math
 
-src_spec = Field(tokenize = "spacy",
-            tokenizer_language="en",
-            init_token = '<sos>',
-            eos_token = '<eos>',
-            lower = True)
+src_spec = Field(
+    tokenize = "spacy",
+    tokenizer_language="en",
+    init_token = '<sos>',
+    eos_token = '<eos>',
+    lower = True)
 
 trg_spec = Field(tokenize = "spacy",
-            tokenizer_language="fr",
-            init_token = '<sos>',
-            eos_token = '<eos>',
-            lower = True)
+    tokenizer_language="fr",
+    init_token = '<sos>',
+    eos_token = '<eos>',
+    lower = True)
+            
 # Automatically adding <sos> as the first token and <eos> as the last token of each sentence
 #Tokenizing each sentence using the tokenize method
 train_data, valid_data, test_data = IWSLT.splits(exts = ('.en', '.fr'), fields = (src_spec, trg_spec))
@@ -36,7 +38,10 @@ vars(train_data.examples[0])
 vars(train_data.examples[1000])
 vars(train_data.examples[100000])
 
+
 src_spec.build_vocab(train_data, min_freq = 2)
+src_spec.process("The pet is a bat.")
+
 trg_spec.build_vocab(train_data, min_freq = 2)
 
 len(src_spec.vocab)
@@ -323,7 +328,6 @@ def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 
             output, hidden = model.decoder(trg_tensor, hidden, encoder_outputs)
             pred_token = output.argmax(1).item()
             trg_indexes.append(pred_token)
-            print(pred_token)
             if pred_token == trg_field.vocab.stoi[trg_field.eos_token]: break
     trg_tokens = [trg_field.vocab.itos[i] for i in trg_indexes]
     return trg_tokens[1:]
@@ -342,8 +346,7 @@ for epoch in range(n_epochs):
     print(f'Epoch: {epoch+1:02}')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
-    print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
-    translation = translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50)
+    print(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
     for i in range(8):
         example_src = vars(train_data.examples[example_idx[i]])['src']
         example_trg = vars(train_data.examples[example_idx[i]])['trg']

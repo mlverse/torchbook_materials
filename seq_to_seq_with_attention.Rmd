@@ -1,3 +1,212 @@
-
 # Sequence-to-sequence models with attention {#seq2seq_att}
 
+As I write this, state of the art models used in natural language processing -- tbd -- are all based on the
+[Transformer](tbd) idea.
+
+The "shocking" thing about the original Transformer was that it did not use recurrent neural networks to process
+sequential data, but mainly relied on the guiding power of *attention* to tackle the challenges inherent in -- multiple,
+sometimes -- sequentiality. The concept of *attention* is so central to current deep learning that we want to introduce
+it independently of how it is used in *Transformer*-based models. In this chapter, thus, we show an example of neural
+machine translation built "classically", that is, using RNNs, but with the crucial addition of *attention*.
+
+## Why attention?
+
+Translation is a prototypical example of sequence-to-sequence processing: sequence in, sequence out. The natural
+architectural choice are RNNs, for they carry a hidden state through computations. The first RNN would *encode* the
+source sentence, at each time taking in a token and the last hidden state. When it is done, it delivers the final state
+to the second RNN, the *decoder*, which now starts generating token after token, based on what it got from the encoder
+and its own hidden states, as they get updated over time. This is sufficient to produce a coherent output; but
+otherwise, the decoder's job is really hard: All it gets from the encoder is a single compressed code where all
+sequentiality is lost.
+
+It's here that *attention* comes in: What if the decoder had access to the encoder state *over time*, and could decide,
+when generating tokens, what encoder states to preferentially look at *at a given step*? For that to happen, we need, at
+each decoder time step, to compare somehow the current decoder hidden state to all encoder hidden states produced while
+encoding. How this is accomplished technically may vary -- see e.g. [@LuongPM15] for a concise overview -- but the idea
+is always the same. Our example will use TBD
+
+## Preprocessing with `torchtext`
+
+Conveniently, we can make use of `torchtext` to
+
+```{python}
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+
+from torchtext.data import Field, BucketIterator
+from torchtext.datasets import IWSLT
+
+import random
+import numpy as np
+import math
+
+src_spec = Field(tokenize = "spacy",
+            tokenizer_language="en",
+            init_token = '<sos>',
+            eos_token = '<eos>',
+            lower = True)
+
+trg_spec = Field(tokenize = "spacy",
+            tokenizer_language="fr",
+            init_token = '<sos>',
+            eos_token = '<eos>',
+            lower = True)
+```
+
+## Results
+
+    Epoch: 01
+        Train Loss: 5.252 | Train PPL: 190.952
+        Val. Loss: 4.944  |  Val. PPL: 140.359
+        Test Loss: 4.951  | Test PPL: 141.259 
+
+    Epoch: 02
+    	  Train Loss: 4.550 | Train PPL:  94.600
+    	  Val. Loss: 4.715  |  Val. PPL: 111.615
+        Test Loss: 4.716  | Test PPL: 111.703 
+
+    Epoch: 03
+    	  Train Loss: 4.343 | Train PPL:  76.925
+    	  Val. Loss: 4.645  |  Val. PPL: 104.031
+        Test Loss: 4.662  | Test PPL: 105.854 
+        
+    Epoch: 04
+    	  Train Loss: 4.229 | Train PPL:  68.629
+    	  Val. Loss: 4.587  |  Val. PPL:  98.215
+        Test Loss: 4.583  | Test PPL:  97.814 
+        
+    Epoch: 05
+    	  Train Loss: 4.153 | Train PPL:  63.636
+    	  Val. Loss: 4.559  |  Val. PPL:  95.500
+        Test Loss: 4.555  | Test PPL:  95.071 
+        
+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | most of the earthquakes and volcanoes are in the sea , at the bottom of the sea .             |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | la plupart des tremblements de terre et de volcans se produisent dans la mer - au fond de la  |
+|                      | mer .                                                                                         |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | la plupart des les et les les dans la eau , la eau .                                          |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | la plupart des les et les des sont dans la mer , au sommet de la mer .                        |
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      |                                                                                               |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | and then we had some hint that these things existed all along the axis of it , because if you |
+|                      | 've got volcanism , water 's going to get down from the sea into cracks in the sea floor ,    |
+|                      | come in contact with magma , and come shooting out hot .                                      |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | nous avions une idée que ces choses existaient tout au long de cet axe , car s' il y a du     |
+|                      | volcanisme , l´eau va descendre de la mer dans les fentes du sol marin , se mettre en contact |
+|                      | avec le magma , et jaillir avec de hautes températures .                                      |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | let nous avons eu beaucoup de ces ces ces choses qui sont en fait , parce que si vous avez ,  |
+|                      | , , , , , à la , dans la eau dans dans la eau , dans le sol , , , avec les \<unk\> , et , et  |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | et puis nous avons eu une chose que ces choses ont été l' axe de l' , , parce que si vous     |
+|                      | avez \<unk\> \<unk\> , eau eau , la mer dans les dans dans la mer dans la mer , et avec son   |
+|                      | contact avec la . et et                                                                       |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | they do n't need the sun at all .                                                             |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | ils n´ont pas du tout besoin de soleil .                                                      |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | ils n' ont pas besoin de la terre .                                                           |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | ls n' ont pas besoin de soleil .                                                              |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | because it 's shown the way we apply , generate and use knowledge is affected by our social   |
+|                      | and institutional context , which told us what in communism ?                                 |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | parce qu' il est démontré que la façon dont nous appliquons , générons , et utilisons les     |
+|                      | connaissances est affectée par notre contexte social et institutionnel , qui nous a dit quoi  |
+|                      | pendant le communisme ?                                                                       |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | parce que c' est que nous nous nous , , , , , et de l' information , , et notre , , et , et , |
+|                      | ce qui a ce que ?                                                                             |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | parce que c' est la façon dont nous on , , et et et la connaissance , et et et et et le       |
+|                      | contexte , qui nous nous demandé ce qu' il est ?                                              |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | it 's not fiction , it 's not story tales , it 's not make - believe ; it 's cold , hard      |
+|                      | science .                                                                                     |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | ce n' est pas de la fiction , ce n' est pas des histoires , ce n' est pas des fadaises ; c'   |
+|                      | est de la science pure .                                                                      |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | ce n' est pas pas , , n' n' est pas de de , , n' est pas pas , , c' est , , .                 |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | c' n' est pas pas la fiction , c' n' est pas pas de histoires , ça ne est pas pas croire , c' |
+|                      | est extrêmement difficile .                                                                   |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | we all want to be there , in the upper right quadrant , where performance is strong and       |
+|                      | learning opportunities are equally distributed .                                              |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | on veut tous être dans le quadrant supérieur droit , où les performances sont remarquables et |
+|                      | les opportunités d' apprentissage sont égales .                                               |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | nous voulons tous seulement , , dans le cas , , où les les sont et et les les les sont . .    |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | nous voulons voulons être être , dans dans le coin droite , où où la est est est des          |
+|                      | opportunités et des apprentissage sont des .                                                  |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++----------------------+-----------------------------------------------------------------------------------------------+
+|                      | Text                                                                                          |
++======================+===============================================================================================+
+| Source               | those are the critical questions , and what we have learned from pisa is that , in high -     |
+|                      | performing education systems , the leaders have convinced their citizens to make choices that |
+|                      | value education , their future , more than consumption today .                                |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Target               | ce sont là les questions importantes , et ce qu' on a appris de pisa est que dans les         |
+|                      | systèmes éducatifs très performants les dirigeants ont aujourd'hui convaincu leurs citoyens   |
+|                      | de faire des choix qui font valoir leur éducation , leur avenir , plus que la consommation .  |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 1              | ces sont des idées , et ce que nous avons avons appris à l' de de , , , dans les des de des , |
+|                      | , les les les les les pour les les de la santé , les les , , , , , , ,                        |
++----------------------+-----------------------------------------------------------------------------------------------+
+| Epoch 5              | ces sont questions questions et et ce nous nous avons appris à l' , c' est dans les systèmes  |
+|                      | de systèmes , , les organisations qui ont des citoyens de leur pour les choix , des systèmes  |
+|                      | , , , , , , , plus de énergie aujourd'hui .                                                   |
++----------------------+-----------------------------------------------------------------------------------------------+
+
++-----------------------+----------------------------------------------------------------------------------------------+
+|                       | Text                                                                                         |
++=======================+==============================================================================================+
+| Source                | when the sailors mutinied at sea in a demand for humane conditions , it was these teenagers  |
+|                       | that fed the crew .                                                                          |
++-----------------------+----------------------------------------------------------------------------------------------+
+| Target                | quand les marins se sont mutinés en mer pour exiger des conditions plus humaines , ce sont   |
+|                       | ces adolescents qui ont nourri l' équipage .                                                 |
++-----------------------+----------------------------------------------------------------------------------------------+
+| Epoch 1               | quand les \<unk\> de l' eau dans dans la de de pour les les , , , ces ces qui ont été été .  |
++-----------------------+----------------------------------------------------------------------------------------------+
+| Epoch 5               | quand les \<unk\> \<unk\> dans la mer dans une vie avec la conditions conditions , les       |
+|                       | parents , c' était ces adolescents qui ont été équipe .                                      |
++-----------------------+----------------------------------------------------------------------------------------------+
