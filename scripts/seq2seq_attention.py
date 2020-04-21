@@ -27,38 +27,21 @@ trg_spec = Field(tokenize = "spacy",
     eos_token = '<eos>',
     lower = True)
             
-# Automatically adding <sos> as the first token and <eos> as the last token of each sentence
-#Tokenizing each sentence using the tokenize method
 train_data, valid_data, test_data = IWSLT.splits(exts = ('.en', '.fr'), fields = (src_spec, trg_spec))
-len(train_data.examples)
-len(valid_data.examples)
-len(test_data.examples)
+len(train_data.examples), len(valid_data.examples), len(test_data.examples)
 
-vars(train_data.examples[0])
-vars(train_data.examples[1000])
-vars(train_data.examples[100000])
-
+vars(train_data.examples[111])
+vars(train_data.examples[11111])
+vars(train_data.examples[111111])
 
 src_spec.build_vocab(train_data, min_freq = 2)
-src_spec.process("The pet is a bat.")
-
 trg_spec.build_vocab(train_data, min_freq = 2)
 
-len(src_spec.vocab)
-len(trg_spec.vocab)
+len(src_spec.vocab), len(trg_spec.vocab)
 
-src_spec.vocab.stoi 
-trg_spec.vocab.stoi
+src_spec.vocab.stoi["cat"], trg_spec.vocab.stoi["chat"]
 
-src_spec.vocab.itos[0]
-src_spec.vocab.itos[1]
-src_spec.vocab.itos[2]
-src_spec.vocab.itos[3]
-
-trg_spec.vocab.itos[0]
-trg_spec.vocab.itos[1]
-trg_spec.vocab.itos[2]
-trg_spec.vocab.itos[3]
+src_spec.vocab.itos[0], src_spec.vocab.itos[1], src_spec.vocab.itos[2], src_spec.vocab.itos[3]
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -81,27 +64,15 @@ np.min(trg_len_in_tokens), np.median(trg_len_in_tokens), np.max(trg_len_in_token
 np.quantile(trg_len_in_tokens, 0.95)
 
 batch = next(iter(train_iterator))
-batch.src.shape
-batch.trg.shape
+batch.src.shape, batch.trg.shape
 
 batch.src[ :, 0]
-batch.src[ :, 1]
 
 num_input_features = len(src_spec.vocab)
 encoder_embedding_dim = 32
 encoder_hidden_dim = 64
 encoder_dropout = 0.5
 decoder_hidden_dim = 64
-
-# GRU: compare with keras
-# normally, returns 2D tensor with shape (batch_size, units)
-# if return_state: a list of tensors. The first tensor is the output. 
-#                  The remaining tensors are the last states, each with shape (batch_size, units).
-# if return_sequences: 3D tensor with shape (batch_size, timesteps, units).
-
-# so torch returns a tuple of: 
-#   - outputs (corresponding to keras' return_sequences = true)
-#   - last state(s) (like keras with return_state)
 
 class Encoder(nn.Module):
     def __init__(self, num_input_features, embedding_dim, encoder_hidden_dim, decoder_hidden_dim, dropout):
@@ -112,19 +83,19 @@ class Encoder(nn.Module):
         self.decoder_hidden_dim = decoder_hidden_dim
         self.dropout = dropout
         self.embedding = nn.Embedding(num_input_features, embedding_dim)
-        # constructor takes number of input features (will come from embedding) and hidden_size
         self.rnn = nn.GRU(embedding_dim, encoder_hidden_dim, bidirectional = True)
         self.fc = nn.Linear(encoder_hidden_dim * 2, decoder_hidden_dim)
         self.dropout = nn.Dropout(dropout)
+    # src: seq_len * bs
     def forward(self, src):
         # src:         seq_len * bs
-        # embedded:    seq_len * bs * embedding_dim
-        # meaning:     each input token has been embedded to degree embedding_dim
+        # embedded: seq_len * bs * embedding_dim
+        # each input token gets embedded to degree embedding_dim
         embedded = self.dropout(self.embedding(src))
-        # output:      seq_len * bs * (2 * hidden_size)
-        # meaning:     tensor containing the output features h_t for each t (!)
-        # hidden:      2 * bs * hidden_size
-        # meaning:     tensor containing the hidden state for t = seq_len
+        # output: seq_len * bs * (2 * hidden_size)
+        #  => tensor containing the output features h_t for each t (!)
+        # hidden: 2 * bs * hidden_size
+        #  => tensor containing the hidden state for t = seq_len
         outputs, hidden = self.rnn(embedded)
         # concatenate last state from both directions
         # input size to fc then is bs * 2 * hidden_size
@@ -137,9 +108,9 @@ encoder = Encoder(num_input_features, encoder_embedding_dim, encoder_hidden_dim,
 encoder_output = encoder.forward(batch.src)
 [t.size() for t in encoder_output]
 # [torch.Size([357, 8, 128]), torch.Size([8, 64])]
-decoder_hidden = encoder_output[1]
 encoder_outputs = encoder_output[0]
-
+decoder_hidden = encoder_output[1]
+encoder_outputs.size(), decoder_hidden.size()
 ###
 
 attention_dim = 8
