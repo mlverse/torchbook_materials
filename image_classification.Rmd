@@ -118,28 +118,28 @@ class_names
 
 Next, let's view a few images from the test set. We can retrieve the first batch -- images and corresponding classes -- by calling `next()` on a dataset's iterator:
 
-```{python, eval = FALSE}
+```{python}
 inputs, classes = next(iter(dataloaders['test']))
 inputs.shape
 ```
 
 The classes are integers, to be used as indexes into the vector of class names:
 
-```{python, eval = FALSE}
+```{python}
 classes
 ```
 
 `toTensor()` converts images to tensors of shape `num_channels x height x width`
 
 
-```{python, eval = FALSE}
+```{python}
 inputs[0].shape
 ```
 
 --  which means that for plotting using `as.raster`, we need to reshape images such that channels come last.
 
 
-```{r, eval = FALSE, fig.asp = 1, fig.width = 8}
+```{r, fig.asp = 1, fig.width = 8}
 library(reticulate)
 library(dplyr)
 
@@ -171,21 +171,21 @@ knitr::include_graphics("images/image_classif_birds.png")
 
 The backbone of our model is a pre-trained instance of Resnet. 
 
-```{python, eval = FALSE}
+```{python}
 model = models.resnet18(pretrained=True)
 model
 ```
 
 We will modify the model's output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it was trained for. This means we only need to train a single layer -- the one we're going to add. We _could_ perform backpropagation through the complete model, trying to fine-tune Resnet's weights as well, but that would have a significant effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet's weights, those located iin the layers directly preceding the output -- you might want to experiment with this at home.)
 
-```{python, eval = FALSE}
+```{python}
 for param in model.parameters():
     param.requires_grad = False
 ```
 
 To replace the output layer, the model is just modified in-place:
 
-```{python, eval = FALSE}
+```{python}
 num_features = model.fc.in_features
 
 model.fc = torch.nn.Linear(num_features, len(class_names))
@@ -196,7 +196,7 @@ model.fc = torch.nn.Linear(num_features, len(class_names))
 
 For training, we use cross entropy loss and stochastic gradient descent.
 
-```{python, eval = FALSE}
+```{python}
 criterion = torch.nn.CrossEntropyLoss()
 
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
@@ -206,7 +206,7 @@ We set the learning rate to 0.1, but that was just a formality. As became widely
 
 Here is how to find a good learning rate, from [Sylvain Gugger](https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html):
 
-```{python, eval = FALSE}
+```{python}
 # from: https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html
 
 import math
@@ -251,7 +251,7 @@ def find_lr(init_value = 1e-8, final_value=10., beta = 0.98):
 logs,losses = find_lr()
 ```
 
-```{r, eval = FALSE}
+```{r}
 df = data.frame(logs = py$logs[10:(length(py$logs) - 5)], losses = py$losses[10:(length(py$losses) - 5)])
 
 library(ggplot2)
@@ -264,14 +264,14 @@ The best learning rate is not the exact one where loss is at a minimum, instead,
 `OneCycleLR` will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the whole training period:
 
 
-```{python, eval = FALSE}
+```{python}
 num_epochs = 10
 lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr = 0.05, epochs = num_epochs, steps_per_epoch=len(dataloaders['train']))
 ```
 
 Now we train for ten epochs. In every epoch, we iterate over both training and validation sets; performing optimization on the training set while just calculating accuracy on the test set. Note that `lr_scheduler.step()` has to be called explicitly after each batch, and it has to be called _after_ `optimizer.step()`.
 
-```{python, eval = FALSE}
+```{python}
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
@@ -321,7 +321,7 @@ for epoch in range(num_epochs):
 
 Finally, we calculate accuracy on the test set:
 
-```{python, eval = FALSE}
+```{python}
 phase = 'test'
 with torch.no_grad():
         running_num_correct = 0

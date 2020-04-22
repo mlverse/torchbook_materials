@@ -13,7 +13,7 @@ link-citations: yes
 ---
 
 ```{r setup} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(eval = FALSE) 
 ```
 
 `r if (knitr::is_latex_output()) '<!--'` 

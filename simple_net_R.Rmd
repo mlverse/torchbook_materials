@@ -85,7 +85,7 @@ Before going there, a quick summary of the concepts and building blocks we've no
 The program below will follow this blueprint. We'll fill out the sections soon:
 
 
-```{r, eval=FALSE}
+```{r}
 for (t in 1:200) {
     
     ### -------- Forward pass -------- 
@@ -271,7 +271,7 @@ In the next chapter, we start introducing torch. Optimization will still be perf
 
 ### Complete code
 
-```{r, eval=FALSE}
+```{r}
 library(rray)
 library(dplyr)
 ### generate training data -----------------------------------------------------

@@ -32,10 +32,6 @@ input and how to transform it to a tensor.
 In our example, the source language will be English, and the target will be French. Here, we ask torch to use Spacy as a
 tokenizer for both languages, and what tokens to use to mark sentence beginnings and endings:
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-```
-
 ```{python}
 import torch
 import torch.nn as nn
@@ -168,7 +164,7 @@ batch.src[ :, 0]
 
 The model is a hierarchical composition of *modules*. We start with the encoder.
 
-#### Encoder module
+### Encoder 
 
 The encoder embeds its input, runs it through a bidirectional RNN (a GRU, to be precise), and returns the GRU's outputs as
 well as a processed version of the final hidden states (the plural -- outputs, states -- being due to the RNN's
@@ -241,7 +237,7 @@ encoder_outputs.size(), decoder_hidden.size()
 
 Next, we create the attention module, to be used by the decoder.
 
-#### Attention module
+### Attention module
 
 Every time it is called to generate a single target token, the decoder will ask the attention module to *score* every token in
 the input sequence as to its relevance in the current context. To this end, it will need to know about the current decoder
@@ -257,7 +253,6 @@ concatenates the things to be correlated and passes them through a linear layer;
 them.
 
 ```{python}
-
 attention_dim = 8
 
 class Attention(nn.Module):
@@ -285,24 +280,35 @@ class Attention(nn.Module):
         return F.softmax(attention, dim=1)
 
 attention = Attention(encoder_hidden_dim, decoder_hidden_dim, attention_dim).to(device)
-
 ```
 
 As we know how this module will be called, we can try it, too, in isolation:
 
 ```{python}
 a = attention(decoder_hidden, encoder_outputs)
+# will be bs * seq_len
 a.size()
-```
-
-```{}
-# tbd show result for 1st batch
-torch.Size([8, 357])
 ```
 
 Now to the place where it gets used, the decoder.
 
-#### Decoder
+### Decoder
+
+To translate one sentence, the decoder will be called in a loop, each time generating one token based on three things:
+
+-   The previous token. In inference mode, this will be the token it has just generated, in the previous loop iteration;
+    however in training mode, this is often chosen to be the "correct" answer -- the thing it *should* have chosen. This
+    technique is called *teacher forcing*; the below implementation applies it randomly in 50% of loop iterations. (Don't look
+    for it here, in the decoder; we'll see it in the top-level `Seq2Seq` module.)
+-   The hidden state. This will be the *encoder*'s hidden state on the very first call, and the *decoder\'*s own on every
+    subsequent one.
+-   The complete output (at all timesteps) from the encoder. We already know we always need the complete output so we can
+    compute the attention weights.
+
+The decoder calls the attention module to obtain the attention weights, and multiplies these with the encoder outputs to
+obtain what is sometimes called the *attention vector* (line 26). This is then passed to an RNN, together with the embedded
+input data. A processed version of the RNN's output, as well as the last hidden state, are returned, ready for use in
+generating the next token.
 
 ```{python}
 num_output_features = len(trg_spec.vocab)
@@ -327,27 +333,27 @@ class Decoder(nn.Module):
         a = self.attention(decoder_hidden, encoder_outputs)
         # bs * 1 * seq_len
         a = a.unsqueeze(1)
-        # bs * 357 * 128
+        # bs * seq_len * (2 * hidden_size)
         encoder_outputs = encoder_outputs.permute(1, 0, 2)
-        # bs * 1 * 128
+        # bs * 1 * (2 * hidden_size)
         weighted_encoder_rep = torch.bmm(a, encoder_outputs)
-        # 1 * bs * 128
+        # 1 * bs * (2 * hidden_size)
         weighted_encoder_rep = weighted_encoder_rep.permute(1, 0, 2)
         return weighted_encoder_rep
     def forward(self, input, decoder_hidden, encoder_outputs):
         # 1 * bs
         input = input.unsqueeze(0)
-        # 1 * bs * 32
+        # 1 * bs * decoder_embedding_dim
         embedded = self.dropout(self.embedding(input))
-        # 1 * bs * 128
+        # 1 * bs * (2 * hidden_size)
         weighted_encoder_rep = self._weighted_encoder_rep(decoder_hidden, encoder_outputs)
         # concatenate input embedding and score from attention module
-        # embedded: 1 * bs * 32
-        # weighted_encoder_rep: 1 * bs * 128
-        # rnn_input: 1 * 8 * 160
+        # embedded: 1 * bs * decoder_embedding_dim
+        # weighted_encoder_rep: 1 * bs * (2 * hidden_size)
+        # rnn_input: 1 * bs * (decoder_embedding_dim + (2 * hidden_size))
         rnn_input = torch.cat((embedded, weighted_encoder_rep), dim = 2)
-        # output: 1 * bs * 64
-        # decoder_hidden: 1 * bs * 64 (after unsqueeze)
+        # output: 1 * bs * decoder_hidden_dim
+        # decoder_hidden: 1 * bs * decoder_hidden_dim (after unsqueeze)
         output, decoder_hidden = self.rnn(rnn_input, decoder_hidden.unsqueeze(0))
         embedded = embedded.squeeze(0)
         output = output.squeeze(0)
@@ -356,10 +362,172 @@ class Decoder(nn.Module):
         # output is bs * num_output_features
         return output, decoder_hidden.squeeze(0)
   
+```
+
+Now we put it all together.
+
+### Seq2seq module
+
+A single call of the top-level `Seq2Seq` module will translate a single sentence -- or a batch of sentences, rather --,
+calling the encoder just once and the decoder, in a loop.
+
+```{python}
+class Seq2Seq(nn.Module):
+    def __init__(self, encoder, decoder, device):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.device = device
+    def forward(self, src, trg, teacher_forcing_ratio = 0.5):
+        batch_size = src.shape[1]
+        max_len = trg.shape[0]
+        trg_vocab_size = self.decoder.num_output_features
+        outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
+        encoder_outputs, hidden = self.encoder(src)
+        # first input to the decoder is the <sos> token
+        output = trg[0,:]
+        for t in range(1, max_len):
+            output, hidden = self.decoder(output, hidden, encoder_outputs)
+            outputs[t] = output
+            teacher_force = random.random() < teacher_forcing_ratio
+            top1 = output.max(1)[1]
+            output = (trg[t] if teacher_force else top1)
+        return outputs
+
+model = Seq2Seq(encoder, decoder, device).to(device)
+
+
+def init_weights(m):
+    for name, param in m.named_parameters():
+        if 'weight' in name:
+            nn.init.normal_(param.data, mean=0, std=0.01)
+        else:
+            nn.init.constant_(param.data, 0)
+model.apply(init_weights)
+```
+
+Now we're ready to train.
+
+## Training and evaluation
+
+All logic being contained in the modules, the training loop is concise:
+
+```{python}
+optimizer = optim.Adam(model.parameters())
+pad_idx = trg_spec.vocab.stoi['<pad>']
+criterion = nn.CrossEntropyLoss(ignore_index = pad_idx)
+
+def train(model, iterator, optimizer, criterion, clip):
+    model.train()
+    epoch_loss = 0
+    for i, batch in enumerate(iterator):
+        if i % 1000 == 0: print(i, end = " ", flush=True)
+        src = batch.src
+        trg = batch.trg
+        optimizer.zero_grad()
+        # seq_len * bs * num_output_features
+        output = model(src, trg)
+        # ((seq_len - 1) * bs) * num_output_features (output[1:] is (seq_len - 1) * bs * num_output_features))
+        output = output[1:].view(-1, output.shape[-1])
+        # (trg_len - 1) 
+        trg = trg[1:].view(-1)
+        loss = criterion(output, trg)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
+        optimizer.step()
+        epoch_loss += loss.item()
+    print()
+    return epoch_loss / len(iterator)
+```
+
+We will want to monitor performance while training, so here is a helper function that sets the model to evaluation mode, turns
+off teacher forcing and computes the loss:
+
+```{python}
+def evaluate(model, iterator, criterion):
+    model.eval()
+    epoch_loss = 0
+    with torch.no_grad():
+        for _, batch in enumerate(iterator):
+            src = batch.src
+            trg = batch.trg
+            output = model(src, trg, 0) 
+            output = output[1:].view(-1, output.shape[-1])
+            trg = trg[1:].view(-1)
+            loss = criterion(output, trg)
+            epoch_loss += loss.item()
+    return epoch_loss / len(iterator)
+```
+
+Of course, what we really are interested in is how the translations look to us humans; here is a function that translates
+whatever we pass it:
+
+```{python}
+def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50):
+    model.eval()
+    if isinstance(sentence, str):
+        nlp = spacy.load('en')
+        tokens = [token.text.lower() for token in nlp(sentence)]
+    else:
+        tokens = [token.lower() for token in sentence]
+    tokens = [src_field.init_token] + tokens + [src_field.eos_token]
+    src_indexes = [src_field.vocab.stoi[token] for token in tokens]
+    src_tensor = torch.LongTensor(src_indexes).unsqueeze(1).to(device)
+    src_len = torch.LongTensor([len(src_indexes)]).to(device)
+    with torch.no_grad():
+        encoder_outputs, hidden = model.encoder(src_tensor)
+    trg_indexes = [trg_field.vocab.stoi[trg_field.init_token]]
+    for i in range(max_len):
+        trg_tensor = torch.LongTensor([trg_indexes[-1]]).to(device)
+        with torch.no_grad():
+            output, hidden = model.decoder(trg_tensor, hidden, encoder_outputs)
+            pred_token = output.argmax(1).item()
+            trg_indexes.append(pred_token)
+            if pred_token == trg_field.vocab.stoi[trg_field.eos_token]: break
+    trg_tokens = [trg_field.vocab.itos[i] for i in trg_indexes]
+    return trg_tokens[1:]
 
 ```
 
+Now here is the training loop. Every epoch, we print the translations of eight sentences, picked at random from the training
+set:
+
+```{python}
+n_epochs = 10
+clip = 1
+
+example_idx = [11, 77, 133, 241, 333, 477, 555, 777]
+
+for epoch in range(n_epochs):
+    train_loss = train(model, train_iterator, optimizer, criterion, clip)
+    valid_loss = evaluate(model, valid_iterator, criterion)
+    test_loss = evaluate(model, test_iterator, criterion)
+    print(f'Epoch: {epoch+1:02}')
+    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+    print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+    print(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+    for i in range(8):
+        example_src = vars(train_data.examples[example_idx[i]])['src']
+        example_trg = vars(train_data.examples[example_idx[i]])['trg']
+        translation = translate_sentence(example_src, src_spec, trg_spec, model, device)
+        src_sentence = " ".join(i for i in example_src)
+        target_sentence = " ".join(i for i in example_trg)
+        translated_sentence = " ".join(i for i in translation)
+        print("Source: " + src_sentence)
+        print("Target: " + target_sentence)
+        print("Predicted: " + translated_sentence + "\n")
+
+```
+
+You may be curious to see the output - right?
+
 ## Results
+
+We show losses and translations after epochs 1, 5, and 9. From how training progresses, we don't expect this model to result
+in perfect translations for the given dataset. Remember, this is a real-world dataset, unlike the toy datasets often used in
+deep learning tutorials -- model architecture may well be far too unsophisticated under these circumstances.
+
+We'll see a *Transformer*-based model in the next chapter -- feel free to compare both models on the same task!
 
     Epoch: 01
         Train Loss: 5.252 | Train PPL: 190.952
@@ -394,21 +562,21 @@ class Decoder(nn.Module):
 +----------------+-----------------------------------------------------------------------------------------------------------+
 |                | Text                                                                                                      |
 +================+===========================================================================================================+
-| S o u r c e    | and then we had some hint that these things existed all along the axis of it , because if you 've got     |
+| Source         | and then we had some hint that these things existed all along the axis of it , because if you 've got     |
 |                | volcanism , water 's going to get down from the sea into cracks in the sea floor , come in contact with   |
 |                | magma , and come shooting out hot .                                                                       |
 +----------------+-----------------------------------------------------------------------------------------------------------+
-| T a r g e t    | nous avions une idée que ces choses existaient tout au long de cet axe , car s' il y a du volcanisme ,    |
+| Target         | nous avions une idée que ces choses existaient tout au long de cet axe , car s' il y a du volcanisme ,    |
 |                | l´eau va descendre de la mer dans les fentes du sol marin , se mettre en contact avec le magma , et       |
 |                | jaillir avec de hautes températures .                                                                     |
 +----------------+-----------------------------------------------------------------------------------------------------------+
-| E p o c h 1    | let nous avons eu beaucoup de ces ces ces choses qui sont en fait , parce que si vous avez , , , , , , à  |
+| Epoch 1        | let nous avons eu beaucoup de ces ces ces choses qui sont en fait , parce que si vous avez , , , , , , à  |
 |                | la , dans la eau dans dans la eau , dans le sol , , , avec les \<unk\> , et , et                          |
 +----------------+-----------------------------------------------------------------------------------------------------------+
-| E p o c h 5    | et puis nous avons eu une chose que ces choses ont été l' axe de l' , , parce que si vous avez \<unk\>    |
+| Epoch 5        | et puis nous avons eu une chose que ces choses ont été l' axe de l' , , parce que si vous avez \<unk\>    |
 |                | \<unk\> , eau eau , la mer dans les dans dans la mer dans la mer , et avec son contact avec la . et et    |
 +----------------+-----------------------------------------------------------------------------------------------------------+
-| E p o c h 9    | et puis nous avons eu un idée que ces choses ont tous les axe de , , parce que si vous avez \<unk\> , eau |
+| Epoch 9        | et puis nous avons eu un idée que ces choses ont tous les axe de , , parce que si vous avez \<unk\> , eau |
 |                | , l' eau va descendre dans la mer dans dans dans mer dans la mer , dans la pluie , et de la de de         |
 +----------------+-----------------------------------------------------------------------------------------------------------+
 
@@ -426,131 +594,97 @@ class Decoder(nn.Module):
 | Epoch 9          | ils ne ont pas besoin de soleil soleil tout tout .                                                      |
 +------------------+---------------------------------------------------------------------------------------------------------+
 
-+----+-----------------------------------------------------------------------------------------------------------------------+
-|    | Text                                                                                                                  |
-+====+=======================================================================================================================+
-| So | because it 's shown the way we apply , generate and use knowledge is affected by our social and institutional context |
-| ur | , which told us what in communism ?                                                                                   |
-| ce |                                                                                                                       |
-+----+-----------------------------------------------------------------------------------------------------------------------+
-| Ta | parce qu' il est démontré que la façon dont nous appliquons , générons , et utilisons les connaissances est affectée  |
-| rg | par notre contexte social et institutionnel , qui nous a dit quoi pendant le communisme ?                             |
-| et |                                                                                                                       |
-+----+-----------------------------------------------------------------------------------------------------------------------+
-| E  | parce que c' est que nous nous nous , , , , , et de l' information , , et notre , , et , et , ce qui a ce que ?       |
-| po |                                                                                                                       |
-| ch |                                                                                                                       |
-| 1  |                                                                                                                       |
-+----+-----------------------------------------------------------------------------------------------------------------------+
-| E  | parce que c' est la façon dont nous on , , et et et la connaissance , et et et et et le contexte , qui nous nous      |
-| po | demandé ce qu' il est ?                                                                                               |
-| ch |                                                                                                                       |
-| 5  |                                                                                                                       |
-+----+-----------------------------------------------------------------------------------------------------------------------+
-| E  | parce que c' est montré comment nous nous , , et et et connaissances et et le monde social et et et nous nous a       |
-| po | demandé à le ? ?                                                                                                      |
-| ch |                                                                                                                       |
-| 9  |                                                                                                                       |
-+----+-----------------------------------------------------------------------------------------------------------------------+
++----------------+-----------------------------------------------------------------------------------------------------------+
+|                | Text                                                                                                      |
++================+===========================================================================================================+
+| Source         | because it 's shown the way we apply , generate and use knowledge is affected by our social and           |
+|                | institutional context , which told us what in communism ?                                                 |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Target         | parce qu' il est démontré que la façon dont nous appliquons , générons , et utilisons les connaissances   |
+|                | est affectée par notre contexte social et institutionnel , qui nous a dit quoi pendant le communisme ?    |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 1        | parce que c' est que nous nous nous , , , , , et de l' information , , et notre , , et , et , ce qui a ce |
+|                | que ?                                                                                                     |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 5        | parce que c' est la façon dont nous on , , et et et la connaissance , et et et et et le contexte , qui    |
+|                | nous nous demandé ce qu' il est ?                                                                         |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 9        | parce que c' est montré comment nous nous , , et et et connaissances et et le monde social et et et nous  |
+|                | nous a demandé à le ? ?                                                                                   |
++----------------+-----------------------------------------------------------------------------------------------------------+
 
-+-------+--------------------------------------------------------------------------------------------------------------------+
-|       | Text                                                                                                               |
-+=======+====================================================================================================================+
-| S     | it 's not fiction , it 's not story tales , it 's not make - believe ; it 's cold , hard science .                 |
-| ource |                                                                                                                    |
-+-------+--------------------------------------------------------------------------------------------------------------------+
-| T     | ce n' est pas de la fiction , ce n' est pas des histoires , ce n' est pas des fadaises ; c' est de la science pure |
-| arget | .                                                                                                                  |
-+-------+--------------------------------------------------------------------------------------------------------------------+
-| Epoch | ce n' est pas pas , , n' n' est pas de de , , n' est pas pas , , c' est , , .                                      |
-| 1     |                                                                                                                    |
-+-------+--------------------------------------------------------------------------------------------------------------------+
-| Epoch | c' n' est pas pas la fiction , c' n' est pas pas de histoires , ça ne est pas pas croire , c' est extrêmement      |
-| 5     | difficile .                                                                                                        |
-+-------+--------------------------------------------------------------------------------------------------------------------+
-| Epoch | c' n' est pas pas fiction , c' n' est pas pas de histoires , c' est est pas facile . c' est froid , la science .   |
-| 9     |                                                                                                                    |
-+-------+--------------------------------------------------------------------------------------------------------------------+
++----------------+-----------------------------------------------------------------------------------------------------------+
+|                | Text                                                                                                      |
++================+===========================================================================================================+
+| Source         | it 's not fiction , it 's not story tales , it 's not make - believe ; it 's cold , hard science .        |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Target         | ce n' est pas de la fiction , ce n' est pas des histoires , ce n' est pas des fadaises ; c' est de la     |
+|                | science pure .                                                                                            |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 1        | ce n' est pas pas , , n' n' est pas de de , , n' est pas pas , , c' est , , .                             |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 5        | c' n' est pas pas la fiction , c' n' est pas pas de histoires , ça ne est pas pas croire , c' est         |
+|                | extrêmement difficile .                                                                                   |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 9        | c' n' est pas pas fiction , c' n' est pas pas de histoires , c' est est pas facile . c' est froid , la    |
+|                | science .                                                                                                 |
++----------------+-----------------------------------------------------------------------------------------------------------+
 
-+------+---------------------------------------------------------------------------------------------------------------------+
-|      | Text                                                                                                                |
-+======+=====================================================================================================================+
-| So   | we all want to be there , in the upper right quadrant , where performance is strong and learning opportunities are  |
-| urce | equally distributed .                                                                                               |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| Ta   | on veut tous être dans le quadrant supérieur droit , où les performances sont remarquables et les opportunités d'   |
-| rget | apprentissage sont égales .                                                                                         |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | nous voulons tous seulement , , dans le cas , , où les les sont et et les les les sont . .                          |
-| poch |                                                                                                                     |
-| 1    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | nous voulons voulons être être , dans dans le coin droite , où où la est est est des opportunités et des            |
-| poch | apprentissage sont des .                                                                                            |
-| 5    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | ous voulons voulons être là , dans le haut , , où les performances est plus et et les opportunités sont sont .      |
-| poch |                                                                                                                     |
-| 9    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
++----------------+-----------------------------------------------------------------------------------------------------------+
+|                | Text                                                                                                      |
++================+===========================================================================================================+
+| Source         | we all want to be there , in the upper right quadrant , where performance is strong and learning          |
+|                | opportunities are equally distributed .                                                                   |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Target         | on veut tous être dans le quadrant supérieur droit , où les performances sont remarquables et les         |
+|                | opportunités d' apprentissage sont égales .                                                               |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 1        | nous voulons tous seulement , , dans le cas , , où les les sont et et les les les sont . .                |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 5        | nous voulons voulons être être , dans dans le coin droite , où où la est est est des opportunités et des  |
+|                | apprentissage sont des .                                                                                  |
++----------------+-----------------------------------------------------------------------------------------------------------+
+| Epoch 9        | ous voulons voulons être là , dans le haut , , où les performances est plus et et les opportunités sont   |
+|                | sont .                                                                                                    |
++----------------+-----------------------------------------------------------------------------------------------------------+
 
-+---+------------------------------------------------------------------------------------------------------------------------+
-|   | Text                                                                                                                   |
-+===+========================================================================================================================+
-| S | those are the critical questions , and what we have learned from pisa is that , in high - performing education systems |
-| o | , the leaders have convinced their citizens to make choices that value education , their future , more than            |
-| u | consumption today .                                                                                                    |
-| r |                                                                                                                        |
-| c |                                                                                                                        |
-| e |                                                                                                                        |
-+---+------------------------------------------------------------------------------------------------------------------------+
-| T | ce sont là les questions importantes , et ce qu' on a appris de pisa est que dans les systèmes éducatifs très          |
-| a | performants les dirigeants ont aujourd'hui convaincu leurs citoyens de faire des choix qui font valoir leur éducation  |
-| r | , leur avenir , plus que la consommation .                                                                             |
-| g |                                                                                                                        |
-| e |                                                                                                                        |
-| t |                                                                                                                        |
-+---+------------------------------------------------------------------------------------------------------------------------+
-| E | ces sont des idées , et ce que nous avons avons appris à l' de de , , , dans les des de des , , les les les les les    |
-| p | pour les les de la santé , les les , , , , , , ,                                                                       |
-| o |                                                                                                                        |
-| c |                                                                                                                        |
-| h |                                                                                                                        |
-| 1 |                                                                                                                        |
-+---+------------------------------------------------------------------------------------------------------------------------+
-| E | ces sont questions questions et et ce nous nous avons appris à l' , c' est dans les systèmes de systèmes , , les       |
-| p | organisations qui ont des citoyens de leur pour les choix , des systèmes , , , , , , , plus de énergie aujourd'hui .   |
-| o |                                                                                                                        |
-| c |                                                                                                                        |
-| h |                                                                                                                        |
-| 5 |                                                                                                                        |
-+---+------------------------------------------------------------------------------------------------------------------------+
-| E | ces sont questions questions questions et et ce dont nous avons appris à l' est est , , dans les systèmes de systèmes  |
-| p | de , , les dirigeants ont citoyens leurs citoyens pour faire les choix , les futur , , futur , plus de consommation de |
-| o | plus .                                                                                                                 |
-| c |                                                                                                                        |
-| h |                                                                                                                        |
-| 9 |                                                                                                                        |
-+---+------------------------------------------------------------------------------------------------------------------------+
++---------------+------------------------------------------------------------------------------------------------------------+
+|               | Text                                                                                                       |
++===============+============================================================================================================+
+| Source        | those are the critical questions , and what we have learned from pisa is that , in high - performing       |
+|               | education systems , the leaders have convinced their citizens to make choices that value education , their |
+|               | future , more than consumption today .                                                                     |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Target        | ce sont là les questions importantes , et ce qu' on a appris de pisa est que dans les systèmes éducatifs   |
+|               | très performants les dirigeants ont aujourd'hui convaincu leurs citoyens de faire des choix qui font       |
+|               | valoir leur éducation , leur avenir , plus que la consommation .                                           |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Epoch 1       | ces sont des idées , et ce que nous avons avons appris à l' de de , , , dans les des de des , , les les    |
+|               | les les les pour les les de la santé , les les , , , , , , ,                                               |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Epoch 5       | ces sont questions questions et et ce nous nous avons appris à l' , c' est dans les systèmes de systèmes , |
+|               | , les organisations qui ont des citoyens de leur pour les choix , des systèmes , , , , , , , plus de       |
+|               | énergie aujourd'hui .                                                                                      |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Epoch 9       | ces sont questions questions questions et et ce dont nous avons appris à l' est est , , dans les systèmes  |
+|               | de systèmes de , , les dirigeants ont citoyens leurs citoyens pour faire les choix , les futur , , futur , |
+|               | plus de consommation de plus .                                                                             |
++---------------+------------------------------------------------------------------------------------------------------------+
 
-+------+---------------------------------------------------------------------------------------------------------------------+
-|      | Text                                                                                                                |
-+======+=====================================================================================================================+
-| So   | when the sailors mutinied at sea in a demand for humane conditions , it was these teenagers that fed the crew .     |
-| urce |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| Ta   | quand les marins se sont mutinés en mer pour exiger des conditions plus humaines , ce sont ces adolescents qui ont  |
-| rget | nourri l' équipage .                                                                                                |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | quand les \<unk\> de l' eau dans dans la de de pour les les , , , ces ces qui ont été été .                         |
-| poch |                                                                                                                     |
-| 1    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | quand les \<unk\> \<unk\> dans la mer dans une vie avec la conditions conditions , les parents , c' était ces       |
-| poch | adolescents qui ont été équipe .                                                                                    |
-| 5    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | quand les marins \<unk\> dans la mer dans une demande de la nature , , c' était ces adolescents qui qui l' équipe . |
-| poch |                                                                                                                     |
-| 9    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
++---------------+------------------------------------------------------------------------------------------------------------+
+|               | Text                                                                                                       |
++===============+============================================================================================================+
+| Source        | when the sailors mutinied at sea in a demand for humane conditions , it was these teenagers that fed the   |
+|               | crew .                                                                                                     |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Target        | quand les marins se sont mutinés en mer pour exiger des conditions plus humaines , ce sont ces adolescents |
+|               | qui ont nourri l' équipage .                                                                               |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Epoch 1       | quand les \<unk\> de l' eau dans dans la de de pour les les , , , ces ces qui ont été été .                |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Epoch 5       | quand les \<unk\> \<unk\> dans la mer dans une vie avec la conditions conditions , les parents , c' était  |
+|               | ces adolescents qui ont été équipe .                                                                       |
++---------------+------------------------------------------------------------------------------------------------------------+
+| Epoch 9       | quand les marins \<unk\> dans la mer dans une demande de la nature , , c' était ces adolescents qui qui l' |
+|               | équipe .                                                                                                   |
++---------------+------------------------------------------------------------------------------------------------------------+

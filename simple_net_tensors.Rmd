@@ -498,7 +498,7 @@ torch.cuda.empty_cache()
 
 Here is a quick experiment illustrating the process, also referring memory usage as indicated by `nvidia-smi`. This was run in a fresh session.
 
-```{python, eval = FALSE}
+```{python}
 
 # nvidia-smi before: 559 MiB
 

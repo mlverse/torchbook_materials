@@ -131,7 +131,7 @@ class Attention(nn.Module):
         # seq_len * bs * (2 * hidden) -> bs * seq_len * (2 * hidden)
         encoder_outputs = encoder_outputs.permute(1, 0, 2)
         # after cat: bs * seq_len * (hidden + 2 * hidden)
-        # so this concatenates, for every batch item and source token, hidden state from decoder
+        # => concatenates, for every batch item and source token, hidden state from decoder
         # (encoder, initially) and encoder output
         # energy then is bs * seq_len * attention_dim
         energy = torch.tanh(self.attention(torch.cat((repeated_decoder_hidden, encoder_outputs), dim = 2)))
@@ -182,17 +182,17 @@ class Decoder(nn.Module):
     def forward(self, input, decoder_hidden, encoder_outputs):
         # 1 * bs
         input = input.unsqueeze(0)
-        # 1 * bs * 32
+        # 1 * bs * decoder_embedding_dim
         embedded = self.dropout(self.embedding(input))
-        # 1 * bs * 128
+        # 1 * bs * (2 * hidden_size)
         weighted_encoder_rep = self._weighted_encoder_rep(decoder_hidden, encoder_outputs)
-        # concatenate input embedding and 
-        # embedded: 1 * bs * 32
-        # weighted_encoder_rep: 1 * bs * 128
-        # rnn_input: 1 * 8 * 160
+        # concatenate input embedding and score from attention module
+        # embedded: 1 * bs * decoder_embedding_dim
+        # weighted_encoder_rep: 1 * bs * (2 * hidden_size)
+        # rnn_input: 1 * bs * (decoder_embedding_dim + (2 * hidden_size))
         rnn_input = torch.cat((embedded, weighted_encoder_rep), dim = 2)
-        # output: 1 * bs * 64
-        # decoder_hidden: 1 * bs * 64 (after unsqueeze)
+        # output: 1 * bs * decoder_hidden_dim
+        # decoder_hidden: 1 * bs * decoder_hidden_dim (after unsqueeze)
         output, decoder_hidden = self.rnn(rnn_input, decoder_hidden.unsqueeze(0))
         embedded = embedded.squeeze(0)
         output = output.squeeze(0)
@@ -203,8 +203,6 @@ class Decoder(nn.Module):
 
 
 decoder = Decoder(num_output_features, decoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, decoder_dropout, attention).to(device)
-output = batch.trg[0,:]
-# decoder.forward(output, decoder_hidden, encoder_outputs)
 
 class Seq2Seq(nn.Module):
     def __init__(self, encoder, decoder, device):
@@ -303,10 +301,8 @@ def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 
     trg_tokens = [trg_field.vocab.itos[i] for i in trg_indexes]
     return trg_tokens[1:]
 
-n_epochs = 20
+n_epochs = 9
 clip = 1
-
-best_valid_loss = float('inf')
 
 example_idx = [11, 77, 133, 241, 333, 477, 555, 777]
 
