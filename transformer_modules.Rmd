@@ -1,3 +1,107 @@
-
 # Pytorch transformer modules {#transformer}
 
+## "Attention is all you need"
+
+When the original Transformer paper [@VaswaniSPUJGKP17] appeared, its provocative title can only have speeded up its road to
+fame. Why would it be provocative? At that time, sequential data were firmly thought to be the realm of RNNs (albeit extended
+by encoder-decoder attention): If one input token's probability depends on the previous input(s) (as in time series, language,
+or music), it seems we need to keep some form of *state* to preserve sequential relationships over the whole calculation.
+
+In fact, Transformer did not have RNNs, but compensated for lacking state in two ways: adding *positional encoding*, thus in
+some way keeping track of where in the phrase a token is located, and most importantly, *self-attention*: making use of
+context (surrounding tokens) when encoding each input token. With self-attention, *no token is an island*; instead, it only
+gains its meaning through how it relates to its neighbors.
+
+Seeing how excellent architectural explanations abund, ranging from code-oriented [@rush-2018-annotated] to
+[visual](https://jalammar.github.io/illustrated-transformer/), we just give a brief conceptual characterization.
+
+#### Self-attention and "multi-head attention"
+
+Each input word (after the usual embedding) plays three roles, designated by terms coming from *information retrieval*: query,
+key, and value. In this chapter, we won't be coding attention from scratch, but relying on `torch` modules; so strictly, we
+don't need to go there. But as query, key and value vectors have become part of the official transformer lingo, it's good to
+have heard those terms.
+
+In a nutshell, self-attention does not encode every word separately, but at every position, works with a conglomerate of
+semantic and syntactic information that is made up, in some way, of the complete input phrase. The basic operation, like in
+the encoder-decoder setup, is a *dot product* used to determine some form of similarity/promixity/relevance in semantic space.
+
+This dot product occurs between the word that is being encoded -- appearing in its role as *query vector* -- and every other
+word, each wearing their *key vector* hats. Essentially, these measures of affinity are normalized and used to weight the
+*value vectors* corresponding to every *key* that was used in the comparison. Finally, for every *query* we aggregate the
+weighted value vectors into a composite result, which is passed on to the next layer.
+
+Why does each token have to wear three different hats? If it didn't, these affinity relationships would be symmetric (the dot
+product per se being commutative), thus badly conforming with semantic and (especially!) syntactic reality. Thus, technically,
+a word's query, key and value vectors are not the same; instead, each is obtained as the output of a different feedforward
+layer.
+
+So that is self-attention - now what does "multi-head attention" refer to? This simply is a "bag of attention modules", all
+operating in parallel. Like that, multi-head attention is said to take care of taking into account multiple "representation
+subspaces".
+
+#### Overall architecture
+
+Overall, transformer is an encoder stack, followed by a decoder stack. Both stacks are composed of several, identical
+submodules combining multi-head attention, layer normalization [@2016arXiv160706450L], residual connections, and feedforward
+neural networks applied pointwise to each input. [^1] In addition to the self-attention mechanism (conceptually) shared with
+encoder layers, the decoder layers exercise a second form of attention: *encoder-decoder* attention allows them to
+differentially pay attention to the output passed by the encoder.
+
+## Implementation: building blocks
+
+While it is certainly possible, and instructive, to build a transformer network from scratch, we won't reinvent the wheel but
+instead, make use of `torch` layers that simplify the process significantly. `TransformerEncoderLayer` and
+`TransformerDecoderLayer` are the basic modules that make up encoder and decoder stacks, respectively.
+
+Here is a single encoder submodule comprising multi-head self-attention, layer normalization and feedforward networks:
+
+```{python}
+from torch.nn import TransformerEncoderLayer
+
+e = TransformerEncoderLayer(d_model = 256, nhead = 2, dim_feedforward = 256, dropout = 0.2)
+e
+```
+
+    TransformerEncoderLayer(
+      (self_attn): MultiheadAttention(
+        (out_proj): Linear(in_features=256, out_features=256, bias=True)
+      )
+      (linear1): Linear(in_features=256, out_features=256, bias=True)
+      (dropout): Dropout(p=0.2, inplace=False)
+      (linear2): Linear(in_features=256, out_features=256, bias=True)
+      (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (dropout1): Dropout(p=0.2, inplace=False)
+      (dropout2): Dropout(p=0.2, inplace=False)
+    )
+
+A decoder submodule looks similar, apart from the fact that it has an additional `MultiHeadAttention` (sub-)submodule. One is
+for self-attention, the other, for attending to encoder input:
+
+```{python}
+from torch.nn import TransformerDecoderLayer
+
+d = TransformerDecoderLayer(d_model = 256, nhead = 2, dim_feedforward = 256, dropout = 0.2)
+```
+
+Next up in the hierarchy are `TransformerEncoder` and `TransformerDecoder`. These are just containers, making up the
+respective stacks:
+
+```{python}
+from torch.nn import TransformerEncoder
+
+TransformerEncoder(encoder_layer = e, num_layers = 6)
+```
+
+```{python}
+from torch.nn import TransformerDecoder
+
+TransformerDecoder(decoder_layer = d, num_layers = 6)
+```
+
+There is even a `Transformer` module that takes in parameters for the sublayers
+(`TransformerEncoderLayer`/`TransformerDecoderLayer`) as well as the containers (`TransformerEncoder`/`TransformerDecoder`).
+
+[^1]: Here "pointwise" implies that the weights are the same for every input fed into the layer. These feedforward neural
+    networks would therefore be analogous to convolutional layers with kernel siez 1.

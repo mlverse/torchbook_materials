@@ -31,14 +31,14 @@ dataloader = torch.utils.data.DataLoader(kmnist, batch_size=128, shuffle = True,
 
 Let's view a few of those. Here are the first 128 images:
 
-```{python, eval = FALSE}
+```{python}
 images = next(iter(dataloader))[0].cpu()
 images.device
 ```
 
 ... of which, let's plot the first 16:
 
-```{r, eval = FALSE, fig.asp=1, fig.width=8}
+```{r, fig.asp=1, fig.width=8}
 library(reticulate)
 library(dplyr)
 
@@ -70,7 +70,7 @@ Its main tool is repeated application of _transposed convolutions_ that upsample
 
 Following the DCGAN paper, the generator's `ConvTranspose2d` and `BatchNorm2d` layers are initialized according to a normal distribution with mean 0 and standard deviation 0.02.
 
-```{python, eval = FALSE}
+```{python}
 device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
 
 # size of generator input
@@ -122,7 +122,7 @@ generator.apply(weights_init)
 
 The discriminator is a pretty conventional convnet. Its layers' weights are initialized in the same way as the generator's.
 
-```{python, eval = FALSE}
+```{python}
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
@@ -157,13 +157,13 @@ discriminator.apply(weights_init)
 
 While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary crossentropy:
 
-```{python, eval = FALSE}
+```{python}
 criterion = nn.BCELoss()
 ```
 
 They each have their own optimizer:
 
-```{python, eval = FALSE}
+```{python}
 lr = 0.0002
 beta1 = 0.5
 
@@ -182,7 +182,7 @@ First, the discriminator is trained. This is a two-stage procedure:
 Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is "no fake", so the labels are set to "real". The binary cross entropy loss then reflects the generator's performance, not that of the discriminator.
 
 
-```{python, eval = FALSE}
+```{python}
 # random noise - input for generator
 fixed_noise = torch.randn(64, latent_input_size, 1, 1, device = device)
 
@@ -257,7 +257,7 @@ for epoch in range(num_epochs):
 
 Now let's see samples of generated images, spread out over training time:
 
-```{r, eval = FALSE,  fig.asp=1, fig.width=8}
+```{r,  fig.asp=1, fig.width=8}
 index <- seq(1, length(py$img_list), length.out = 16)
 # these have 3 channels! (probably due to torchvision.utils.make_grid)
 # size is 3 x 242 x 242
@@ -281,11 +281,11 @@ knitr::include_graphics("images/gan_over_time.png")
 
 To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch: 
 
-```{python, eval = FALSE}
+```{python}
 new = generator(fixed_noise).cpu().detach().numpy()
 ```
 
-```{r, eval = FALSE, fig.asp=1, fig.width=8}
+```{r, fig.asp=1, fig.width=8}
 # dim 64 x 28 x 28 because drop 
 images <- py$new[,1,,] 
 images[images < 0] <- 0
@@ -303,7 +303,7 @@ knitr::include_graphics("images/gan_over_time.png")
 
 We can also inspect how the respective losses developed over time:
 
-```{r, eval = FALSE}
+```{r}
 library(ggplot2)
 library(tidyr)
 
@@ -322,7 +322,7 @@ df %>%
 As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5 (and thus, close to each other), which obviously isn't the case here. This means there is still room for improvement.
 
 
-```{r, eval = FALSE}
+```{r}
 library(ggplot2)
 library(tidyr)
 
