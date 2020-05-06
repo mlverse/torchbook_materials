@@ -158,7 +158,7 @@ num_output_features = len(trg_spec.vocab)
 decoder = Decoder(num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)
 
 trg = batch.trg
-decoded = decoder(trg, encoder_outputs, tgt_mask = torch.tril(torch.ones((trg_len, trg_len), device = device)).bool(), tgt_key_padding_mask = trg != trg_pad_idx)
+decoded = decoder(trg, encoder_outputs, tgt_mask = torch.tril(torch.ones((trg.size()[1], trg.size()[1]), device = device)).bool(), tgt_key_padding_mask = trg != trg_pad_idx)
 decoded.size()
 
 learning_rate = 0.0005
