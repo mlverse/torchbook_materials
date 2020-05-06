@@ -20,14 +20,16 @@ src_spec = Field(
     init_token = '<sos>',
     eos_token = '<eos>',
     lower = True,
-    batch_first = True)
+    batch_first = True,
+    fix_length=100)
 
 trg_spec = Field(tokenize = "spacy",
     tokenizer_language="xx", # no language-specific tokenizer available for cz
     init_token = '<sos>',
     eos_token = '<eos>',
     lower = True,
-    batch_first = True)
+    batch_first = True,
+    fix_length=100)
             
 train_data, valid_data, test_data = IWSLT.splits(exts = ('.en', '.cs'), fields = (src_spec, trg_spec),
   test='IWSLT16.TED.tst2013') # 2014 does not exist
