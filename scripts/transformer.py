@@ -161,12 +161,6 @@ trg = batch.trg
 decoded = decoder(trg, encoder_outputs, tgt_mask = torch.tril(torch.ones((trg.size()[1], trg.size()[1]), device = device)).bool(), tgt_key_padding_mask = trg != trg_pad_idx)
 decoded.size()
 
-learning_rate = 0.0005
-
-optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
-pad_idx = trg_spec.vocab.stoi['<pad>']
-criterion = nn.CrossEntropyLoss(ignore_index = pad_idx)
-
 class Seq2Seq(nn.Module):
     def __init__(self, encoder, decoder, device):
         super().__init__()
@@ -193,6 +187,13 @@ class Seq2Seq(nn.Module):
 
 model = Seq2Seq(encoder, decoder, device).to(device)
 model(src, trg)
+
+
+learning_rate = 0.0005
+
+optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+pad_idx = trg_spec.vocab.stoi['<pad>']
+criterion = nn.CrossEntropyLoss(ignore_index = pad_idx)
 
 
 def train(model, iterator, optimizer, criterion, clip):
