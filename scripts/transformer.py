@@ -21,7 +21,8 @@ src_spec = Field(
     eos_token = '<eos>',
     lower = True,
     batch_first = True,
-    fix_length=100)
+    fix_length=100
+    )
 
 trg_spec = Field(tokenize = "spacy",
     tokenizer_language="xx", # no language-specific tokenizer available for cz
@@ -29,7 +30,8 @@ trg_spec = Field(tokenize = "spacy",
     eos_token = '<eos>',
     lower = True,
     batch_first = True,
-    fix_length=100)
+    fix_length=100
+    )
             
 train_data, valid_data, test_data = IWSLT.splits(exts = ('.en', '.cs'), fields = (src_spec, trg_spec),
   test='IWSLT16.TED.tst2013') # 2014 does not exist
@@ -171,17 +173,17 @@ class Seq2Seq(nn.Module):
         self.device = device
     def make_src_key_padding_mask(self, src):
         # bs * src_len
-        src_mask = src != src_pad_idx
+        src_mask = src == src_pad_idx
         return src_mask
     def make_trg_key_padding_mask(self, trg):
         # bs * trg_len
-        trg_mask = trg != trg_pad_idx
+        trg_mask = trg == trg_pad_idx
         return trg_mask
     def make_trg_mask(self, trg):
         trg_len = trg.shape[1]
-        # trg_len * trg_len
-        trg_mask = torch.tril(torch.ones((trg_len, trg_len), device = self.device)).bool()
-        return trg_mask
+        mask = (torch.triu(torch.ones(trg_len, trg_len)) == 1).transpose(0, 1)
+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+        return mask.to(device)
     def forward(self, src, trg):
         encoded = self.encoder(src, self.make_src_key_padding_mask(src))
         output = self.decoder(trg, encoded,  self.make_trg_mask(trg), self.make_trg_key_padding_mask(trg))
@@ -214,6 +216,7 @@ def train(model, iterator, optimizer, criterion, clip):
         # (bs * trg len)
         trg = trg[:,1:].contiguous().view(-1)
         loss = criterion(output, trg)
+        print(loss)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
@@ -290,3 +293,4 @@ for epoch in range(n_epochs):
 
     
     
+
