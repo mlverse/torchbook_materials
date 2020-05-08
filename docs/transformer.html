@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>11 Pytorch transformer modules | Torch book</title>
+  <title>11 Torch transformer modules | Torch book</title>
   <meta name="description" content="tbd" />
   <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="11 Pytorch transformer modules | Torch book" />
+  <meta property="og:title" content="11 Torch transformer modules | Torch book" />
   <meta property="og:type" content="book" />
   <meta property="og:url" content="tbd" />
   <meta property="og:image" content="tbdcover.png" />
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="tbd" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="11 Pytorch transformer modules | Torch book" />
+  <meta name="twitter:title" content="11 Torch transformer modules | Torch book" />
   
   <meta name="twitter:description" content="tbd" />
   <meta name="twitter:image" content="tbdcover.png" />
@@ -230,7 +230,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="10.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#training-and-evaluation"><i class="fa fa-check"></i><b>10.4</b> Training and evaluation</a></li>
 <li class="chapter" data-level="10.5" data-path="seq2seq-att.html"><a href="seq2seq-att.html#results"><i class="fa fa-check"></i><b>10.5</b> Results</a></li>
 </ul></li>
-<li class="chapter" data-level="11" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>11</b> Pytorch transformer modules</a></li>
+<li class="chapter" data-level="11" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>11</b> Torch transformer modules</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>11.1</b> “Attention is all you need”</a></li>
+<li class="chapter" data-level="11.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>11.2</b> Implementation: building blocks</a></li>
+<li class="chapter" data-level="11.3" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>11.3</b> Results</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 </ul>
 
@@ -250,8 +255,407 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
             <section class="normal" id="section-">
 <div id="transformer" class="section level1" number="11">
-<h1><span class="header-section-number">11</span> Pytorch transformer modules</h1>
+<h1><span class="header-section-number">11</span> Torch transformer modules</h1>
+<div id="attention-is-all-you-need" class="section level2" number="11.1">
+<h2><span class="header-section-number">11.1</span> “Attention is all you need”</h2>
+<p>When the original Transformer paper <span class="citation">(Vaswani et al. <a href="#ref-VaswaniSPUJGKP17" role="doc-biblioref">2017</a>)</span> appeared, its provocative title can only have speeded up its road to
+fame. Why would it be provocative? At that time, sequential data were firmly thought to be the realm of RNNs (albeit extended
+by encoder-decoder attention): If one input token’s probability depends on the previous input(s) (as in time series, language,
+or music), it seems we need to keep some form of <em>state</em> to preserve sequential relationships over the whole calculation.</p>
+<p>In fact, Transformer did not have RNNs, but compensated for lacking state in two ways: adding <em>positional encoding</em>, thus in
+some way keeping track of where in the phrase a token is located, and most importantly, <em>self-attention</em>: making use of
+context (surrounding tokens) when encoding each input token. With self-attention, <em>no token is an island</em>; instead, it only
+gains its meaning through how it relates to its neighbors.</p>
+<p>Seeing how excellent architectural explanations abund, ranging from code-oriented <span class="citation">(Rush <a href="#ref-rush-2018-annotated" role="doc-biblioref">2018</a>)</span> to
+<a href="https://jalammar.github.io/illustrated-transformer/">visual</a>, we just give a brief conceptual characterization.</p>
+<div id="self-attention-and-multi-head-attention" class="section level4" number="11.1.0.1">
+<h4><span class="header-section-number">11.1.0.1</span> Self-attention and “multi-head attention”</h4>
+<p>Each input word (after the usual embedding) plays three roles, designated by terms coming from <em>information retrieval</em>: query,
+key, and value. In this chapter, we won’t be coding attention from scratch, but relying on <code>torch</code> modules; so strictly, we
+don’t need to go there. But as query, key and value vectors have become part of the official transformer lingo, it’s good to
+have heard those terms.</p>
+<p>In a nutshell, self-attention does not encode every word separately, but at every position, works with a conglomerate of
+semantic and syntactic information that is made up, in some way, of the complete input phrase. The basic operation, like in
+the encoder-decoder setup, is a <em>dot product</em> used to determine some form of similarity/promixity/relevance in semantic space.</p>
+<p>This dot product occurs between the word that is being encoded – appearing in its role as <em>query vector</em> – and every other
+word, each wearing their <em>key vector</em> hats. Essentially, these measures of affinity are normalized and used to weight the
+<em>value vectors</em> corresponding to every <em>key</em> that was used in the comparison. Finally, for every <em>query</em> we aggregate the
+weighted value vectors into a composite result, which is passed on to the next layer.</p>
+<p>Why does each token have to wear three different hats? If it didn’t, these affinity relationships would be symmetric (the dot
+product per se being commutative), thus badly conforming with semantic and (especially!) syntactic reality. Thus, technically,
+a word’s query, key and value vectors are not the same; instead, each is obtained as the output of a different feedforward
+layer.</p>
+<p>So that is self-attention - now what does “multi-head attention” refer to? This simply is a “bag of attention modules”, all
+operating in parallel. Like that, multi-head attention is said to take care of taking into account multiple “representation
+subspaces”.</p>
+</div>
+<div id="overall-architecture" class="section level4" number="11.1.0.2">
+<h4><span class="header-section-number">11.1.0.2</span> Overall architecture</h4>
+<p>Overall, transformer is an encoder stack, followed by a decoder stack. Both stacks are composed of several, identical
+submodules combining multi-head attention, layer normalization <span class="citation">(Lei Ba, Kiros, and Hinton <a href="#ref-2016arXiv160706450L" role="doc-biblioref">2016</a>)</span>, residual connections, and feedforward
+neural networks applied pointwise to each input.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a> In addition to the self-attention mechanism (conceptually) shared with
+encoder layers, the decoder layers exercise a second form of attention: <em>encoder-decoder</em> attention allows them to
+differentially pay attention to the output passed by the encoder.</p>
+</div>
+</div>
+<div id="implementation-building-blocks" class="section level2" number="11.2">
+<h2><span class="header-section-number">11.2</span> Implementation: building blocks</h2>
+<p>While it is certainly possible, and instructive, to build a transformer network from scratch, we won’t reinvent the wheel but
+instead, make use of <code>torch</code> layers that simplify the process significantly. <code>TransformerEncoderLayer</code> and
+<code>TransformerDecoderLayer</code> are the basic modules that make up encoder and decoder stacks, respectively.</p>
+<p>Here is a single encoder submodule comprising multi-head self-attention, layer normalization and feedforward networks:</p>
+<div class="sourceCode" id="cb166"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb166-1"><a href="transformer.html#cb166-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoderLayer</span>
+<span id="cb166-2"><a href="transformer.html#cb166-2"></a></span>
+<span id="cb166-3"><a href="transformer.html#cb166-3"></a>e <span class="op">=</span> TransformerEncoderLayer(d_model <span class="op">=</span> <span class="dv">256</span>, nhead <span class="op">=</span> <span class="dv">2</span>, dim_feedforward <span class="op">=</span> <span class="dv">256</span>, dropout <span class="op">=</span> <span class="fl">0.2</span>)</span>
+<span id="cb166-4"><a href="transformer.html#cb166-4"></a>e</span></code></pre></div>
+<pre><code>TransformerEncoderLayer(
+  (self_attn): MultiheadAttention(
+    (out_proj): Linear(in_features=256, out_features=256, bias=True)
+  )
+  (linear1): Linear(in_features=256, out_features=256, bias=True)
+  (dropout): Dropout(p=0.2, inplace=False)
+  (linear2): Linear(in_features=256, out_features=256, bias=True)
+  (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+  (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+  (dropout1): Dropout(p=0.2, inplace=False)
+  (dropout2): Dropout(p=0.2, inplace=False)
+)</code></pre>
+<p>A decoder submodule looks similar, apart from the fact that it has an additional <code>MultiHeadAttention</code> (sub-)submodule. One is
+for self-attention, the other, for attending to encoder input:</p>
+<div class="sourceCode" id="cb168"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb168-1"><a href="transformer.html#cb168-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoderLayer</span>
+<span id="cb168-2"><a href="transformer.html#cb168-2"></a></span>
+<span id="cb168-3"><a href="transformer.html#cb168-3"></a>d <span class="op">=</span> TransformerDecoderLayer(d_model <span class="op">=</span> <span class="dv">256</span>, nhead <span class="op">=</span> <span class="dv">2</span>, dim_feedforward <span class="op">=</span> <span class="dv">256</span>, dropout <span class="op">=</span> <span class="fl">0.2</span>)</span></code></pre></div>
+<p>Next up in the hierarchy are <code>TransformerEncoder</code> and <code>TransformerDecoder</code>. These are just containers, making up the
+respective stacks:</p>
+<div class="sourceCode" id="cb169"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb169-1"><a href="transformer.html#cb169-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoder</span>
+<span id="cb169-2"><a href="transformer.html#cb169-2"></a></span>
+<span id="cb169-3"><a href="transformer.html#cb169-3"></a>TransformerEncoder(encoder_layer <span class="op">=</span> e, num_layers <span class="op">=</span> <span class="dv">6</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb170"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb170-1"><a href="transformer.html#cb170-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoder</span>
+<span id="cb170-2"><a href="transformer.html#cb170-2"></a></span>
+<span id="cb170-3"><a href="transformer.html#cb170-3"></a>TransformerDecoder(decoder_layer <span class="op">=</span> d, num_layers <span class="op">=</span> <span class="dv">6</span>)</span></code></pre></div>
+<p>There is even a <code>Transformer</code> module that takes in parameters for the sublayers
+(<code>TransformerEncoderLayer</code>/<code>TransformerDecoderLayer</code>) as well as the containers (<code>TransformerEncoder</code>/<code>TransformerDecoder</code>).</p>
+</div>
+<div id="results-1" class="section level2" number="11.3">
+<h2><span class="header-section-number">11.3</span> Results</h2>
+<p>Like in the previous chapter, we show losses and translations after epochs 1, 5, and 9.</p>
+<p>[…]</p>
+<pre><code>Epoch: 01 
+    Train Loss: 5.286 | Train PPL: 197.526
+      Val. Loss: 3.937 |  Val. PPL:  51.272
+    Test Loss: 3.937 | Test PPL:  51.272 |
 
+
+Epoch: 05
+    Train Loss: 2.844 | Train PPL:  17.187
+      Val. Loss: 3.296 |  Val. PPL:  27.016
+      Test Loss: 3.296 | Test PPL:  27.016 |
+    
+Epoch: 09
+    Train Loss: 2.318 | Train PPL:  10.152
+      Val. Loss: 3.391 |  Val. PPL:  29.701
+      Test Loss: 3.391 | Test PPL:  29.701 |</code></pre>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="92%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>most of the earthquakes and volcanoes are in the sea , at the bottom of the sea .</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>většina zemětřesení a vulkánů je v moři - na mořském dně .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>většina z moře a &lt;unk v moře .</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>většina zemětřesení a &lt;unk jsou v moři , na mořském dně .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>většina zemětřesení a &lt;unk jsou v moře a dole na dně moře z moře .</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="7%" />
+<col width="92%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>and we knew it was volcanic back in the ’ 60s , ’ 70s .</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>víme , že tam byl vulkanismus , v 60 . a 70 . letech .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>a věděl jsme , že v 60 . letech , 70 . letech .</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>věděli jsme , že jsme , že jsme to bylo v 70 . 70 . letech .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>věděli jsme , že je ropa , v 60 . léta .</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="92%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>so here , you ’ve got this valley with this incredible alien landscape of pillars and hot springs and volcanic
+eruptions and earthquakes , inhabited by these very strange animals that live only on chemical energy coming out
+of the ground .</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>takže tady máme to údolí s mimořádně nepřátelskou krajinou sloupů , horkých pramenů , vulkanických erupcí a
+zemětřesení , obydlených těmito velmi zvláštními živočichy , co žijí pouze z chemické energie vycházející ze
+země .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>tady máme údolí , s touto údolí &lt;unk &lt;unk a &lt;unk &lt;unk &lt;unk &lt;unk &lt;unk &lt;unk a &lt;unk &lt;unk tyto &lt;unk &lt;unk
+&lt;unk &lt;unk , které žijí jen na povrch .</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>takže tady máte tento údolí &lt;unk &lt;unk &lt;unk &lt;unk &lt;unk &lt;unk &lt;unk a zemětřesení a zemětřesení , &lt;unk &lt;unk
+&lt;unk tyto velmi neobvyklé živočichy , které žijí na tomto místě , které žijí na zemi .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>tady máte tady s touto neuvěřitelnou čistotu .</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>and instead , what do we value ?</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>a místo toho , čeho si vážíme ?</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>a místo , co děláme hodnotu ?</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>a místo toho , co děláme ?</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>a místo toho , co děláme ?</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>these guys are facts .</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>tohle jsou fakta , lidi .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>tito jsou fakta .</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>tihle chlapíci jsou fakta .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>tito chlapíci jsou fakta .</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>we see in other countries that it matters much less into which social context you ’re born .</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>v jiných zemích naopak vidíme , že záleží mnohem méně na tom , do jaké sociální vrstvy se kdo narodí .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>vidíme , že v jiných zemích záleží na sociální kontextu , které se &lt;unk&gt; .</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>vidíme v jiných zemích , které záleží na tom , že záleží na tom , že se rodíme .</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>vidíme v jiných zemích , které záleží na tom , že záleží mnohem méně sociální kontext , ve kterém se dostanete .</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="86%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source</td>
+<td>how do the media talk about schools and teachers ?</td>
+</tr>
+<tr class="even">
+<td>Target</td>
+<td>jak reflektují školy a učitele média ?</td>
+</tr>
+<tr class="odd">
+<td>Epoch 1</td>
+<td>jak se média o školách a učitelé ?</td>
+</tr>
+<tr class="even">
+<td>Epoch 5</td>
+<td>jak se média mluví o školách a učitelé ?</td>
+</tr>
+<tr class="odd">
+<td>Epoch 9</td>
+<td>jak se média mluví o školách a učitelé ?</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="5%" />
+<col width="94%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>So
+urce</td>
+<td>when peter moves his arm , that yellow spot you see there is the interface to the functioning of peter ’s mind
+taking place .</td>
+</tr>
+<tr class="even">
+<td>Ta
+rget</td>
+<td>když petr pohne svojí paží , ta žlutá tečka , kterou vidíte tady je rozhraní petrovi mysli k této aktivitě .</td>
+</tr>
+<tr class="odd">
+<td>E
+poch
+1</td>
+<td>když petr pohne svojí paží , ta žlutá tečka , kterou vidíte tady je rozhraní petrovi mysli k této aktivitě .</td>
+</tr>
+<tr class="even">
+<td>E
+poch
+5</td>
+<td>když peter diamandis svého paže , která je zde rozhraní mezi tímhle rozhraním , které se peter diamandis .</td>
+</tr>
+<tr class="odd">
+<td>E
+poch
+9</td>
+<td>když se peter paži , ta žlutá tečka , kterou vidíte je rozhraní petrovi mysli k fungující peter &lt;unk&gt; si místo .</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-2016arXiv160706450L">
+<p>Lei Ba, Jimmy, Jamie Ryan Kiros, and Geoffrey E. Hinton. 2016. “Layer Normalization.” <em>arXiv E-Prints</em>, July, arXiv:1607.06450. <a href="http://arxiv.org/abs/1607.06450">http://arxiv.org/abs/1607.06450</a>.</p>
+</div>
+<div id="ref-rush-2018-annotated">
+<p>Rush, Alexander. 2018. “The Annotated Transformer.” In <em>Proceedings of Workshop for NLP Open Source Software (NLP-OSS)</em>, 52–60. Melbourne, Australia: Association for Computational Linguistics. <a href="https://doi.org/10.18653/v1/W18-2509">https://doi.org/10.18653/v1/W18-2509</a>.</p>
+</div>
+<div id="ref-VaswaniSPUJGKP17">
+<p>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need.” <em>CoRR</em> abs/1706.03762. <a href="http://arxiv.org/abs/1706.03762">http://arxiv.org/abs/1706.03762</a>.</p>
+</div>
 </div>
             </section>
 
