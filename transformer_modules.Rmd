@@ -48,6 +48,9 @@ neural networks applied pointwise to each input. [^1] In addition to the self-at
 encoder layers, the decoder layers exercise a second form of attention: *encoder-decoder* attention allows them to
 differentially pay attention to the output passed by the encoder.
 
+[^1]: Here "pointwise" implies that the weights are the same for every input fed into the layer. These feedforward neural
+    networks would therefore be analogous to convolutional layers with kernel siez 1.
+
 ## Implementation: building blocks
 
 While it is certainly possible, and instructive, to build a transformer network from scratch, we won't reinvent the wheel but
@@ -102,6 +105,387 @@ TransformerDecoder(decoder_layer = d, num_layers = 6)
 
 There is even a `Transformer` module that takes in parameters for the sublayers
 (`TransformerEncoderLayer`/`TransformerDecoderLayer`) as well as the containers (`TransformerEncoder`/`TransformerDecoder`).
+We won't make use of that one though, as the overall architecture is more transparent when encoder and decoder stacks remain
+clearly separated.
+
+## A Transformer for natural language translation
+
+We use the same dataset as in the previous chapter, but this time, another language to translate to: Czech. [^2] You are very
+welcome to compare architectures on identical splits, of course.
+
+[^2]: There are four different language pairings in the dataset overall, each involving English.
+
+### Load data
+
+As you see, the training set now is considerably smaller, resulting in significantly lower training time.
+
+```{python}
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+
+from torchtext.data import Field, BucketIterator
+from torchtext.datasets import IWSLT
+
+import random
+import numpy as np
+import math
+
+# this time the model will expect to get the batch dimension first
+src_spec = Field(
+    tokenize = "spacy",
+    tokenizer_language="en",
+    init_token = '<sos>',
+    eos_token = '<eos>',
+    lower = True,
+    batch_first = True,
+    fix_length=100
+    )
+
+trg_spec = Field(
+    tokenize = "spacy",
+    # no language-specific tokenizer available for cz
+    tokenizer_language="xx", 
+    init_token = '<sos>',
+    eos_token = '<eos>',
+    lower = True,
+    batch_first = True,
+    fix_length=100
+    )
+            
+train_data, valid_data, test_data = IWSLT.splits(
+  exts = ('.en', '.cs'),
+  fields = (src_spec, trg_spec),
+  test='IWSLT16.TED.tst2013') # 2014 does not exist
+
+len(train_data.examples), len(valid_data.examples), len(test_data.examples)
+```
+
+    (114390, 1327, 1327)
+
+This time too, let's see a few examples:
+
+```{python}
+vars(train_data.examples[111])
+vars(train_data.examples[11111])
+vars(train_data.examples[111111])
+```
+
+    {'src': ['here', 'they', 'go', '.'], 'trg': ['a', 'je', 'to', 'tady', '.']}
+
+    {'src': ['or', 'you', 'could', 'see', 'the', 'first', 'time', 'the', 'two', 'curves', 'diverged', ',', 'as', 'shown', 'on', 'the', 'left', '.'], 'trg': ['nalevo', 'můžete', 'vidět', ',', 'kdy', 'se', 'ty', 'dvě', 'křivky', 'poprvé', 'rozchází', '.']}
+
+    {'src': ['i', 'hope', 'you', "'ll", 'each', 'take', 'a', 'moment', 'to', 'think', 'about', 'how', 'you', 'could', 'use', 'something', 'like', 'this', 'to', 'give', 'yourself', 'more', 'access', 'to', 'your', 'own', 'world', ',', 'and', 'to', 'make', 'your', 'own', 'travel', 'more', 'convenient', 'and', 'more', 'fun', '.'], 'trg': ['doufám', ',', 'že', 'se', 'všichni', 'alespoň', 'na', 'chvíli', 'zamyslíte', ',', 'jak', 'by', 'vám', 'mohlo', 'použití', 'tohoto', 'prostředku', 'pomoci', ',', 'abyste', 'získali', 'lepší', 'přístup', 'k', 'vlastnímu', 'světu', ',', 'a', 'abyste', 'své', 'cestování', 'učinili', 'pohodlnějším', 'a', 'zábavnějším', '.']}
+
+We construct the vocabularies and save away the indices used for the pad tokens, as we'll want to exempt those locations from
+both attention mechanism and loss calculation.
+
+```{python}
+src_spec.build_vocab(train_data, min_freq = 2)
+trg_spec.build_vocab(train_data, min_freq = 2)
+
+src_pad_idx = src_spec.vocab.stoi["<pad>"]
+trg_pad_idx = trg_spec.vocab.stoi["<pad>"]
+
+```
+
+You might have noticed, in the `Field` specifications, that this time, we load the data batch-dimension first. Let's verify:
+
+```{python}
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+batch_size = 8
+
+train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
+    (train_data, valid_data, test_data),
+    batch_size = batch_size,
+    device = device)
+    
+batch = next(iter(train_iterator))
+batch.src.shape, batch.trg.shape
+
+```
+
+    (torch.Size([8, 100]), torch.Size([8, 100]))
+
+### Encoder
+
+Again, we start with the encoder. Some points of interest:
+
+-   This time, we have two embedding layers: the habitual one, used to embed the input, and a second one that's supposed to
+    learn the position codes. Originally, fixed rules were used to construct position encodings; this approach, however, seems
+    to have gotten superseded[^3] by the usual deep learning maxim: let the network learn the features.
+-   Before calling the encoder stack, both embeddings are combined (scaling down the token embeddings, a heuristic said to
+    help with training stability -- you may want to experiment with this).
+-   The encoder stack is called with a *mask*, whose creation we'll witness soon. Its function is to mask the `pad` tokens so
+    no energy is wasted paying attention to them.
+
+[^3]: e.g., in [@abs-1810-04805]
+
+```{python}
+num_input_features = len(src_spec.vocab)
+
+embedding_dim = 256 
+
+# max number of positions to encode
+max_length = 100 
+
+# the dimension of the feedforward network model in nn.TransformerEncoder
+hidden_dim = 256 
+
+# number of nn.TransformerEncoderLayer in nn.TransformerEncoder
+n_layers = 2
+
+# number of heads in the MultiheadAttention modules
+n_heads = 2 
+
+dropout = 0.2 
+
+class Encoder(nn.Module):
+  
+    def __init__(self, num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):
+        super(Encoder, self).__init__()
+        from torch.nn import TransformerEncoder, TransformerEncoderLayer
+        self.embedding_dim = embedding_dim
+        self.embedding = nn.Embedding(num_input_features, embedding_dim)
+        self.pos_embedding = nn.Embedding(max_length, embedding_dim)
+        encoder_layers = TransformerEncoderLayer(embedding_dim, n_heads, hidden_dim, dropout)
+        self.transformer_encoder = TransformerEncoder(encoder_layers, n_layers)
+        self.init_weights()
+        
+    def init_weights(self):
+        initrange = 0.1
+        self.embedding.weight.data.uniform_(-initrange, initrange)
+        self.pos_embedding.weight.data.uniform_(-initrange, initrange)
+        
+    def forward(self, src, src_key_padding_mask):
+        batch_size = src.shape[0]
+        src_len = src.shape[1]
+        # bs * src len
+        # repeat vector 0 ... 35 once for every batch item
+        # input for pos_embedding
+        pos = torch.arange(0, src_len).unsqueeze(0).repeat(batch_size, 1).to(device)
+        # bs * src len * hidden dim
+        src = (self.embedding(src) * math.sqrt(self.embedding_dim)) + self.pos_embedding(pos)
+        # apply transformer stack
+        src = torch.transpose(src, 1, 0)
+        output = self.transformer_encoder(src, src_key_padding_mask = src_key_padding_mask)
+        # bs * src len * hidden dim
+        return output
+
+encoder = Encoder(num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)
+
+```
+
+### Decoder
+
+The decoder also uses position embeddings, and its stack of `TransformerDecoderLayer` s looks a lot like a mirror of the
+`TransformerEncoderLayer` s doing the work on the encoder side. Just keep in mind that in decoding, we have multihead
+attention operating twice in every layer: firstly, to attend selectively to encoder output; and secondly, to attend
+selectively to what we already generated.
+
+Notice how the stack of `TransformerDecoderLayer`s is called with two masks: One, again, hides the artificial *pad* tokens;
+the other is destined to modulate decoder-encoder attention, making sure that the decoder only ever looks at current or past,
+but not *future* encoder input.
+
+```{python}
+num_output_features = len(trg_spec.vocab)
+
+class Decoder(nn.Module):
+  
+    def __init__(self, num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):
+        super(Decoder, self).__init__()
+        from torch.nn import TransformerDecoder, TransformerDecoderLayer
+        self.embedding_dim = embedding_dim
+        self.embedding = nn.Embedding(num_output_features, embedding_dim)
+        # learn positional encoding
+        self.pos_embedding = nn.Embedding(max_length, embedding_dim)
+        decoder_layers = TransformerDecoderLayer(embedding_dim, n_heads, hidden_dim, dropout)
+        self.transformer_decoder = TransformerDecoder(decoder_layers, n_layers)
+        self.fc = nn.Linear(hidden_dim, num_output_features)
+        self.init_weights()
+        
+    def init_weights(self):
+        initrange = 0.1
+        self.embedding.weight.data.uniform_(-initrange, initrange)
+        self.pos_embedding.weight.data.uniform_(-initrange, initrange)
+        
+    def forward(self, trg, encoder_outputs, tgt_mask, tgt_key_padding_mask):
+        batch_size = trg.shape[0]
+        trg_len = trg.shape[1]
+        # bs * trg len
+        # input for pos_embedding
+        pos = torch.arange(0, trg_len).unsqueeze(0).repeat(batch_size, 1).to(device)
+        # bs * trg len * hidden dim
+        trg = (self.embedding(trg) * math.sqrt(self.embedding_dim)) + self.pos_embedding(pos)
+        # apply transformer stack
+        # bs * trg len * hidden dim
+        trg = torch.transpose(trg, 1, 0)
+        output = self.transformer_decoder(trg, encoder_outputs,
+          tgt_mask = tgt_mask, tgt_key_padding_mask = tgt_key_padding_mask)
+        output = self.fc(output)
+        return output
+
+decoder = Decoder(num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)
+
+```
+
+### Overall model
+
+As before, we organize encoder and decoder in a `Seq2Seq` module. Apart from being a convenient container, this one also makes
+sure that at each step, its submodules get called with up-to-date masks.
+
+```{python}
+class Seq2Seq(nn.Module):
+  
+    def __init__(self, encoder, decoder, device):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.device = device
+        
+    def make_src_key_padding_mask(self, src):
+        # bs * src_len
+        src_mask = src == src_pad_idx
+        return src_mask
+      
+    def make_trg_key_padding_mask(self, trg):
+        # bs * trg_len
+        trg_mask = trg == trg_pad_idx
+        return trg_mask
+      
+    def make_trg_mask(self, trg):
+        trg_len = trg.shape[1]
+        mask = (torch.triu(torch.ones(trg_len, trg_len)) == 1).transpose(0, 1)
+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+        return mask.to(device)
+      
+    def forward(self, src, trg):
+        encoded = self.encoder(src, self.make_src_key_padding_mask(src))
+        output = self.decoder(trg, encoded,  self.make_trg_mask(trg), self.make_trg_key_padding_mask(trg))
+        return output
+
+model = Seq2Seq(encoder, decoder, device).to(device)
+model(src, trg)
+
+```
+
+Training and evaluation look pretty much like in the previous model, apart from operations on tensor shapes.
+
+```{python}
+learning_rate = 0.0005
+
+optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+pad_idx = trg_spec.vocab.stoi['<pad>']
+criterion = nn.CrossEntropyLoss(ignore_index = pad_idx)
+
+
+def train(model, iterator, optimizer, criterion, clip):
+    model.train()
+    epoch_loss = 0
+    for i, batch in enumerate(iterator):
+        src = batch.src
+        trg = batch.trg
+        optimizer.zero_grad()
+        output = model(src, trg[:,:-1])
+        # bs * (trg len - 1) * num_output_features
+        output = torch.transpose(output, 1, 0)
+        output_dim = output.shape[-1]
+        # (bs * (trg len - 1)) * num_output_features
+        output = output.contiguous().view(-1, output_dim)
+        # (bs * trg len)
+        trg = trg[:,1:].contiguous().view(-1)
+        loss = criterion(output, trg)
+        print(loss)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
+        optimizer.step()
+        epoch_loss += loss.item()
+    return epoch_loss / len(iterator)
+
+def evaluate(model, iterator, criterion):
+    model.eval()
+    epoch_loss = 0
+    with torch.no_grad():
+        for i, batch in enumerate(iterator):
+            src = batch.src
+            trg = batch.trg
+            output = model(src, trg[:,:-1])
+            output = torch.transpose(output, 1, 0)
+            output_dim = output.shape[-1]
+            output = output.contiguous().view(-1, output_dim)
+            trg = trg[:,1:].contiguous().view(-1)
+            loss = criterion(output, trg)
+            epoch_loss += loss.item()
+    return epoch_loss / len(iterator)
+
+```
+
+Again, we look at how translations evolve during training.
+
+```{python}
+
+def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50):
+  
+    model.eval()
+    if isinstance(sentence, str):
+        nlp = spacy.load('en')
+        tokens = [token.text.lower() for token in nlp(sentence)]
+    else:
+        tokens = [token.lower() for token in sentence]
+    tokens = [src_field.init_token] + tokens + [src_field.eos_token]
+    src_indexes = [src_field.vocab.stoi[token] for token in tokens]
+    src_tensor = torch.LongTensor(src_indexes).unsqueeze(0).to(device)
+    src_mask = model.make_src_key_padding_mask(src_tensor)
+    
+    with torch.no_grad():
+        enc_src = model.encoder(src_tensor, src_mask)
+    trg_indexes = [trg_field.vocab.stoi[trg_field.init_token]]
+    
+    for i in range(max_len):
+        trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
+        trg_key_padding_mask = model.make_trg_key_padding_mask(trg_tensor)
+        trg_mask = model.make_trg_mask(trg_tensor)
+        with torch.no_grad():
+            output = model.decoder(trg_tensor, enc_src, trg_mask, trg_key_padding_mask)
+            output = torch.transpose(output, 1, 0)
+            pred_token = output.argmax(2)[:,-1].item()
+            trg_indexes.append(pred_token)
+            if pred_token == trg_field.vocab.stoi[trg_field.eos_token]: break
+    trg_tokens = [trg_field.vocab.itos[i] for i in trg_indexes]
+    return trg_tokens[1:-2]
+```
+
+Here, finally, the main loop:
+
+```{python}
+n_epochs = 9
+clip = 1
+
+example_idx = [11, 77, 133, 241, 333, 477, 555, 777]
+
+for epoch in range(n_epochs):
+    train_loss = train(model, train_iterator, optimizer, criterion, clip)
+    valid_loss = evaluate(model, valid_iterator, criterion)
+    test_loss = evaluate(model, test_iterator, criterion)
+    print(f'Epoch: {epoch+1:02}')
+    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+    print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+    print(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+    for i in range(8):
+        example_src = vars(train_data.examples[example_idx[i]])['src']
+        example_trg = vars(train_data.examples[example_idx[i]])['trg']
+        translation = translate_sentence(example_src, src_spec, trg_spec, model, device)
+        src_sentence = " ".join(i for i in example_src)
+        target_sentence = " ".join(i for i in example_trg)
+        translated_sentence = " ".join(i for i in translation)
+        print("Source: " + src_sentence)
+        print("Target: " + target_sentence)
+        print("Predicted: " + translated_sentence + "\n")
+```
+
+And now, let's see! How well did that work?
 
 ## Results
 
@@ -125,134 +509,69 @@ Like in the previous chapter, we show losses and translations after epochs 1, 5,
           Val. Loss: 3.391 |  Val. PPL:  29.701
           Test Loss: 3.391 | Test PPL:  29.701 |
 
-+---------+------------------------------------------------------------------------------------------------------------------+
-|         | Text                                                                                                             |
-+=========+==================================================================================================================+
-| Source  | most of the earthquakes and volcanoes are in the sea , at the bottom of the sea .                                |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Target  | většina zemětřesení a vulkánů je v moři - na mořském dně .                                                       |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 1 | většina z moře a \<unk v moře .                                                                                  |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 5 | většina zemětřesení a \<unk jsou v moři , na mořském dně .                                                       |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 9 | většina zemětřesení a \<unk jsou v moře a dole na dně moře z moře .                                              |
-+---------+------------------------------------------------------------------------------------------------------------------+
+|         | Text                                                                              |
+|---------|-----------------------------------------------------------------------------------|
+| Source  | most of the earthquakes and volcanoes are in the sea , at the bottom of the sea . |
+| Target  | většina zemětřesení a vulkánů je v moři - na mořském dně .                        |
+| Epoch 1 | většina z moře a \<unk v moře .                                                   |
+| Epoch 5 | většina zemětřesení a \<unk jsou v moři , na mořském dně .                        |
+| Epoch 9 | většina zemětřesení a \<unk jsou v moře a dole na dně moře z moře .               |
 
-+--------+-------------------------------------------------------------------------------------------------------------------+
-|        | Text                                                                                                              |
-+========+===================================================================================================================+
-| Source | and we knew it was volcanic back in the ' 60s , ' 70s .                                                           |
-+--------+-------------------------------------------------------------------------------------------------------------------+
-| Target | víme , že tam byl vulkanismus , v 60 . a 70 . letech .                                                            |
-+--------+-------------------------------------------------------------------------------------------------------------------+
-| Epoch  | a věděl jsme , že v 60 . letech , 70 . letech .                                                                   |
-| 1      |                                                                                                                   |
-+--------+-------------------------------------------------------------------------------------------------------------------+
-| Epoch  | věděli jsme , že jsme , že jsme to bylo v 70 . 70 . letech .                                                      |
-| 5      |                                                                                                                   |
-+--------+-------------------------------------------------------------------------------------------------------------------+
-| Epoch  | věděli jsme , že je ropa , v 60 . léta .                                                                          |
-| 9      |                                                                                                                   |
-+--------+-------------------------------------------------------------------------------------------------------------------+
+|         | Text                                                         |
+|---------|--------------------------------------------------------------|
+| Source  | and we knew it was volcanic back in the ' 60s , ' 70s .      |
+| Target  | víme , že tam byl vulkanismus , v 60 . a 70 . letech .       |
+| Epoch 1 | a věděl jsme , že v 60 . letech , 70 . letech .              |
+| Epoch 5 | věděli jsme , že jsme , že jsme to bylo v 70 . 70 . letech . |
+| Epoch 9 | věděli jsme , že je ropa , v 60 . léta .                     |
 
-+---------+------------------------------------------------------------------------------------------------------------------+
-|         | Text                                                                                                             |
-+=========+==================================================================================================================+
-| Source  | so here , you 've got this valley with this incredible alien landscape of pillars and hot springs and volcanic   |
-|         | eruptions and earthquakes , inhabited by these very strange animals that live only on chemical energy coming out |
-|         | of the ground .                                                                                                  |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Target  | takže tady máme to údolí s mimořádně nepřátelskou krajinou sloupů , horkých pramenů , vulkanických erupcí a      |
-|         | zemětřesení , obydlených těmito velmi zvláštními živočichy , co žijí pouze z chemické energie vycházející ze     |
-|         | země .                                                                                                           |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 1 | tady máme údolí , s touto údolí \<unk \<unk a \<unk \<unk \<unk \<unk \<unk \<unk a \<unk \<unk tyto \<unk \<unk |
-|         | \<unk \<unk , které žijí jen na povrch .                                                                         |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 5 | takže tady máte tento údolí \<unk \<unk \<unk \<unk \<unk \<unk \<unk a zemětřesení a zemětřesení , \<unk \<unk  |
-|         | \<unk tyto velmi neobvyklé živočichy , které žijí na tomto místě , které žijí na zemi .                          |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 9 | tady máte tady s touto neuvěřitelnou čistotu .                                                                   |
-+---------+------------------------------------------------------------------------------------------------------------------+
+|         | Text                                                                                                                                                                                                                                            |
+|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Source  | so here , you 've got this valley with this incredible alien landscape of pillars and hot springs and volcanic eruptions and earthquakes , inhabited by these very strange animals that live only on chemical energy coming out of the ground . |
+| Target  | takže tady máme to údolí s mimořádně nepřátelskou krajinou sloupů , horkých pramenů , vulkanických erupcí a zemětřesení , obydlených těmito velmi zvláštními živočichy , co žijí pouze z chemické energie vycházející ze země .                 |
+| Epoch 1 | tady máme údolí , s touto údolí \<unk \<unk a \<unk \<unk \<unk \<unk \<unk \<unk a \<unk \<unk tyto \<unk \<unk \<unk \<unk , které žijí jen na povrch .                                                                                       |
+| Epoch 5 | takže tady máte tento údolí \<unk \<unk \<unk \<unk \<unk \<unk \<unk a zemětřesení a zemětřesení , \<unk \<unk \<unk tyto velmi neobvyklé živočichy , které žijí na tomto místě , které žijí na zemi .                                         |
+| Epoch 9 | tady máte tady s touto neuvěřitelnou čistotu .                                                                                                                                                                                                  |
 
-+---------+------------------------------------------------------------------------------------------------------------------+
-|         | Text                                                                                                             |
-+=========+==================================================================================================================+
-| Source  | and instead , what do we value ?                                                                                 |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Target  | a místo toho , čeho si vážíme ?                                                                                  |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 1 | a místo , co děláme hodnotu ?                                                                                    |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 5 | a místo toho , co děláme ?                                                                                       |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 9 | a místo toho , co děláme ?                                                                                       |
-+---------+------------------------------------------------------------------------------------------------------------------+
+|         | Text                             |
+|---------|----------------------------------|
+| Source  | and instead , what do we value ? |
+| Target  | a místo toho , čeho si vážíme ?  |
+| Epoch 1 | a místo , co děláme hodnotu ?    |
+| Epoch 5 | a místo toho , co děláme ?       |
+| Epoch 9 | a místo toho , co děláme ?       |
 
-+---------+------------------------------------------------------------------------------------------------------------------+
-|         | Text                                                                                                             |
-+=========+==================================================================================================================+
-| Source  | these guys are facts .                                                                                           |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Target  | tohle jsou fakta , lidi .                                                                                        |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 1 | tito jsou fakta .                                                                                                |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 5 | tihle chlapíci jsou fakta .                                                                                      |
-+---------+------------------------------------------------------------------------------------------------------------------+
-| Epoch 9 | tito chlapíci jsou fakta .                                                                                       |
-+---------+------------------------------------------------------------------------------------------------------------------+
+|         | Text                        |
+|---------|-----------------------------|
+| Source  | these guys are facts .      |
+| Target  | tohle jsou fakta , lidi .   |
+| Epoch 1 | tito jsou fakta .           |
+| Epoch 5 | tihle chlapíci jsou fakta . |
+| Epoch 9 | tito chlapíci jsou fakta .  |
 
-+---------+------------------------------------------------------------------------------------------------------------------+
 |         | Text                                                                                                             |
-+=========+==================================================================================================================+
+|---------|------------------------------------------------------------------------------------------------------------------|
 | Source  | we see in other countries that it matters much less into which social context you 're born .                     |
-+---------+------------------------------------------------------------------------------------------------------------------+
 | Target  | v jiných zemích naopak vidíme , že záleží mnohem méně na tom , do jaké sociální vrstvy se kdo narodí .           |
-+---------+------------------------------------------------------------------------------------------------------------------+
 | Epoch 1 | vidíme , že v jiných zemích záleží na sociální kontextu , které se \<unk\> .                                     |
-+---------+------------------------------------------------------------------------------------------------------------------+
 | Epoch 5 | vidíme v jiných zemích , které záleží na tom , že záleží na tom , že se rodíme .                                 |
-+---------+------------------------------------------------------------------------------------------------------------------+
 | Epoch 9 | vidíme v jiných zemích , které záleží na tom , že záleží mnohem méně sociální kontext , ve kterém se dostanete . |
-+---------+------------------------------------------------------------------------------------------------------------------+
 
-+----------------+-----------------------------------------------------------------------------------------------------------+
-|                | Text                                                                                                      |
-+================+===========================================================================================================+
-| Source         | how do the media talk about schools and teachers ?                                                        |
-+----------------+-----------------------------------------------------------------------------------------------------------+
-| Target         | jak reflektují školy a učitele média ?                                                                    |
-+----------------+-----------------------------------------------------------------------------------------------------------+
-| Epoch 1        | jak se média o školách a učitelé ?                                                                        |
-+----------------+-----------------------------------------------------------------------------------------------------------+
-| Epoch 5        | jak se média mluví o školách a učitelé ?                                                                  |
-+----------------+-----------------------------------------------------------------------------------------------------------+
-| Epoch 9        | jak se média mluví o školách a učitelé ?                                                                  |
-+----------------+-----------------------------------------------------------------------------------------------------------+
+|         | Text                                               |
+|---------|----------------------------------------------------|
+| Source  | how do the media talk about schools and teachers ? |
+| Target  | jak reflektují školy a učitele média ?             |
+| Epoch 1 | jak se média o školách a učitelé ?                 |
+| Epoch 5 | jak se média mluví o školách a učitelé ?           |
+| Epoch 9 | jak se média mluví o školách a učitelé ?           |
 
-+------+---------------------------------------------------------------------------------------------------------------------+
-|      | Text                                                                                                                |
-+======+=====================================================================================================================+
-| So   | when peter moves his arm , that yellow spot you see there is the interface to the functioning of peter 's mind      |
-| urce | taking place .                                                                                                      |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| Ta   | když petr pohne svojí paží , ta žlutá tečka , kterou vidíte tady je rozhraní petrovi mysli k této aktivitě .        |
-| rget |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | když petr pohne svojí paží , ta žlutá tečka , kterou vidíte tady je rozhraní petrovi mysli k této aktivitě .        |
-| poch |                                                                                                                     |
-| 1    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | když peter diamandis svého paže , která je zde rozhraní mezi tímhle rozhraním , které se peter diamandis .          |
-| poch |                                                                                                                     |
-| 5    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
-| E    | když se peter paži , ta žlutá tečka , kterou vidíte je rozhraní petrovi mysli k fungující peter \<unk\> si místo .  |
-| poch |                                                                                                                     |
-| 9    |                                                                                                                     |
-+------+---------------------------------------------------------------------------------------------------------------------+
+|         | Text                                                                                                                          |
+|---------|-------------------------------------------------------------------------------------------------------------------------------|
+| Source  | when peter moves his arm , that yellow spot you see there is the interface to the functioning of peter 's mind taking place . |
+| Target  | když petr pohne svojí paží , ta žlutá tečka , kterou vidíte tady je rozhraní petrovi mysli k této aktivitě .                  |
+| Epoch 1 | když petr pohne svojí paží , ta žlutá tečka , kterou vidíte tady je rozhraní petrovi mysli k této aktivitě .                  |
+| Epoch 5 | když peter diamandis svého paže , která je zde rozhraní mezi tímhle rozhraním , které se peter diamandis .                    |
+| Epoch 9 | když se peter paži , ta žlutá tečka , kterou vidíte je rozhraní petrovi mysli k fungující peter \<unk\> si místo .            |
 
-[^1]: Here "pointwise" implies that the weights are the same for every input fed into the layer. These feedforward neural
-    networks would therefore be analogous to convolutional layers with kernel siez 1.
+From the author's very limited -- and rusty -- knowledge of Czech, this does not look so bad -- but up to you to form on
+opinion on a dataset of your choice!

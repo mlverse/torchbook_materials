@@ -234,7 +234,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="11.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>11.1</b> “Attention is all you need”</a></li>
 <li class="chapter" data-level="11.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>11.2</b> Implementation: building blocks</a></li>
-<li class="chapter" data-level="11.3" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>11.3</b> Results</a></li>
+<li class="chapter" data-level="11.3" data-path="transformer.html"><a href="transformer.html#a-transformer-for-natural-language-translation"><i class="fa fa-check"></i><b>11.3</b> A Transformer for natural language translation</a>
+<ul>
+<li class="chapter" data-level="11.3.1" data-path="transformer.html"><a href="transformer.html#load-data"><i class="fa fa-check"></i><b>11.3.1</b> Load data</a></li>
+<li class="chapter" data-level="11.3.2" data-path="transformer.html"><a href="transformer.html#encoder-1"><i class="fa fa-check"></i><b>11.3.2</b> Encoder</a></li>
+<li class="chapter" data-level="11.3.3" data-path="transformer.html"><a href="transformer.html#decoder-1"><i class="fa fa-check"></i><b>11.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="11.3.4" data-path="transformer.html"><a href="transformer.html#overall-model"><i class="fa fa-check"></i><b>11.3.4</b> Overall model</a></li>
+</ul></li>
+<li class="chapter" data-level="11.4" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>11.4</b> Results</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 </ul>
@@ -702,7 +709,7 @@ Epoch: 09
 <table>
 <colgroup>
 <col width="8%" />
-<col width="92%" />
+<col width="91%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -735,8 +742,8 @@ Epoch: 09
 </table>
 <table>
 <colgroup>
-<col width="7%" />
-<col width="92%" />
+<col width="3%" />
+<col width="96%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -747,38 +754,27 @@ Epoch: 09
 <tbody>
 <tr class="odd">
 <td>Source</td>
-<td>and then we had some hint that these things existed all along the axis of it , because if you ’ve got volcanism ,
-water ’s going to get down from the sea into cracks in the sea floor , come in contact with magma , and come shooting
-out hot .</td>
+<td>and then we had some hint that these things existed all along the axis of it , because if you ’ve got volcanism , water ’s going to get down from the sea into cracks in the sea floor , come in contact with magma , and come shooting out hot .</td>
 </tr>
 <tr class="even">
 <td>Target</td>
-<td>nous avions une idée que ces choses existaient tout au long de cet axe , car s’ il y a du volcanisme , l´eau va
-descendre de la mer dans les fentes du sol marin , se mettre en contact avec le magma , et jaillir avec de hautes
-températures .</td>
+<td>nous avions une idée que ces choses existaient tout au long de cet axe , car s’ il y a du volcanisme , l´eau va descendre de la mer dans les fentes du sol marin , se mettre en contact avec le magma , et jaillir avec de hautes températures .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 1</td>
-<td>let nous avons eu beaucoup de ces ces ces choses qui sont en fait , parce que si vous avez , , , , , , à la , dans la
-eau dans dans la eau , dans le sol , , , avec les &lt;unk&gt; , et , et</td>
+<td>let nous avons eu beaucoup de ces ces ces choses qui sont en fait , parce que si vous avez , , , , , , à la , dans la eau dans dans la eau , dans le sol , , , avec les &lt;unk&gt; , et , et</td>
 </tr>
 <tr class="even">
 <td>Epoch 5</td>
-<td>et puis nous avons eu une chose que ces choses ont été l’ axe de l’ , , parce que si vous avez &lt;unk&gt; &lt;unk&gt; , eau
-eau , la mer dans les dans dans la mer dans la mer , et avec son contact avec la . et et</td>
+<td>et puis nous avons eu une chose que ces choses ont été l’ axe de l’ , , parce que si vous avez &lt;unk&gt; &lt;unk&gt; , eau eau , la mer dans les dans dans la mer dans la mer , et avec son contact avec la . et et</td>
 </tr>
 <tr class="odd">
 <td>Epoch 9</td>
-<td>et puis nous avons eu un idée que ces choses ont tous les axe de , , parce que si vous avez &lt;unk&gt; , eau , l’ eau va
-descendre dans la mer dans dans dans mer dans la mer , dans la pluie , et de la de de</td>
+<td>et puis nous avons eu un idée que ces choses ont tous les axe de , , parce que si vous avez &lt;unk&gt; , eau , l’ eau va descendre dans la mer dans dans dans mer dans la mer , dans la pluie , et de la de de</td>
 </tr>
 </tbody>
 </table>
 <table>
-<colgroup>
-<col width="8%" />
-<col width="92%" />
-</colgroup>
 <thead>
 <tr class="header">
 <th></th>
@@ -810,8 +806,8 @@ descendre dans la mer dans dans dans mer dans la mer , dans la pluie , et de la 
 </table>
 <table>
 <colgroup>
-<col width="7%" />
-<col width="92%" />
+<col width="4%" />
+<col width="95%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -822,13 +818,11 @@ descendre dans la mer dans dans dans mer dans la mer , dans la pluie , et de la 
 <tbody>
 <tr class="odd">
 <td>Source</td>
-<td>because it ’s shown the way we apply , generate and use knowledge is affected by our social and institutional context
-, which told us what in communism ?</td>
+<td>because it ’s shown the way we apply , generate and use knowledge is affected by our social and institutional context , which told us what in communism ?</td>
 </tr>
 <tr class="even">
 <td>Target</td>
-<td>parce qu’ il est démontré que la façon dont nous appliquons , générons , et utilisons les connaissances est affectée
-par notre contexte social et institutionnel , qui nous a dit quoi pendant le communisme ?</td>
+<td>parce qu’ il est démontré que la façon dont nous appliquons , générons , et utilisons les connaissances est affectée par notre contexte social et institutionnel , qui nous a dit quoi pendant le communisme ?</td>
 </tr>
 <tr class="odd">
 <td>Epoch 1</td>
@@ -836,20 +830,18 @@ par notre contexte social et institutionnel , qui nous a dit quoi pendant le com
 </tr>
 <tr class="even">
 <td>Epoch 5</td>
-<td>parce que c’ est la façon dont nous on , , et et et la connaissance , et et et et et le contexte , qui nous nous
-demandé ce qu’ il est ?</td>
+<td>parce que c’ est la façon dont nous on , , et et et la connaissance , et et et et et le contexte , qui nous nous demandé ce qu’ il est ?</td>
 </tr>
 <tr class="odd">
 <td>Epoch 9</td>
-<td>parce que c’ est montré comment nous nous , , et et et connaissances et et le monde social et et et nous nous a
-demandé à le ? ?</td>
+<td>parce que c’ est montré comment nous nous , , et et et connaissances et et le monde social et et et nous nous a demandé à le ? ?</td>
 </tr>
 </tbody>
 </table>
 <table>
 <colgroup>
-<col width="7%" />
-<col width="92%" />
+<col width="6%" />
+<col width="93%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -864,8 +856,7 @@ demandé à le ? ?</td>
 </tr>
 <tr class="even">
 <td>Target</td>
-<td>ce n’ est pas de la fiction , ce n’ est pas des histoires , ce n’ est pas des fadaises ; c’ est de la science pure
-.</td>
+<td>ce n’ est pas de la fiction , ce n’ est pas des histoires , ce n’ est pas des fadaises ; c’ est de la science pure .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 1</td>
@@ -873,8 +864,7 @@ demandé à le ? ?</td>
 </tr>
 <tr class="even">
 <td>Epoch 5</td>
-<td>c’ n’ est pas pas la fiction , c’ n’ est pas pas de histoires , ça ne est pas pas croire , c’ est extrêmement
-difficile .</td>
+<td>c’ n’ est pas pas la fiction , c’ n’ est pas pas de histoires , ça ne est pas pas croire , c’ est extrêmement difficile .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 9</td>
@@ -884,8 +874,8 @@ difficile .</td>
 </table>
 <table>
 <colgroup>
-<col width="7%" />
-<col width="92%" />
+<col width="5%" />
+<col width="94%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -896,13 +886,11 @@ difficile .</td>
 <tbody>
 <tr class="odd">
 <td>Source</td>
-<td>we all want to be there , in the upper right quadrant , where performance is strong and learning opportunities are
-equally distributed .</td>
+<td>we all want to be there , in the upper right quadrant , where performance is strong and learning opportunities are equally distributed .</td>
 </tr>
 <tr class="even">
 <td>Target</td>
-<td>on veut tous être dans le quadrant supérieur droit , où les performances sont remarquables et les opportunités d’
-apprentissage sont égales .</td>
+<td>on veut tous être dans le quadrant supérieur droit , où les performances sont remarquables et les opportunités d’ apprentissage sont égales .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 1</td>
@@ -910,8 +898,7 @@ apprentissage sont égales .</td>
 </tr>
 <tr class="even">
 <td>Epoch 5</td>
-<td>nous voulons voulons être être , dans dans le coin droite , où où la est est est des opportunités et des
-apprentissage sont des .</td>
+<td>nous voulons voulons être être , dans dans le coin droite , où où la est est est des opportunités et des apprentissage sont des .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 9</td>
@@ -921,8 +908,8 @@ apprentissage sont des .</td>
 </table>
 <table>
 <colgroup>
-<col width="7%" />
-<col width="92%" />
+<col width="3%" />
+<col width="96%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -933,38 +920,30 @@ apprentissage sont des .</td>
 <tbody>
 <tr class="odd">
 <td>Source</td>
-<td>those are the critical questions , and what we have learned from pisa is that , in high - performing education systems
-, the leaders have convinced their citizens to make choices that value education , their future , more than
-consumption today .</td>
+<td>those are the critical questions , and what we have learned from pisa is that , in high - performing education systems , the leaders have convinced their citizens to make choices that value education , their future , more than consumption today .</td>
 </tr>
 <tr class="even">
 <td>Target</td>
-<td>ce sont là les questions importantes , et ce qu’ on a appris de pisa est que dans les systèmes éducatifs très
-performants les dirigeants ont aujourd’hui convaincu leurs citoyens de faire des choix qui font valoir leur éducation
-, leur avenir , plus que la consommation .</td>
+<td>ce sont là les questions importantes , et ce qu’ on a appris de pisa est que dans les systèmes éducatifs très performants les dirigeants ont aujourd’hui convaincu leurs citoyens de faire des choix qui font valoir leur éducation , leur avenir , plus que la consommation .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 1</td>
-<td>ces sont des idées , et ce que nous avons avons appris à l’ de de , , , dans les des de des , , les les les les les
-pour les les de la santé , les les , , , , , , ,</td>
+<td>ces sont des idées , et ce que nous avons avons appris à l’ de de , , , dans les des de des , , les les les les les pour les les de la santé , les les , , , , , , ,</td>
 </tr>
 <tr class="even">
 <td>Epoch 5</td>
-<td>ces sont questions questions et et ce nous nous avons appris à l’ , c’ est dans les systèmes de systèmes , , les
-organisations qui ont des citoyens de leur pour les choix , des systèmes , , , , , , , plus de énergie aujourd’hui .</td>
+<td>ces sont questions questions et et ce nous nous avons appris à l’ , c’ est dans les systèmes de systèmes , , les organisations qui ont des citoyens de leur pour les choix , des systèmes , , , , , , , plus de énergie aujourd’hui .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 9</td>
-<td>ces sont questions questions questions et et ce dont nous avons appris à l’ est est , , dans les systèmes de systèmes
-de , , les dirigeants ont citoyens leurs citoyens pour faire les choix , les futur , , futur , plus de consommation de
-plus .</td>
+<td>ces sont questions questions questions et et ce dont nous avons appris à l’ est est , , dans les systèmes de systèmes de , , les dirigeants ont citoyens leurs citoyens pour faire les choix , les futur , , futur , plus de consommation de plus .</td>
 </tr>
 </tbody>
 </table>
 <table>
 <colgroup>
-<col width="7%" />
-<col width="92%" />
+<col width="5%" />
+<col width="94%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -979,8 +958,7 @@ plus .</td>
 </tr>
 <tr class="even">
 <td>Target</td>
-<td>quand les marins se sont mutinés en mer pour exiger des conditions plus humaines , ce sont ces adolescents qui ont
-nourri l’ équipage .</td>
+<td>quand les marins se sont mutinés en mer pour exiger des conditions plus humaines , ce sont ces adolescents qui ont nourri l’ équipage .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 1</td>
@@ -988,8 +966,7 @@ nourri l’ équipage .</td>
 </tr>
 <tr class="even">
 <td>Epoch 5</td>
-<td>quand les &lt;unk&gt; &lt;unk&gt; dans la mer dans une vie avec la conditions conditions , les parents , c’ était ces
-adolescents qui ont été équipe .</td>
+<td>quand les &lt;unk&gt; &lt;unk&gt; dans la mer dans une vie avec la conditions conditions , les parents , c’ était ces adolescents qui ont été équipe .</td>
 </tr>
 <tr class="odd">
 <td>Epoch 9</td>

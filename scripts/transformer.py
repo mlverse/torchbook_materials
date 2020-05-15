@@ -79,6 +79,24 @@ batch.src.shape, batch.trg.shape
 
 ######################################################################################
 
+num_input_features = len(src_spec.vocab)
+
+embedding_dim = 256 
+
+# max number of positions to encode
+max_length = 100 
+
+# the dimension of the feedforward network model in nn.TransformerEncoder
+hidden_dim = 256 
+
+# number of nn.TransformerEncoderLayer in nn.TransformerEncoder
+n_layers = 2
+
+# number of heads in the MultiheadAttention modules
+n_heads = 2 
+
+dropout = 0.2 
+
 class Encoder(nn.Module):
     def __init__(self, num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):
         super(Encoder, self).__init__()
@@ -111,19 +129,15 @@ class Encoder(nn.Module):
         # bs * src len * hidden dim
         return output
 
-num_input_features = len(src_spec.vocab)
-embedding_dim = 256 # embedding dimension
-max_length = 100 # max number of positions to encode
-hidden_dim = 256 # the dimension of the feedforward network model in nn.TransformerEncoder
-n_layers = 2 # the number of nn.TransformerEncoderLayer in nn.TransformerEncoder
-n_heads = 2 # the number of heads in the multiheadattention models
-dropout = 0.2 # the dropout value
 encoder = Encoder(num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)
 
 src = batch.src
 encoder_outputs = encoder(batch.src, src_key_padding_mask = src != src_pad_idx)
 encoder_outputs.size()
 
+
+
+num_output_features = len(trg_spec.vocab)
 
 class Decoder(nn.Module):
     def __init__(self, num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):
@@ -158,7 +172,6 @@ class Decoder(nn.Module):
         return output
 
 
-num_output_features = len(trg_spec.vocab)
 decoder = Decoder(num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)
 
 trg = batch.trg
@@ -264,7 +277,7 @@ def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 
             trg_indexes.append(pred_token)
             if pred_token == trg_field.vocab.stoi[trg_field.eos_token]: break
     trg_tokens = [trg_field.vocab.itos[i] for i in trg_indexes]
-    return trg_tokens[1:]
+    return trg_tokens[1:-2]
 
 n_epochs = 9
 clip = 1
