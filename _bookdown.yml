@@ -17,7 +17,7 @@ rmd_files:
 
     "deep_learning_classical_applications.Rmd",
     "image_classification.Rmd",
-    # tbd segmentation
+    "unet.Rmd",
     # tbd tabular data
     "GANs.Rmd",
     "VAEs.Rmd",

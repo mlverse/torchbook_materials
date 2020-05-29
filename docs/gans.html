@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>8 Generative adversarial networks | Torch book</title>
+  <title>9 Generative adversarial networks | Torch book</title>
   <meta name="description" content="tbd" />
   <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="8 Generative adversarial networks | Torch book" />
+  <meta property="og:title" content="9 Generative adversarial networks | Torch book" />
   <meta property="og:type" content="book" />
   <meta property="og:url" content="tbd" />
   <meta property="og:image" content="tbdcover.png" />
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="tbd" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="8 Generative adversarial networks | Torch book" />
+  <meta name="twitter:title" content="9 Generative adversarial networks | Torch book" />
   
   <meta name="twitter:description" content="tbd" />
   <meta name="twitter:image" content="tbdcover.png" />
@@ -30,7 +30,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="image-classification.html"/>
+<link rel="prev" href="unet.html"/>
 <link rel="next" href="vaes.html"/>
 <script src="libs/header-attrs-2.1/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
@@ -196,52 +196,59 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
 <li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>8</b> Generative adversarial networks</a>
+<li class="chapter" data-level="8" data-path="unet.html"><a href="unet.html"><i class="fa fa-check"></i><b>8</b> U-Net</a>
 <ul>
-<li class="chapter" data-level="8.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>8.1</b> Dataset</a></li>
-<li class="chapter" data-level="8.2" data-path="gans.html"><a href="gans.html#model-1"><i class="fa fa-check"></i><b>8.2</b> Model</a>
+<li class="chapter" data-level="8.1" data-path="unet.html"><a href="unet.html#heading"><i class="fa fa-check"></i><b>8.1</b> heading</a>
 <ul>
-<li class="chapter" data-level="8.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>8.2.1</b> Generator</a></li>
-<li class="chapter" data-level="8.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>8.2.2</b> Discriminator</a></li>
-<li class="chapter" data-level="8.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>8.2.3</b> Optimizers and loss function</a></li>
+<li class="chapter" data-level="8.1.1" data-path="unet.html"><a href="unet.html#heading-1"><i class="fa fa-check"></i><b>8.1.1</b> heading</a></li>
 </ul></li>
-<li class="chapter" data-level="8.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>8.3</b> Training loop</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>9</b> Variational autoencoders</a>
+<li class="chapter" data-level="9" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>9</b> Generative adversarial networks</a>
 <ul>
-<li class="chapter" data-level="9.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>9.1</b> Dataset</a></li>
-<li class="chapter" data-level="9.2" data-path="vaes.html"><a href="vaes.html#model-2"><i class="fa fa-check"></i><b>9.2</b> Model</a></li>
-<li class="chapter" data-level="9.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>9.3</b> Training the VAE</a></li>
-<li class="chapter" data-level="9.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>9.4</b> Latent space</a></li>
+<li class="chapter" data-level="9.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>9.1</b> Dataset</a></li>
+<li class="chapter" data-level="9.2" data-path="gans.html"><a href="gans.html#model-1"><i class="fa fa-check"></i><b>9.2</b> Model</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>9.2.1</b> Generator</a></li>
+<li class="chapter" data-level="9.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>9.2.2</b> Discriminator</a></li>
+<li class="chapter" data-level="9.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>9.2.3</b> Optimizers and loss function</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>9.3</b> Training loop</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>10</b> Variational autoencoders</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>10.1</b> Dataset</a></li>
+<li class="chapter" data-level="10.2" data-path="vaes.html"><a href="vaes.html#model-2"><i class="fa fa-check"></i><b>10.2</b> Model</a></li>
+<li class="chapter" data-level="10.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>10.3</b> Training the VAE</a></li>
+<li class="chapter" data-level="10.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>10.4</b> Latent space</a></li>
 </ul></li>
 <li class="part"><span><b>III Intermediate deep learning</b></span></li>
 <li class="chapter" data-level="" data-path="intermediate-DL-intro.html"><a href="intermediate-DL-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
-<li class="chapter" data-level="10" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>10</b> Sequence-to-sequence models with attention</a>
+<li class="chapter" data-level="11" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>11</b> Sequence-to-sequence models with attention</a>
 <ul>
-<li class="chapter" data-level="10.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#why-attention"><i class="fa fa-check"></i><b>10.1</b> Why attention?</a></li>
-<li class="chapter" data-level="10.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#preprocessing-with-torchtext"><i class="fa fa-check"></i><b>10.2</b> Preprocessing with <code>torchtext</code></a></li>
-<li class="chapter" data-level="10.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#model-3"><i class="fa fa-check"></i><b>10.3</b> Model</a>
+<li class="chapter" data-level="11.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#why-attention"><i class="fa fa-check"></i><b>11.1</b> Why attention?</a></li>
+<li class="chapter" data-level="11.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#preprocessing-with-torchtext"><i class="fa fa-check"></i><b>11.2</b> Preprocessing with <code>torchtext</code></a></li>
+<li class="chapter" data-level="11.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#model-3"><i class="fa fa-check"></i><b>11.3</b> Model</a>
 <ul>
-<li class="chapter" data-level="10.3.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#encoder"><i class="fa fa-check"></i><b>10.3.1</b> Encoder</a></li>
-<li class="chapter" data-level="10.3.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#attention-module"><i class="fa fa-check"></i><b>10.3.2</b> Attention module</a></li>
-<li class="chapter" data-level="10.3.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#decoder"><i class="fa fa-check"></i><b>10.3.3</b> Decoder</a></li>
-<li class="chapter" data-level="10.3.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#seq2seq-module"><i class="fa fa-check"></i><b>10.3.4</b> Seq2seq module</a></li>
+<li class="chapter" data-level="11.3.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#encoder"><i class="fa fa-check"></i><b>11.3.1</b> Encoder</a></li>
+<li class="chapter" data-level="11.3.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#attention-module"><i class="fa fa-check"></i><b>11.3.2</b> Attention module</a></li>
+<li class="chapter" data-level="11.3.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#decoder"><i class="fa fa-check"></i><b>11.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="11.3.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#seq2seq-module"><i class="fa fa-check"></i><b>11.3.4</b> Seq2seq module</a></li>
 </ul></li>
-<li class="chapter" data-level="10.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#training-and-evaluation"><i class="fa fa-check"></i><b>10.4</b> Training and evaluation</a></li>
-<li class="chapter" data-level="10.5" data-path="seq2seq-att.html"><a href="seq2seq-att.html#results"><i class="fa fa-check"></i><b>10.5</b> Results</a></li>
+<li class="chapter" data-level="11.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#training-and-evaluation"><i class="fa fa-check"></i><b>11.4</b> Training and evaluation</a></li>
+<li class="chapter" data-level="11.5" data-path="seq2seq-att.html"><a href="seq2seq-att.html#results"><i class="fa fa-check"></i><b>11.5</b> Results</a></li>
 </ul></li>
-<li class="chapter" data-level="11" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>11</b> Torch transformer modules</a>
+<li class="chapter" data-level="12" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>12</b> Torch transformer modules</a>
 <ul>
-<li class="chapter" data-level="11.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>11.1</b> “Attention is all you need”</a></li>
-<li class="chapter" data-level="11.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>11.2</b> Implementation: building blocks</a></li>
-<li class="chapter" data-level="11.3" data-path="transformer.html"><a href="transformer.html#a-transformer-for-natural-language-translation"><i class="fa fa-check"></i><b>11.3</b> A Transformer for natural language translation</a>
+<li class="chapter" data-level="12.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>12.1</b> “Attention is all you need”</a></li>
+<li class="chapter" data-level="12.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>12.2</b> Implementation: building blocks</a></li>
+<li class="chapter" data-level="12.3" data-path="transformer.html"><a href="transformer.html#a-transformer-for-natural-language-translation"><i class="fa fa-check"></i><b>12.3</b> A Transformer for natural language translation</a>
 <ul>
-<li class="chapter" data-level="11.3.1" data-path="transformer.html"><a href="transformer.html#load-data"><i class="fa fa-check"></i><b>11.3.1</b> Load data</a></li>
-<li class="chapter" data-level="11.3.2" data-path="transformer.html"><a href="transformer.html#encoder-1"><i class="fa fa-check"></i><b>11.3.2</b> Encoder</a></li>
-<li class="chapter" data-level="11.3.3" data-path="transformer.html"><a href="transformer.html#decoder-1"><i class="fa fa-check"></i><b>11.3.3</b> Decoder</a></li>
-<li class="chapter" data-level="11.3.4" data-path="transformer.html"><a href="transformer.html#overall-model"><i class="fa fa-check"></i><b>11.3.4</b> Overall model</a></li>
+<li class="chapter" data-level="12.3.1" data-path="transformer.html"><a href="transformer.html#load-data"><i class="fa fa-check"></i><b>12.3.1</b> Load data</a></li>
+<li class="chapter" data-level="12.3.2" data-path="transformer.html"><a href="transformer.html#encoder-1"><i class="fa fa-check"></i><b>12.3.2</b> Encoder</a></li>
+<li class="chapter" data-level="12.3.3" data-path="transformer.html"><a href="transformer.html#decoder-1"><i class="fa fa-check"></i><b>12.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="12.3.4" data-path="transformer.html"><a href="transformer.html#overall-model"><i class="fa fa-check"></i><b>12.3.4</b> Overall model</a></li>
 </ul></li>
-<li class="chapter" data-level="11.4" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>11.4</b> Results</a></li>
+<li class="chapter" data-level="12.4" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>12.4</b> Results</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 </ul>
@@ -261,12 +268,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="gans" class="section level1" number="8">
-<h1><span class="header-section-number">8</span> Generative adversarial networks</h1>
+<div id="gans" class="section level1" number="9">
+<h1><span class="header-section-number">9</span> Generative adversarial networks</h1>
 <p>After image classification, our next deep learning “classic” is one of the – as of today – two main representatives of unsupervised deep learning. In generative adversarial networks, there is no well-defined loss function; instead, the setup is fundamentally game-theoretic: Two actors, the <em>generator</em> and the <em>discriminator</em>, each try to minimize their loss; the outcome should be some artifact – image, text, what have you – that resembles the training data but does not copy them.</p>
 <p>In theory, this is a highly fascinating approach; in practice, it can be a challenge to set parameters in a way that good results are achieved. The architecture and settings presented here follow those reported in the original DCGAN article <span class="citation">(Goodfellow et al. <a href="#ref-goodfellow2014generative" role="doc-biblioref">2014</a>)</span>. In the meantime, a lot of research has been done; minor changes to loss functions, optimizers and/or parameters may make an important difference.</p>
-<div id="dataset" class="section level2" number="8.1">
-<h2><span class="header-section-number">8.1</span> Dataset</h2>
+<div id="dataset" class="section level2" number="9.1">
+<h2><span class="header-section-number">9.1</span> Dataset</h2>
 <p>For this task, we use <a href="https://github.com/rois-codh/kmnist">Kuzushiji-MNIST</a> <span class="citation">(Clanuwat et al. <a href="#ref-clanuwat2018deep" role="doc-biblioref">2018</a>)</span>, one of the more recent MNIST drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided into 10 classes.</p>
 <p>We can use torch for loading it. With an unsupervised learning task such as this one, we only need the training set:</p>
 <div class="sourceCode" id="cb109"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb109-1"><a href="gans.html#cb109-1"></a><span class="im">import</span> torch</span>
@@ -299,12 +306,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb111-11"><a href="gans.html#cb111-11"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
 <div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="gans.html#cb112-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_real.png&quot;</span>)</span></code></pre></div>
 </div>
-<div id="model-1" class="section level2" number="8.2">
-<h2><span class="header-section-number">8.2</span> Model</h2>
+<div id="model-1" class="section level2" number="9.2">
+<h2><span class="header-section-number">9.2</span> Model</h2>
 <p>The model, in the abstract sense, consists of the interplay of two models, in the concrete sense – two torch <em>modules</em>. The <em>generator</em> produces fake artifacts – fake Kuzushiji digits, in our case – in the hope of getting better and better at it; the <em>discriminator</em> is tasked with telling actual from fake images. (Its task should, if all goes well, get more difficult over time.)</p>
 <p>Let’s start with the generator.</p>
-<div id="generator" class="section level3" number="8.2.1">
-<h3><span class="header-section-number">8.2.1</span> Generator</h3>
+<div id="generator" class="section level3" number="9.2.1">
+<h3><span class="header-section-number">9.2.1</span> Generator</h3>
 <p>The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution).
 Its main tool is repeated application of <em>transposed convolutions</em> that upsample from a resolution of 1x1 to the required resolution of 28x28.</p>
 <p>Following the DCGAN paper, the generator’s <code>ConvTranspose2d</code> and <code>BatchNorm2d</code> layers are initialized according to a normal distribution with mean 0 and standard deviation 0.02.</p>
@@ -352,8 +359,8 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
 <span id="cb113-42"><a href="gans.html#cb113-42"></a>        </span>
 <span id="cb113-43"><a href="gans.html#cb113-43"></a>generator.<span class="bu">apply</span>(weights_init)</span></code></pre></div>
 </div>
-<div id="discriminator" class="section level3" number="8.2.2">
-<h3><span class="header-section-number">8.2.2</span> Discriminator</h3>
+<div id="discriminator" class="section level3" number="9.2.2">
+<h3><span class="header-section-number">9.2.2</span> Discriminator</h3>
 <p>The discriminator is a pretty conventional convnet. Its layers’ weights are initialized in the same way as the generator’s.</p>
 <div class="sourceCode" id="cb114"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb114-1"><a href="gans.html#cb114-1"></a><span class="kw">class</span> Discriminator(nn.Module):</span>
 <span id="cb114-2"><a href="gans.html#cb114-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
@@ -382,8 +389,8 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
 <span id="cb114-25"><a href="gans.html#cb114-25"></a></span>
 <span id="cb114-26"><a href="gans.html#cb114-26"></a>discriminator.<span class="bu">apply</span>(weights_init)</span></code></pre></div>
 </div>
-<div id="optimizers-and-loss-function" class="section level3" number="8.2.3">
-<h3><span class="header-section-number">8.2.3</span> Optimizers and loss function</h3>
+<div id="optimizers-and-loss-function" class="section level3" number="9.2.3">
+<h3><span class="header-section-number">9.2.3</span> Optimizers and loss function</h3>
 <p>While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary crossentropy:</p>
 <div class="sourceCode" id="cb115"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb115-1"><a href="gans.html#cb115-1"></a>criterion <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
 <p>They each have their own optimizer:</p>
@@ -394,8 +401,8 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
 <span id="cb116-5"><a href="gans.html#cb116-5"></a>gen_optimizer <span class="op">=</span> optim.Adam(generator.parameters(), lr <span class="op">=</span> lr, betas <span class="op">=</span> (beta1, <span class="fl">0.999</span>))</span></code></pre></div>
 </div>
 </div>
-<div id="training-loop-1" class="section level2" number="8.3">
-<h2><span class="header-section-number">8.3</span> Training loop</h2>
+<div id="training-loop-1" class="section level2" number="9.3">
+<h2><span class="header-section-number">9.3</span> Training loop</h2>
 <p>In every epoch, the training loop consists of three parts.</p>
 <p>First, the discriminator is trained. This is a two-stage procedure:
 - In stage (1), it is given the real images, together with labels (fabricated on the fly) that say “these are real images”. Binary cross entropy will be minimized when all those images are, in fact, classified as real by the discriminator.
@@ -541,7 +548,7 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
           </div>
         </div>
       </div>
-<a href="image-classification.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="unet.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 <a href="vaes.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
