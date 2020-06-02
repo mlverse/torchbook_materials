@@ -26,8 +26,8 @@ num_epochs = 1
 
 learning_rate = 0.0001
 
-#data_dir = "../data/lgg_mri_segmentation/kaggle_3m"
-data_dir = "data/lgg-mri-segmentation/tmp"
+train_dir = "data/lgg_mri_segmentation/kaggle_3m_train"
+valid_dir = "data/lgg_mri_segmentation/kaggle_3m_valid"
 image_size = 256
 
 aug_scale = 0.05
@@ -123,13 +123,13 @@ class BrainSegmentationDataset(Dataset):
         return image_tensor, mask_tensor
 
 train_ds = BrainSegmentationDataset(
-        images_dir = data_dir,
+        images_dir = train_dir,
         image_size = image_size,
         transform = transforms(scale = aug_scale, angle = aug_angle, flip_prob=0.5),
 )
 
 valid_ds = BrainSegmentationDataset(
-        images_dir = data_dir,
+        images_dir = valid_dir,
         image_size = image_size,
         random_sampling=False
 )
@@ -170,7 +170,7 @@ class UNet(nn.Module):
         self.down_path = nn.ModuleList()
         for i in range(depth):
             self.down_path.append(
-                ConvBlock(prev_channels, 2 ** (n_filters + i))
+                DownBlock(prev_channels, 2 ** (n_filters + i))
             )
             prev_channels = 2 ** (n_filters + i)
         self.up_path = nn.ModuleList()
@@ -184,14 +184,12 @@ class UNet(nn.Module):
         blocks = []
         for i, down in enumerate(self.down_path):
             x = down(x)
-            print("after down: x is {}".format(x.size()))
             if i != len(self.down_path) - 1:
                 blocks.append(x)
                 x = F.max_pool2d(x, 2)
                 print("after maxpool: x is {}".format(x.size()))
         for i, up in enumerate(self.up_path):
             x = up(x, blocks[-i - 1])
-            print("after up: x is {}".format(x.size()))
         return self.last(x)
 
 class ConvBlock(nn.Module):
@@ -221,6 +219,16 @@ class UpBlock(nn.Module):
         out = self.conv_block(out)
         print("in upblock forward: out is {}".format(out.size()))
         return out
+
+class DownBlock(nn.Module):
+    def __init__(self, in_size, out_size):
+        super(DownBlock, self).__init__()
+        self.conv_block = ConvBlock(in_size, out_size)
+    def forward(self, x):
+        down = self.conv_block(x)
+        print("in downblock forward: down is {}".format(down.size()))
+        return down
+
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
