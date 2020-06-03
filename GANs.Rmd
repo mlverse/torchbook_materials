@@ -1,16 +1,22 @@
-
 # Generative adversarial networks {#gans}
 
-After image classification, our next deep learning "classic" is one of the -- as of today -- two main representatives of unsupervised deep learning. In generative adversarial networks, there is no well-defined loss function; instead, the setup is fundamentally game-theoretic: Two actors, the _generator_ and the _discriminator_, each try to minimize their loss; the outcome should be some artifact -- image, text, what have you -- that resembles the training data but does not copy them. 
+*Generative Adversarial Networks* (GANs) are one of the most successful, as of this writing, unsupervised (or self-supervised,
+rather) deep learning architectures . In GANs, there is no well-defined loss function; instead, the setup is fundamentally
+game-theoretic: Two actors, the *generator* and the *discriminator*, each try to minimize their loss; the outcome should be
+some artifact -- image, text, what have you -- that resembles the training data but does not copy them.
 
-In theory, this is a highly fascinating approach; in practice, it can be a challenge to set parameters in a way that good results are achieved. The architecture and settings presented here follow those reported in the original DCGAN article [@goodfellow2014generative]. In the meantime, a lot of research has been done; minor changes to loss functions, optimizers and/or parameters may make an important difference.
-
+In theory, this is a highly fascinating approach; in practice, it can be a challenge to set parameters in a way that good
+results are achieved. The architecture and settings presented here follow those reported in the original DCGAN article
+[@goodfellow2014generative]. In the meantime, a lot of research has been done; minor changes to loss functions, optimizers
+and/or parameters may make an important difference.
 
 ## Dataset
 
-For this task, we use [Kuzushiji-MNIST](https://github.com/rois-codh/kmnist) [@clanuwat2018deep], one of the more recent MNIST drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided into 10 classes. 
+For this task, we use [Kuzushiji-MNIST](https://github.com/rois-codh/kmnist) [@clanuwat2018deep], one of the more recent MNIST
+drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided
+into 10 classes.
 
-We can use torch for loading it. With an unsupervised learning task such as this one, we only need the training set: 
+We can use torch for loading it. With an unsupervised learning task such as this one, we only need the training set:
 
 ```{python}
 import torch
@@ -56,19 +62,22 @@ images %>%
 knitr::include_graphics("images/gan_real.png")
 ```
 
-
 ## Model
 
-The model, in the abstract sense, consists of the interplay of two models, in the concrete sense -- two torch _modules_. The _generator_ produces fake artifacts -- fake Kuzushiji digits, in our case -- in the hope of getting better and better at it; the _discriminator_ is tasked with telling actual from fake images. (Its task should, if all goes well, get more difficult over time.)
+The model, in the abstract sense, consists of the interplay of two models, in the concrete sense -- two torch *modules*. The
+*generator* produces fake artifacts -- fake Kuzushiji digits, in our case -- in the hope of getting better and better at it;
+the *discriminator* is tasked with telling actual from fake images. (Its task should, if all goes well, get more difficult
+over time.)
 
 Let's start with the generator.
 
 ### Generator
 
-The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution).
-Its main tool is repeated application of _transposed convolutions_ that upsample from a resolution of 1x1 to the required resolution of 28x28.
+The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution). Its main tool is
+repeated application of *transposed convolutions* that upsample from a resolution of 1x1 to the required resolution of 28x28.
 
-Following the DCGAN paper, the generator's `ConvTranspose2d` and `BatchNorm2d` layers are initialized according to a normal distribution with mean 0 and standard deviation 0.02.
+Following the DCGAN paper, the generator's `ConvTranspose2d` and `BatchNorm2d` layers are initialized according to a normal
+distribution with mean 0 and standard deviation 0.02.
 
 ```{python}
 device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
@@ -117,7 +126,6 @@ generator.apply(weights_init)
 
 ```
 
-
 ### Discriminator
 
 The discriminator is a pretty conventional convnet. Its layers' weights are initialized in the same way as the generator's.
@@ -152,10 +160,10 @@ discriminator.apply(weights_init)
 
 ```
 
-
 ### Optimizers and loss function
 
-While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary crossentropy:
+While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary
+crossentropy:
 
 ```{python}
 criterion = nn.BCELoss()
@@ -173,14 +181,18 @@ gen_optimizer = optim.Adam(generator.parameters(), lr = lr, betas = (beta1, 0.99
 
 ## Training loop
 
-In every epoch, the training loop consists of three parts. 
+In every epoch, the training loop consists of three parts.
 
-First, the discriminator is trained. This is a two-stage procedure:
-- In stage (1), it is given the real images, together with labels (fabricated on the fly) that say "these are real images". Binary cross entropy will be minimized when all those images are, in fact, classified as real by the discriminator.
-- In stage (2), first the generator is asked to generate some images, and then the discriminator is asked to rate them. Again, binary cross entropy is calculated, but this time, it will be minimal if all images are characterized as fake.
+First, the discriminator is trained. This is a two-stage procedure: - In stage (1), it is given the real images, together with
+labels (fabricated on the fly) that say "these are real images". Binary cross entropy will be minimized when all those images
+are, in fact, classified as real by the discriminator. - In stage (2), first the generator is asked to generate some images,
+and then the discriminator is asked to rate them. Again, binary cross entropy is calculated, but this time, it will be minimal
+if all images are characterized as fake.
 
-Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is "no fake", so the labels are set to "real". The binary cross entropy loss then reflects the generator's performance, not that of the discriminator.
-
+Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's
+turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is "no fake", so the
+labels are set to "real". The binary cross entropy loss then reflects the generator's performance, not that of the
+discriminator.
 
 ```{python}
 # random noise - input for generator
@@ -278,8 +290,7 @@ images %>%
 knitr::include_graphics("images/gan_over_time.png")
 ```
 
-
-To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch: 
+To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch:
 
 ```{python}
 new = generator(fixed_noise).cpu().detach().numpy()
@@ -318,9 +329,9 @@ df %>%
     geom_line()
 ```
 
-
-As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5 (and thus, close to each other), which obviously isn't the case here. This means there is still room for improvement.
-
+As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this
+with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5
+(and thus, close to each other), which obviously isn't the case here. This means there is still room for improvement.
 
 ```{r}
 library(ggplot2)
@@ -336,5 +347,3 @@ df %>%
     ggplot(aes(x = iteration, y = ratio_accepted, colour = images)) +
     geom_line()
 ```
-
-

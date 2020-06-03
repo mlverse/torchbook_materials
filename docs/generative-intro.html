@@ -284,8 +284,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="generative-intro" class="section level1 unnumbered" number="">
 <h1>Introduction</h1>
-<p>tbd</p>
+<p>To be honest, we were a bit unsure how to name this section. Generative (like we ended or doing) or rather, unsupervised
+(self-supervised, resp.) deep learning? The architectures presented here – <em>Generative Adversarial Networks</em> (GANs) and
+<em>Variational Autoencoders</em> (VAEs) – are normally used to create, enhance, or in some way systematically modify samples from
+some postulated population. For example: generate music that sounds like Bach; colorize black-and-white films; turn a summer
+landscape into a winter one.</p>
+<p>On the other hand, the appeal of these models – at least for some people – does not necessarily lie in the applications.
+Rather, their attraction seems to be an intellectual one, with GANs reminiscing of game theory and VAEs, of probability,
+information and optimal coding.</p>
+<p>For both architectures, we present quite basic realizations; for serious application, you might want to look into more
+sophisticated (but not necessarily, so much more complicated to code!) descendants such as Wasserstein-GAN
+<span class="citation">(Arjovsky, Chintala, and Bottou <a href="#ref-Arjovsky2017WassersteinG" role="doc-biblioref">2017</a>)</span>, <span class="math inline">\(\beta\)</span>-VAE <span class="citation">(Higgins et al. <a href="#ref-Higgins2017betaVAELB" role="doc-biblioref">2017</a>)</span> or Info-VAE <span class="citation">(Zhao, Song, and Ermon <a href="#ref-ZhaoSE17b" role="doc-biblioref">2017</a>)</span>.</p>
 
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-Arjovsky2017WassersteinG">
+<p>Arjovsky, Martín, Soumith Chintala, and Léon Bottou. 2017. “Wasserstein Gan.” <em>ArXiv</em> abs/1701.07875.</p>
+</div>
+<div id="ref-Higgins2017betaVAELB">
+<p>Higgins, Irina, Loïc Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew M Botvinick, Shakir Mohamed, and Alexander Lerchner. 2017. “Beta-Vae: Learning Basic Visual Concepts with a Constrained Variational Framework.” In <em>ICLR</em>.</p>
+</div>
+<div id="ref-ZhaoSE17b">
+<p>Zhao, Shengjia, Jiaming Song, and Stefano Ermon. 2017. “InfoVAE: Information Maximizing Variational Autoencoders.” <em>CoRR</em> abs/1706.02262. <a href="http://arxiv.org/abs/1706.02262">http://arxiv.org/abs/1706.02262</a>.</p>
+</div>
 </div>
             </section>
 

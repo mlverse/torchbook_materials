@@ -284,12 +284,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="vaes" class="section level1" number="12">
 <h1><span class="header-section-number">12</span> Variational autoencoders</h1>
-<p>In this chapter, we look at the other – as of this writing – main type of architecture used for unsupervised learning:
-variational autoencoders (VAEs). VAEs are autoencoders, in that they compress their input and, starting from a compressed
-representation, aim for a faithful reconstruction. But in addition, there is constraint on that compressed representation: It
-is regularized so as to deviate as little as possible from a prior distribution, often (but not necessarily) a multivariate
-normal. The rationale behind this regularization is that we are looking for an informative <em>latent space</em> of hidden variables,
-whose expression to various degrees should create the range of “phenotypes” observed.</p>
+<p>Now we look at the other – as of this writing – main type of architecture used for self-supervised learning: <em>Variational
+Autoencoders</em> (VAEs). VAEs are autoencoders, in that they compress their input and, starting from a compressed representation,
+aim for a faithful reconstruction. But in addition, there is constraint on that compressed representation: It is regularized
+so as to deviate as little as possible from a prior distribution, often (but not necessarily) a multivariate normal. The
+rationale behind this regularization is that we are looking for an informative <em>latent space</em> of hidden variables, whose
+expression to various degrees should create the range of “phenotypes” observed.</p>
 <p>Thus, where GANs are designed solely for good generative performance, VAEs incorporate the additional aspiration to allow for
 a meaningful representation of the domain modeled. Of course, what counts as a meaningful representation is open for debate.
 Often in introductory articles, the latent space is chosen to consist of just two variables, which can then be drawn from at

@@ -284,14 +284,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="seq2seq_att" class="section level1" number="9">
 <h1><span class="header-section-number">9</span> Sequence-to-sequence models with attention</h1>
-<p>As I write this, many state of the art models used in natural language processing are based on the Transformer
+<p>As we write this, many state-of- the-art models used in natural language processing are based on the <em>Transformer</em>
 <span class="citation">(Vaswani et al. <a href="#ref-VaswaniSPUJGKP17" role="doc-biblioref">2017</a>)</span> idea (see e.g., BERT [@abs-1810-04805], the OpenAI Transformer <span class="citation">(Radford <a href="#ref-Radford2018ImprovingLU" role="doc-biblioref">2018</a>)</span>, GPT-2
 <span class="citation">(Radford <a href="#ref-Radford2018ImprovingLU" role="doc-biblioref">2018</a>)</span>).</p>
-<p>The “shocking” thing about the original Transformer was that it did not use recurrent neural networks to process sequential
+<p>The “shocking” thing about the original <em>Transformer</em> was that it did not use recurrent neural networks to process sequential
 data, but mainly relied on the guiding power of <em>attention</em> to tackle the challenges inherent in – multiple, sometimes –
 sequentiality. The concept of <em>attention</em> is so central to current deep learning that we want to introduce it independently of
 how it is used in <em>Transformer</em>-based models. In this chapter, thus, we show an example of neural machine translation built
-“classically”, that is, using RNNs, but with the crucial addition of <em>attention</em>.</p>
+“classically”, that is, using recurrent neural networks (RNNs), but with the crucial addition of <em>attention</em>.</p>
 <div id="why-attention" class="section level2" number="9.1">
 <h2><span class="header-section-number">9.1</span> Why attention?</h2>
 <p>Translation is a prototypical example of sequence-to-sequence processing: sequence in, sequence out. The natural architectural
@@ -763,8 +763,8 @@ Epoch: 09
 </table>
 <table>
 <colgroup>
-<col width="3%" />
-<col width="96%" />
+<col width="5%" />
+<col width="94%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -774,23 +774,23 @@ Epoch: 09
 </thead>
 <tbody>
 <tr class="odd">
-<td>Source</td>
+<td>S o u r c e</td>
 <td>and then we had some hint that these things existed all along the axis of it , because if you ’ve got volcanism , water ’s going to get down from the sea into cracks in the sea floor , come in contact with magma , and come shooting out hot .</td>
 </tr>
 <tr class="even">
-<td>Target</td>
+<td>T a r g e t</td>
 <td>nous avions une idée que ces choses existaient tout au long de cet axe , car s’ il y a du volcanisme , l´eau va descendre de la mer dans les fentes du sol marin , se mettre en contact avec le magma , et jaillir avec de hautes températures .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 1</td>
+<td>E p o c h 1</td>
 <td>let nous avons eu beaucoup de ces ces ces choses qui sont en fait , parce que si vous avez , , , , , , à la , dans la eau dans dans la eau , dans le sol , , , avec les &lt;unk&gt; , et , et</td>
 </tr>
 <tr class="even">
-<td>Epoch 5</td>
+<td>E p o c h 5</td>
 <td>et puis nous avons eu une chose que ces choses ont été l’ axe de l’ , , parce que si vous avez &lt;unk&gt; &lt;unk&gt; , eau eau , la mer dans les dans dans la mer dans la mer , et avec son contact avec la . et et</td>
 </tr>
 <tr class="odd">
-<td>Epoch 9</td>
+<td>E p o c h 9</td>
 <td>et puis nous avons eu un idée que ces choses ont tous les axe de , , parce que si vous avez &lt;unk&gt; , eau , l’ eau va descendre dans la mer dans dans dans mer dans la mer , dans la pluie , et de la de de</td>
 </tr>
 </tbody>
@@ -827,8 +827,8 @@ Epoch: 09
 </table>
 <table>
 <colgroup>
-<col width="4%" />
-<col width="95%" />
+<col width="5%" />
+<col width="94%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -838,23 +838,23 @@ Epoch: 09
 </thead>
 <tbody>
 <tr class="odd">
-<td>Source</td>
+<td>So ur ce</td>
 <td>because it ’s shown the way we apply , generate and use knowledge is affected by our social and institutional context , which told us what in communism ?</td>
 </tr>
 <tr class="even">
-<td>Target</td>
+<td>Ta rg et</td>
 <td>parce qu’ il est démontré que la façon dont nous appliquons , générons , et utilisons les connaissances est affectée par notre contexte social et institutionnel , qui nous a dit quoi pendant le communisme ?</td>
 </tr>
 <tr class="odd">
-<td>Epoch 1</td>
+<td>E po ch 1</td>
 <td>parce que c’ est que nous nous nous , , , , , et de l’ information , , et notre , , et , et , ce qui a ce que ?</td>
 </tr>
 <tr class="even">
-<td>Epoch 5</td>
+<td>E po ch 5</td>
 <td>parce que c’ est la façon dont nous on , , et et et la connaissance , et et et et et le contexte , qui nous nous demandé ce qu’ il est ?</td>
 </tr>
 <tr class="odd">
-<td>Epoch 9</td>
+<td>E po ch 9</td>
 <td>parce que c’ est montré comment nous nous , , et et et connaissances et et le monde social et et et nous nous a demandé à le ? ?</td>
 </tr>
 </tbody>
@@ -872,11 +872,11 @@ Epoch: 09
 </thead>
 <tbody>
 <tr class="odd">
-<td>Source</td>
+<td>S ource</td>
 <td>it ’s not fiction , it ’s not story tales , it ’s not make - believe ; it ’s cold , hard science .</td>
 </tr>
 <tr class="even">
-<td>Target</td>
+<td>T arget</td>
 <td>ce n’ est pas de la fiction , ce n’ est pas des histoires , ce n’ est pas des fadaises ; c’ est de la science pure .</td>
 </tr>
 <tr class="odd">
@@ -895,8 +895,8 @@ Epoch: 09
 </table>
 <table>
 <colgroup>
-<col width="5%" />
-<col width="94%" />
+<col width="6%" />
+<col width="93%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -906,31 +906,31 @@ Epoch: 09
 </thead>
 <tbody>
 <tr class="odd">
-<td>Source</td>
+<td>So urce</td>
 <td>we all want to be there , in the upper right quadrant , where performance is strong and learning opportunities are equally distributed .</td>
 </tr>
 <tr class="even">
-<td>Target</td>
+<td>Ta rget</td>
 <td>on veut tous être dans le quadrant supérieur droit , où les performances sont remarquables et les opportunités d’ apprentissage sont égales .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 1</td>
+<td>E poch 1</td>
 <td>nous voulons tous seulement , , dans le cas , , où les les sont et et les les les sont . .</td>
 </tr>
 <tr class="even">
-<td>Epoch 5</td>
+<td>E poch 5</td>
 <td>nous voulons voulons être être , dans dans le coin droite , où où la est est est des opportunités et des apprentissage sont des .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 9</td>
+<td>E poch 9</td>
 <td>ous voulons voulons être là , dans le haut , , où les performances est plus et et les opportunités sont sont .</td>
 </tr>
 </tbody>
 </table>
 <table>
 <colgroup>
-<col width="3%" />
-<col width="96%" />
+<col width="4%" />
+<col width="95%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -940,31 +940,31 @@ Epoch: 09
 </thead>
 <tbody>
 <tr class="odd">
-<td>Source</td>
+<td>S o u r c e</td>
 <td>those are the critical questions , and what we have learned from pisa is that , in high - performing education systems , the leaders have convinced their citizens to make choices that value education , their future , more than consumption today .</td>
 </tr>
 <tr class="even">
-<td>Target</td>
+<td>T a r g e t</td>
 <td>ce sont là les questions importantes , et ce qu’ on a appris de pisa est que dans les systèmes éducatifs très performants les dirigeants ont aujourd’hui convaincu leurs citoyens de faire des choix qui font valoir leur éducation , leur avenir , plus que la consommation .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 1</td>
+<td>E p o c h 1</td>
 <td>ces sont des idées , et ce que nous avons avons appris à l’ de de , , , dans les des de des , , les les les les les pour les les de la santé , les les , , , , , , ,</td>
 </tr>
 <tr class="even">
-<td>Epoch 5</td>
+<td>E p o c h 5</td>
 <td>ces sont questions questions et et ce nous nous avons appris à l’ , c’ est dans les systèmes de systèmes , , les organisations qui ont des citoyens de leur pour les choix , des systèmes , , , , , , , plus de énergie aujourd’hui .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 9</td>
+<td>E p o c h 9</td>
 <td>ces sont questions questions questions et et ce dont nous avons appris à l’ est est , , dans les systèmes de systèmes de , , les dirigeants ont citoyens leurs citoyens pour faire les choix , les futur , , futur , plus de consommation de plus .</td>
 </tr>
 </tbody>
 </table>
 <table>
 <colgroup>
-<col width="5%" />
-<col width="94%" />
+<col width="6%" />
+<col width="93%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -974,23 +974,23 @@ Epoch: 09
 </thead>
 <tbody>
 <tr class="odd">
-<td>Source</td>
+<td>So urce</td>
 <td>when the sailors mutinied at sea in a demand for humane conditions , it was these teenagers that fed the crew .</td>
 </tr>
 <tr class="even">
-<td>Target</td>
+<td>Ta rget</td>
 <td>quand les marins se sont mutinés en mer pour exiger des conditions plus humaines , ce sont ces adolescents qui ont nourri l’ équipage .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 1</td>
+<td>E poch 1</td>
 <td>quand les &lt;unk&gt; de l’ eau dans dans la de de pour les les , , , ces ces qui ont été été .</td>
 </tr>
 <tr class="even">
-<td>Epoch 5</td>
+<td>E poch 5</td>
 <td>quand les &lt;unk&gt; &lt;unk&gt; dans la mer dans une vie avec la conditions conditions , les parents , c’ était ces adolescents qui ont été équipe .</td>
 </tr>
 <tr class="odd">
-<td>Epoch 9</td>
+<td>E poch 9</td>
 <td>quand les marins &lt;unk&gt; dans la mer dans une demande de la nature , , c’ était ces adolescents qui qui l’ équipe .</td>
 </tr>
 </tbody>

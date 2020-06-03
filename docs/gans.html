@@ -284,11 +284,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="gans" class="section level1" number="11">
 <h1><span class="header-section-number">11</span> Generative adversarial networks</h1>
-<p>After image classification, our next deep learning “classic” is one of the – as of today – two main representatives of unsupervised deep learning. In generative adversarial networks, there is no well-defined loss function; instead, the setup is fundamentally game-theoretic: Two actors, the <em>generator</em> and the <em>discriminator</em>, each try to minimize their loss; the outcome should be some artifact – image, text, what have you – that resembles the training data but does not copy them.</p>
-<p>In theory, this is a highly fascinating approach; in practice, it can be a challenge to set parameters in a way that good results are achieved. The architecture and settings presented here follow those reported in the original DCGAN article <span class="citation">(Goodfellow et al. <a href="#ref-goodfellow2014generative" role="doc-biblioref">2014</a>)</span>. In the meantime, a lot of research has been done; minor changes to loss functions, optimizers and/or parameters may make an important difference.</p>
+<p><em>Generative Adversarial Networks</em> (GANs) are one of the most successful, as of this writing, unsupervised (or self-supervised,
+rather) deep learning architectures . In GANs, there is no well-defined loss function; instead, the setup is fundamentally
+game-theoretic: Two actors, the <em>generator</em> and the <em>discriminator</em>, each try to minimize their loss; the outcome should be
+some artifact – image, text, what have you – that resembles the training data but does not copy them.</p>
+<p>In theory, this is a highly fascinating approach; in practice, it can be a challenge to set parameters in a way that good
+results are achieved. The architecture and settings presented here follow those reported in the original DCGAN article
+<span class="citation">(Goodfellow et al. <a href="#ref-goodfellow2014generative" role="doc-biblioref">2014</a>)</span>. In the meantime, a lot of research has been done; minor changes to loss functions, optimizers
+and/or parameters may make an important difference.</p>
 <div id="dataset" class="section level2" number="11.1">
 <h2><span class="header-section-number">11.1</span> Dataset</h2>
-<p>For this task, we use <a href="https://github.com/rois-codh/kmnist">Kuzushiji-MNIST</a> <span class="citation">(Clanuwat et al. <a href="#ref-clanuwat2018deep" role="doc-biblioref">2018</a>)</span>, one of the more recent MNIST drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided into 10 classes.</p>
+<p>For this task, we use <a href="https://github.com/rois-codh/kmnist">Kuzushiji-MNIST</a> <span class="citation">(Clanuwat et al. <a href="#ref-clanuwat2018deep" role="doc-biblioref">2018</a>)</span>, one of the more recent MNIST
+drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided
+into 10 classes.</p>
 <p>We can use torch for loading it. With an unsupervised learning task such as this one, we only need the training set:</p>
 <div class="sourceCode" id="cb159"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb159-1"><a href="gans.html#cb159-1"></a><span class="im">import</span> torch</span>
 <span id="cb159-2"><a href="gans.html#cb159-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
@@ -322,13 +330,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="model-2" class="section level2" number="11.2">
 <h2><span class="header-section-number">11.2</span> Model</h2>
-<p>The model, in the abstract sense, consists of the interplay of two models, in the concrete sense – two torch <em>modules</em>. The <em>generator</em> produces fake artifacts – fake Kuzushiji digits, in our case – in the hope of getting better and better at it; the <em>discriminator</em> is tasked with telling actual from fake images. (Its task should, if all goes well, get more difficult over time.)</p>
+<p>The model, in the abstract sense, consists of the interplay of two models, in the concrete sense – two torch <em>modules</em>. The
+<em>generator</em> produces fake artifacts – fake Kuzushiji digits, in our case – in the hope of getting better and better at it;
+the <em>discriminator</em> is tasked with telling actual from fake images. (Its task should, if all goes well, get more difficult
+over time.)</p>
 <p>Let’s start with the generator.</p>
 <div id="generator" class="section level3" number="11.2.1">
 <h3><span class="header-section-number">11.2.1</span> Generator</h3>
-<p>The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution).
-Its main tool is repeated application of <em>transposed convolutions</em> that upsample from a resolution of 1x1 to the required resolution of 28x28.</p>
-<p>Following the DCGAN paper, the generator’s <code>ConvTranspose2d</code> and <code>BatchNorm2d</code> layers are initialized according to a normal distribution with mean 0 and standard deviation 0.02.</p>
+<p>The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution). Its main tool is
+repeated application of <em>transposed convolutions</em> that upsample from a resolution of 1x1 to the required resolution of 28x28.</p>
+<p>Following the DCGAN paper, the generator’s <code>ConvTranspose2d</code> and <code>BatchNorm2d</code> layers are initialized according to a normal
+distribution with mean 0 and standard deviation 0.02.</p>
 <div class="sourceCode" id="cb163"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb163-1"><a href="gans.html#cb163-1"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda:0&quot;</span> <span class="cf">if</span> torch.cuda.is_available()  <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span>)</span>
 <span id="cb163-2"><a href="gans.html#cb163-2"></a></span>
 <span id="cb163-3"><a href="gans.html#cb163-3"></a><span class="co"># size of generator input</span></span>
@@ -405,7 +417,8 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
 </div>
 <div id="optimizers-and-loss-function" class="section level3" number="11.2.3">
 <h3><span class="header-section-number">11.2.3</span> Optimizers and loss function</h3>
-<p>While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary crossentropy:</p>
+<p>While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary
+crossentropy:</p>
 <div class="sourceCode" id="cb165"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb165-1"><a href="gans.html#cb165-1"></a>criterion <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
 <p>They each have their own optimizer:</p>
 <div class="sourceCode" id="cb166"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb166-1"><a href="gans.html#cb166-1"></a>lr <span class="op">=</span> <span class="fl">0.0002</span></span>
@@ -418,10 +431,15 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
 <div id="training-loop-1" class="section level2" number="11.3">
 <h2><span class="header-section-number">11.3</span> Training loop</h2>
 <p>In every epoch, the training loop consists of three parts.</p>
-<p>First, the discriminator is trained. This is a two-stage procedure:
-- In stage (1), it is given the real images, together with labels (fabricated on the fly) that say “these are real images”. Binary cross entropy will be minimized when all those images are, in fact, classified as real by the discriminator.
-- In stage (2), first the generator is asked to generate some images, and then the discriminator is asked to rate them. Again, binary cross entropy is calculated, but this time, it will be minimal if all images are characterized as fake.</p>
-<p>Once gradients have been obtained in both computations, the discriminator’s weights are updated. Then it’s the generator’s turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is “no fake”, so the labels are set to “real”. The binary cross entropy loss then reflects the generator’s performance, not that of the discriminator.</p>
+<p>First, the discriminator is trained. This is a two-stage procedure: - In stage (1), it is given the real images, together with
+labels (fabricated on the fly) that say “these are real images”. Binary cross entropy will be minimized when all those images
+are, in fact, classified as real by the discriminator. - In stage (2), first the generator is asked to generate some images,
+and then the discriminator is asked to rate them. Again, binary cross entropy is calculated, but this time, it will be minimal
+if all images are characterized as fake.</p>
+<p>Once gradients have been obtained in both computations, the discriminator’s weights are updated. Then it’s the generator’s
+turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is “no fake”, so the
+labels are set to “real”. The binary cross entropy loss then reflects the generator’s performance, not that of the
+discriminator.</p>
 <div class="sourceCode" id="cb167"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb167-1"><a href="gans.html#cb167-1"></a><span class="co"># random noise - input for generator</span></span>
 <span id="cb167-2"><a href="gans.html#cb167-2"></a>fixed_noise <span class="op">=</span> torch.randn(<span class="dv">64</span>, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, device <span class="op">=</span> device)</span>
 <span id="cb167-3"><a href="gans.html#cb167-3"></a></span>
@@ -532,7 +550,9 @@ Its main tool is repeated application of <em>transposed convolutions</em> that u
 <span id="cb173-10"><a href="gans.html#cb173-10"></a><span class="st">  </span><span class="kw">gather</span>(module, loss, discriminator, generator) <span class="op">%&gt;%</span></span>
 <span id="cb173-11"><a href="gans.html#cb173-11"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> loss, <span class="dt">colour =</span> module)) <span class="op">+</span></span>
 <span id="cb173-12"><a href="gans.html#cb173-12"></a><span class="st">    </span><span class="kw">geom_line</span>()</span></code></pre></div>
-<p>As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5 (and thus, close to each other), which obviously isn’t the case here. This means there is still room for improvement.</p>
+<p>As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this
+with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5
+(and thus, close to each other), which obviously isn’t the case here. This means there is still room for improvement.</p>
 <div class="sourceCode" id="cb174"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb174-1"><a href="gans.html#cb174-1"></a><span class="kw">library</span>(ggplot2)</span>
 <span id="cb174-2"><a href="gans.html#cb174-2"></a><span class="kw">library</span>(tidyr)</span>
 <span id="cb174-3"><a href="gans.html#cb174-3"></a></span>

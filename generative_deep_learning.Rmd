@@ -2,4 +2,16 @@
 
 # Introduction {#generative-intro .unnumbered}
 
-tbd
+To be honest, we were a bit unsure how to name this section. Generative (like we ended or doing) or rather, unsupervised
+(self-supervised, resp.) deep learning? The architectures presented here -- *Generative Adversarial Networks* (GANs) and
+*Variational Autoencoders* (VAEs) -- are normally used to create, enhance, or in some way systematically modify samples from
+some postulated population. For example: generate music that sounds like Bach; colorize black-and-white films; turn a summer
+landscape into a winter one.
+
+On the other hand, the appeal of these models -- at least for some people -- does not necessarily lie in the applications.
+Rather, their attraction seems to be an intellectual one, with GANs reminiscing of game theory and VAEs, of probability,
+information and optimal coding.
+
+For both architectures, we present quite basic realizations; for serious application, you might want to look into more
+sophisticated (but not necessarily, so much more complicated to code!) descendants such as Wasserstein-GAN
+[@Arjovsky2017WassersteinG], $\beta$-VAE [@Higgins2017betaVAELB] or Info-VAE [@ZhaoSE17b].
