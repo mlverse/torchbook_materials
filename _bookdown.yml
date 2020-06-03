@@ -14,36 +14,39 @@ rmd_files:
     "simple_net_modules.Rmd",
     "simple_net_optim.Rmd",
 
-    # section: image processing
     "image_recognition.Rmd",
     "image_classification.Rmd",
     "unet.Rmd",
 
-    # section: NLP
     "natural_language_processing.Rmd",
     "seq_to_seq_with_attention.Rmd",
     "transformer_modules.Rmd",
 
-    # section: deep learning on tabular data
+    "tabular_data.Rmd",
+    #
+    #
 
-
-    # section: self-supervised and generative deep learning
+    "generative_deep_learning.Rmd",
     "GANs.Rmd",
     "VAEs.Rmd",
 
+    "graphs.Rmd",
+    #
+    #
 
-    #"Probabilistic_deep_learning.Rmd",
+    "probabilistic_deep_learning.Rmd",
     ## Bayesian
     ## Flows
 
-    # Private and secure deep learning
+    "private_and_secure_learning.Rmd",
     ## federated learning
     ## diff. privacy
     ## adversarial
 
-    #"Research_topics.Rmd",
+    "research_topics.Rmd",
     ## spherical CNNs
     ## causality
+    ## consciousness
 
 
     "references.Rmd",
