@@ -17,17 +17,14 @@ from skimage.io import imread
 exec(open('scripts/brainseg_utils.py').read())
 exec(open('scripts/brainseg_transforms.py').read())
 
-
+import os
+print(os.getcwd())
 # ------------------------------------------------------------------------------
 
 batch_size = 4
 
-num_epochs = 1
-
-learning_rate = 0.0001
-
-train_dir = "data/lgg_mri_segmentation/kaggle_3m_train"
-valid_dir = "data/lgg_mri_segmentation/kaggle_3m_valid"
+train_dir = "data/lgg-mri-segmentation/kaggle_3m_train"
+valid_dir = "data/lgg-mri-segmentation/kaggle_3m_valid"
 image_size = 256
 
 aug_scale = 0.05
@@ -153,8 +150,8 @@ image, mask = next(iter(train_loader))
 image.size()
 mask.size()
 
-len(train_loader)
-len(valid_loader)
+dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'valid']}
+print(dataset_sizes)
 
 class UNet(nn.Module):
     def __init__(
@@ -187,7 +184,7 @@ class UNet(nn.Module):
             if i != len(self.down_path) - 1:
                 blocks.append(x)
                 x = F.max_pool2d(x, 2)
-                print("after maxpool: x is {}".format(x.size()))
+                #print("after maxpool: x is {}".format(x.size()))
         for i, up in enumerate(self.up_path):
             x = up(x, blocks[-i - 1])
         return self.last(x)
@@ -212,12 +209,12 @@ class UpBlock(nn.Module):
         self.conv_block = ConvBlock(in_size, out_size)
     def forward(self, x, bridge):
         up = self.up(x)
-        print("in upblock forward: up is {}".format(up.size()))
-        print("in upblock forward: bridge is {}".format(bridge.size()))
+        #print("in upblock forward: up is {}".format(up.size()))
+        #print("in upblock forward: bridge is {}".format(bridge.size()))
         out = torch.cat([up, bridge], 1)
-        print("in upblock forward: concatenated is {}".format(out.size()))
+        #print("in upblock forward: concatenated is {}".format(out.size()))
         out = self.conv_block(out)
-        print("in upblock forward: out is {}".format(out.size()))
+        #print("in upblock forward: out is {}".format(out.size()))
         return out
 
 class DownBlock(nn.Module):
@@ -226,7 +223,7 @@ class DownBlock(nn.Module):
         self.conv_block = ConvBlock(in_size, out_size)
     def forward(self, x):
         down = self.conv_block(x)
-        print("in downblock forward: down is {}".format(down.size()))
+        #print("in downblock forward: down is {}".format(down.size()))
         return down
 
 
@@ -250,31 +247,37 @@ class DiceLoss(nn.Module):
         return 1. - dsc
 
 
-dsc_loss = DiceLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+#dsc_loss = DiceLoss()
+dsc_loss = nn.CrossEntropyLoss()
 
-step = 0
+optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum = 0.9)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr = 0.01, steps_per_epoch = len(train_loader), epochs = 50)
+num_epochs = 50
 
 for epoch in range(num_epochs):
-  print('Epoch/{}'.format(epoch, num_epochs - 1))
-  print('-' * 10)
-  #for phase in ["train", "valid"]:
-  for phase in ["train"]:
-    if phase == "train": model.train()
-    else: model.eval()
-    for i, data in enumerate(dataloaders[phase]):
-      if phase == "train": step += 1
-      x, y_true = data
-      x, y_true = x.to(device), y_true.to(device)
-      optimizer.zero_grad()
-      with torch.set_grad_enabled(phase == "train"):
-        y_pred = model(x)
-        loss = dsc_loss(y_pred, y_true)
-        if phase == "train":
-          loss.backward()
-          optimizer.step()
-        #if (step + 1) % 10 == 0: print("{:s} loss: {:4f}".format(phase, loss))
-        #if True: print("{:s} loss: {:4f}".format(phase, loss))
+    print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    print('-' * 10)
+    for phase in ['train', 'valid']:
+        if phase == 'train':
+            model.train() 
+        else:
+            model.eval()   
+        running_loss = 0.0
+        for inputs, labels in dataloaders[phase]:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            optimizer.zero_grad()
+            with torch.set_grad_enabled(phase == 'train'):
+                preds = model(inputs)
+                loss = dsc_loss(preds, labels)
+                if phase == 'train':
+                    loss.backward()
+                    optimizer.step()
+            running_loss += loss.item() * inputs.size(0)
+        if phase == 'train':
+            scheduler.step()
+        epoch_loss = running_loss / dataset_sizes[phase]
+        print('{} Loss: {:.4f}'.format(
+            phase, epoch_loss))
+    print()
 
-
-    

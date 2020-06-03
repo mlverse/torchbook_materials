@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>7 Classifying images | Torch book</title>
+  <title>7 Classifying images | Applied deep learning with torch from R</title>
   <meta name="description" content="tbd" />
   <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="7 Classifying images | Torch book" />
+  <meta property="og:title" content="7 Classifying images | Applied deep learning with torch from R" />
   <meta property="og:type" content="book" />
   <meta property="og:url" content="tbd" />
   <meta property="og:image" content="tbdcover.png" />
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="tbd" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="7 Classifying images | Torch book" />
+  <meta name="twitter:title" content="7 Classifying images | Applied deep learning with torch from R" />
   
   <meta name="twitter:description" content="tbd" />
   <meta name="twitter:image" content="tbdcover.png" />
@@ -30,7 +30,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="deeplearning-applications-intro.html"/>
+<link rel="prev" href="image-recognition-intro.html"/>
 <link rel="next" href="unet.html"/>
 <script src="libs/header-attrs-2.1/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
@@ -187,8 +187,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
 <li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-torch.optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>torch.optim</code></a></li>
 </ul></li>
-<li class="part"><span><b>II Deep learning: classical applications</b></span></li>
-<li class="chapter" data-level="" data-path="deeplearning-applications-intro.html"><a href="deeplearning-applications-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="part"><span><b>II Image Recognition</b></span></li>
+<li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
 <li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
 <ul>
 <li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-transformation"><i class="fa fa-check"></i><b>7.1</b> Data loading and transformation</a></li>
@@ -196,59 +196,61 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
 <li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="unet.html"><a href="unet.html"><i class="fa fa-check"></i><b>8</b> U-Net</a>
+<li class="chapter" data-level="8" data-path="unet.html"><a href="unet.html"><i class="fa fa-check"></i><b>8</b> Brain Image Segmentation with U-Net</a>
 <ul>
-<li class="chapter" data-level="8.1" data-path="unet.html"><a href="unet.html#heading"><i class="fa fa-check"></i><b>8.1</b> heading</a>
+<li class="chapter" data-level="8.1" data-path="unet.html"><a href="unet.html#image-segmentation-in-a-nutshell"><i class="fa fa-check"></i><b>8.1</b> Image segmentation in a nutshell</a></li>
+<li class="chapter" data-level="8.2" data-path="unet.html"><a href="unet.html#example-application-mri-data"><i class="fa fa-check"></i><b>8.2</b> Example application: MRI data</a></li>
+<li class="chapter" data-level="8.3" data-path="unet.html"><a href="unet.html#heading"><i class="fa fa-check"></i><b>8.3</b> heading</a>
 <ul>
-<li class="chapter" data-level="8.1.1" data-path="unet.html"><a href="unet.html#heading-1"><i class="fa fa-check"></i><b>8.1.1</b> heading</a></li>
+<li class="chapter" data-level="8.3.1" data-path="unet.html"><a href="unet.html#heading-1"><i class="fa fa-check"></i><b>8.3.1</b> heading</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>9</b> Generative adversarial networks</a>
+<li class="part"><span><b>III Natural language processing</b></span></li>
+<li class="chapter" data-level="" data-path="NLP-intro.html"><a href="NLP-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="9" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>9</b> Sequence-to-sequence models with attention</a>
 <ul>
-<li class="chapter" data-level="9.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>9.1</b> Dataset</a></li>
-<li class="chapter" data-level="9.2" data-path="gans.html"><a href="gans.html#model-1"><i class="fa fa-check"></i><b>9.2</b> Model</a>
+<li class="chapter" data-level="9.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#why-attention"><i class="fa fa-check"></i><b>9.1</b> Why attention?</a></li>
+<li class="chapter" data-level="9.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#preprocessing-with-torchtext"><i class="fa fa-check"></i><b>9.2</b> Preprocessing with <code>torchtext</code></a></li>
+<li class="chapter" data-level="9.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#model-1"><i class="fa fa-check"></i><b>9.3</b> Model</a>
 <ul>
-<li class="chapter" data-level="9.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>9.2.1</b> Generator</a></li>
-<li class="chapter" data-level="9.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>9.2.2</b> Discriminator</a></li>
-<li class="chapter" data-level="9.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>9.2.3</b> Optimizers and loss function</a></li>
+<li class="chapter" data-level="9.3.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#encoder"><i class="fa fa-check"></i><b>9.3.1</b> Encoder</a></li>
+<li class="chapter" data-level="9.3.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#attention-module"><i class="fa fa-check"></i><b>9.3.2</b> Attention module</a></li>
+<li class="chapter" data-level="9.3.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#decoder"><i class="fa fa-check"></i><b>9.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="9.3.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#seq2seq-module"><i class="fa fa-check"></i><b>9.3.4</b> Seq2seq module</a></li>
 </ul></li>
-<li class="chapter" data-level="9.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>9.3</b> Training loop</a></li>
+<li class="chapter" data-level="9.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#training-and-evaluation"><i class="fa fa-check"></i><b>9.4</b> Training and evaluation</a></li>
+<li class="chapter" data-level="9.5" data-path="seq2seq-att.html"><a href="seq2seq-att.html#results"><i class="fa fa-check"></i><b>9.5</b> Results</a></li>
 </ul></li>
-<li class="chapter" data-level="10" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>10</b> Variational autoencoders</a>
+<li class="chapter" data-level="10" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>10</b> Torch transformer modules</a>
 <ul>
-<li class="chapter" data-level="10.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>10.1</b> Dataset</a></li>
-<li class="chapter" data-level="10.2" data-path="vaes.html"><a href="vaes.html#model-2"><i class="fa fa-check"></i><b>10.2</b> Model</a></li>
-<li class="chapter" data-level="10.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>10.3</b> Training the VAE</a></li>
-<li class="chapter" data-level="10.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>10.4</b> Latent space</a></li>
+<li class="chapter" data-level="10.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>10.1</b> “Attention is all you need”</a></li>
+<li class="chapter" data-level="10.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>10.2</b> Implementation: building blocks</a></li>
+<li class="chapter" data-level="10.3" data-path="transformer.html"><a href="transformer.html#a-transformer-for-natural-language-translation"><i class="fa fa-check"></i><b>10.3</b> A Transformer for natural language translation</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="transformer.html"><a href="transformer.html#load-data"><i class="fa fa-check"></i><b>10.3.1</b> Load data</a></li>
+<li class="chapter" data-level="10.3.2" data-path="transformer.html"><a href="transformer.html#encoder-1"><i class="fa fa-check"></i><b>10.3.2</b> Encoder</a></li>
+<li class="chapter" data-level="10.3.3" data-path="transformer.html"><a href="transformer.html#decoder-1"><i class="fa fa-check"></i><b>10.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="10.3.4" data-path="transformer.html"><a href="transformer.html#overall-model"><i class="fa fa-check"></i><b>10.3.4</b> Overall model</a></li>
 </ul></li>
-<li class="part"><span><b>III Intermediate deep learning</b></span></li>
-<li class="chapter" data-level="" data-path="intermediate-DL-intro.html"><a href="intermediate-DL-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
-<li class="chapter" data-level="11" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>11</b> Sequence-to-sequence models with attention</a>
-<ul>
-<li class="chapter" data-level="11.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#why-attention"><i class="fa fa-check"></i><b>11.1</b> Why attention?</a></li>
-<li class="chapter" data-level="11.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#preprocessing-with-torchtext"><i class="fa fa-check"></i><b>11.2</b> Preprocessing with <code>torchtext</code></a></li>
-<li class="chapter" data-level="11.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#model-3"><i class="fa fa-check"></i><b>11.3</b> Model</a>
-<ul>
-<li class="chapter" data-level="11.3.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#encoder"><i class="fa fa-check"></i><b>11.3.1</b> Encoder</a></li>
-<li class="chapter" data-level="11.3.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#attention-module"><i class="fa fa-check"></i><b>11.3.2</b> Attention module</a></li>
-<li class="chapter" data-level="11.3.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#decoder"><i class="fa fa-check"></i><b>11.3.3</b> Decoder</a></li>
-<li class="chapter" data-level="11.3.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#seq2seq-module"><i class="fa fa-check"></i><b>11.3.4</b> Seq2seq module</a></li>
+<li class="chapter" data-level="10.4" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>10.4</b> Results</a></li>
 </ul></li>
-<li class="chapter" data-level="11.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#training-and-evaluation"><i class="fa fa-check"></i><b>11.4</b> Training and evaluation</a></li>
-<li class="chapter" data-level="11.5" data-path="seq2seq-att.html"><a href="seq2seq-att.html#results"><i class="fa fa-check"></i><b>11.5</b> Results</a></li>
-</ul></li>
-<li class="chapter" data-level="12" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>12</b> Torch transformer modules</a>
+<li class="chapter" data-level="11" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>11</b> Generative adversarial networks</a>
 <ul>
-<li class="chapter" data-level="12.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>12.1</b> “Attention is all you need”</a></li>
-<li class="chapter" data-level="12.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>12.2</b> Implementation: building blocks</a></li>
-<li class="chapter" data-level="12.3" data-path="transformer.html"><a href="transformer.html#a-transformer-for-natural-language-translation"><i class="fa fa-check"></i><b>12.3</b> A Transformer for natural language translation</a>
+<li class="chapter" data-level="11.1" data-path="gans.html"><a href="gans.html#dataset"><i class="fa fa-check"></i><b>11.1</b> Dataset</a></li>
+<li class="chapter" data-level="11.2" data-path="gans.html"><a href="gans.html#model-2"><i class="fa fa-check"></i><b>11.2</b> Model</a>
 <ul>
-<li class="chapter" data-level="12.3.1" data-path="transformer.html"><a href="transformer.html#load-data"><i class="fa fa-check"></i><b>12.3.1</b> Load data</a></li>
-<li class="chapter" data-level="12.3.2" data-path="transformer.html"><a href="transformer.html#encoder-1"><i class="fa fa-check"></i><b>12.3.2</b> Encoder</a></li>
-<li class="chapter" data-level="12.3.3" data-path="transformer.html"><a href="transformer.html#decoder-1"><i class="fa fa-check"></i><b>12.3.3</b> Decoder</a></li>
-<li class="chapter" data-level="12.3.4" data-path="transformer.html"><a href="transformer.html#overall-model"><i class="fa fa-check"></i><b>12.3.4</b> Overall model</a></li>
+<li class="chapter" data-level="11.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>11.2.1</b> Generator</a></li>
+<li class="chapter" data-level="11.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>11.2.2</b> Discriminator</a></li>
+<li class="chapter" data-level="11.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>11.2.3</b> Optimizers and loss function</a></li>
 </ul></li>
-<li class="chapter" data-level="12.4" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>12.4</b> Results</a></li>
+<li class="chapter" data-level="11.3" data-path="gans.html"><a href="gans.html#training-loop-1"><i class="fa fa-check"></i><b>11.3</b> Training loop</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>12</b> Variational autoencoders</a>
+<ul>
+<li class="chapter" data-level="12.1" data-path="vaes.html"><a href="vaes.html#dataset-1"><i class="fa fa-check"></i><b>12.1</b> Dataset</a></li>
+<li class="chapter" data-level="12.2" data-path="vaes.html"><a href="vaes.html#model-3"><i class="fa fa-check"></i><b>12.2</b> Model</a></li>
+<li class="chapter" data-level="12.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>12.3</b> Training the VAE</a></li>
+<li class="chapter" data-level="12.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>12.4</b> Latent space</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 </ul>
@@ -260,7 +262,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Torch book</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Applied deep learning with torch from R</a>
           </h1>
         </div>
 
@@ -270,13 +272,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="image_classification" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Classifying images</h1>
-<p>As our first real deep learning application, we’ll pick image classification, arguably the scene of deep learning’s first “official breakthrough”. As explained in the introduction, we aim to make this text readable by both newcomers and experienced users of other frameworks (e.g., TensorFlow).
-Consequently, we may quickly characterize commonly-used-in-deep-learning features, but rely on you looking up mathematical details yourself; instead, we’ll focus on torch mechanics, which should be relevant to both types of audiences.</p>
-<p>Our example setup will differentiate birds by species. In image classification, especially on motifs so close to what’s contained in <a href="">ImageNet</a>, it is rare to start from scratch: Pre-trained – pre-trained, mostly, on that same ImageNet dataset, that is – models exist, and we can repurpose them to fit our own data, still benefiting from their compositional feature-extraction capabilities.</p>
-<p>Concretely, we will use Resnet, one of several classic computer vision models provided by torchvision, and attach our own classification layer on top. If you are looking for how to code a convolutional neural network from scratch, you can pick up related information in the following chapter on generative adversarial networks.</p>
+<p>Our image classification example will differentiate … not dogs and cats, not different dog breeds, but …different species
+of birds. We start from a model pretrained on <a href="http://www.image-net.org/">ImageNet</a>, which contains abundantly many photos of
+birds (and other animals you wouldn’t know even existed).</p>
+<p>Concretely, for the pretrained model we’ll use a Resnet, one of several classic computer vision models provided by
+<code>torchvision</code>, and attach our own classification layer on top. If you are looking for how to code a convolutional neural
+network from scratch, you can pick up related information in the following chapter on image segmentation, as well as that on
+generative adversarial networks GANs).</p>
 <div id="data-loading-and-transformation" class="section level2" number="7.1">
 <h2><span class="header-section-number">7.1</span> Data loading and transformation</h2>
-<p>The example dataset used here is available on Kaggle (<a href="https://www.kaggle.com/gpiosenka/100-bird-species/data" class="uri">https://www.kaggle.com/gpiosenka/100-bird-species/data</a>). It is very “un-noisy”, which is why, the number of classes notwithstanding (130!), accuracy will turn out to be very good.</p>
+<p>The example dataset used here is available on Kaggle (<a href="https://www.kaggle.com/gpiosenka/100-bird-species/data" class="uri">https://www.kaggle.com/gpiosenka/100-bird-species/data</a>). It is very
+“un-noisy”, which is why, the number of classes notwithstanding (130!), accuracy will turn out to be very good.</p>
 <div class="sourceCode" id="cb87"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb87-1"><a href="image-classification.html#cb87-1"></a><span class="im">import</span> torch</span>
 <span id="cb87-2"><a href="image-classification.html#cb87-2"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb87-3"><a href="image-classification.html#cb87-3"></a><span class="im">import</span> torchvision</span>
@@ -284,8 +290,11 @@ Consequently, we may quickly characterize commonly-used-in-deep-learning feature
 <span id="cb87-5"><a href="image-classification.html#cb87-5"></a><span class="im">import</span> os</span></code></pre></div>
 <div class="sourceCode" id="cb88"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb88-1"><a href="image-classification.html#cb88-1"></a><span class="co"># https://www.kaggle.com/gpiosenka/100-bird-species/data</span></span>
 <span id="cb88-2"><a href="image-classification.html#cb88-2"></a>data_dir <span class="op">=</span> <span class="st">&#39;data/bird_species&#39;</span></span></code></pre></div>
-<p>The data set being so clean, we’ll want to introduce random noise (<em>data augmentation</em>) on the training set to enhance model resiliency.</p>
-<p>In torchvision, data augmentation steps are added as part of an <em>image processing pipeline</em> that also takes care of resizing / cropping images, converting them to torch tensors, and possibly, normalizing them according to the model’s expectations. Here they are, deterministic on validation and test sets, but including random components for the training set:</p>
+<p>The data set being so clean, we’ll want to introduce random noise (<em>data augmentation</em>) on the training set to enhance model
+resiliency.</p>
+<p>In torchvision, data augmentation steps are added as part of an <em>image processing pipeline</em> that also takes care of resizing /
+cropping images, converting them to torch tensors, and possibly, normalizing them according to the model’s expectations. Here
+they are, deterministic on validation and test sets, but including random components for the training set:</p>
 <div class="sourceCode" id="cb89"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb89-1"><a href="image-classification.html#cb89-1"></a>data_transforms <span class="op">=</span> {</span>
 <span id="cb89-2"><a href="image-classification.html#cb89-2"></a>    <span class="st">&#39;train&#39;</span>: transforms.Compose([</span>
 <span id="cb89-3"><a href="image-classification.html#cb89-3"></a>        transforms.RandomResizedCrop(<span class="dv">224</span>),</span>
@@ -309,12 +318,14 @@ Consequently, we may quickly characterize commonly-used-in-deep-learning feature
 <span id="cb89-21"><a href="image-classification.html#cb89-21"></a>}</span>
 <span id="cb89-22"><a href="image-classification.html#cb89-22"></a></span>
 <span id="cb89-23"><a href="image-classification.html#cb89-23"></a>data_transforms</span></code></pre></div>
-<p><code>ImageFolder</code> is a subtype of dataset that encapsulates information about where the images reside, and what transformations to apply. Here, we create such a dataset for each of training, validation and test set:</p>
+<p><code>ImageFolder</code> is a subtype of dataset that encapsulates information about where the images reside, and what transformations to
+apply. Here, we create such a dataset for each of training, validation and test set:</p>
 <div class="sourceCode" id="cb90"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb90-1"><a href="image-classification.html#cb90-1"></a>image_datasets <span class="op">=</span> {x: datasets.ImageFolder(os.path.join(data_dir, x),</span>
 <span id="cb90-2"><a href="image-classification.html#cb90-2"></a>                                          data_transforms[x])</span>
 <span id="cb90-3"><a href="image-classification.html#cb90-3"></a>                  <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>, <span class="st">&#39;test&#39;</span>]}</span>
 <span id="cb90-4"><a href="image-classification.html#cb90-4"></a>image_datasets</span></code></pre></div>
-<p><code>ImageFolder</code> objects expect the different classes of images to reside each in their own folder. In our example, this is in fact the case; for example, here is the directory layout for the first three classes in the test set:</p>
+<p><code>ImageFolder</code> objects expect the different classes of images to reside each in their own folder. In our example, this is in
+fact the case; for example, here is the directory layout for the first three classes in the test set:</p>
 <pre><code>data/test/ALBATROSS/
  - data/test/ALBATROSS/1.jpg
  - data/test/ALBATROSS/2.jpg
@@ -335,7 +346,9 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
  - data/test/&#39;AMERICAN BITTERN&#39;/3.jpg
  - data/test/&#39;AMERICAN BITTERN&#39;/4.jpg
  - data/test/&#39;AMERICAN BITTERN&#39;/5.jpg</code></pre>
-<p>From those specifications, <code>DataLoaders</code> are created. These objects, in addition to what to load and which transformations to apply, know things like: many items to load in a batch, whether they should be shuffled, and whether to parallelize the transformations.</p>
+<p>From those specifications, <code>DataLoaders</code> are created. These objects, in addition to what to load and which transformations to
+apply, know things like: many items to load in a batch, whether they should be shuffled, and whether to parallelize the
+transformations.</p>
 <div class="sourceCode" id="cb92"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb92-1"><a href="image-classification.html#cb92-1"></a>dataloaders <span class="op">=</span> {x: torch.utils.data.DataLoader(image_datasets[x], batch_size<span class="op">=</span><span class="dv">16</span>,</span>
 <span id="cb92-2"><a href="image-classification.html#cb92-2"></a>                                             shuffle<span class="op">=</span><span class="va">True</span>, num_workers<span class="op">=</span><span class="dv">8</span>)</span>
 <span id="cb92-3"><a href="image-classification.html#cb92-3"></a>              <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>, <span class="st">&#39;test&#39;</span>]}</span>
@@ -346,7 +359,8 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
 <p>Datasets know what classes there are:</p>
 <div class="sourceCode" id="cb94"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb94-1"><a href="image-classification.html#cb94-1"></a>class_names <span class="op">=</span> image_datasets[<span class="st">&#39;train&#39;</span>].classes</span>
 <span id="cb94-2"><a href="image-classification.html#cb94-2"></a>class_names</span></code></pre></div>
-<p>Next, let’s view a few images from the test set. We can retrieve the first batch – images and corresponding classes – by calling <code>next()</code> on a dataset’s iterator:</p>
+<p>Next, let’s view a few images from the test set. We can retrieve the first batch – images and corresponding classes – by
+calling <code>next()</code> on a dataset’s iterator:</p>
 <div class="sourceCode" id="cb95"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb95-1"><a href="image-classification.html#cb95-1"></a>inputs, classes <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(dataloaders[<span class="st">&#39;test&#39;</span>]))</span>
 <span id="cb95-2"><a href="image-classification.html#cb95-2"></a>inputs.shape</span></code></pre></div>
 <p>The classes are integers, to be used as indexes into the vector of class names:</p>
@@ -381,7 +395,11 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
 <p>The backbone of our model is a pre-trained instance of Resnet.</p>
 <div class="sourceCode" id="cb100"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb100-1"><a href="image-classification.html#cb100-1"></a>model <span class="op">=</span> models.resnet18(pretrained<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb100-2"><a href="image-classification.html#cb100-2"></a>model</span></code></pre></div>
-<p>We will modify the model’s output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it was trained for. This means we only need to train a single layer – the one we’re going to add. We <em>could</em> perform backpropagation through the complete model, trying to fine-tune Resnet’s weights as well, but that would have a significant effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet’s weights, those located iin the layers directly preceding the output – you might want to experiment with this at home.)</p>
+<p>We will modify the model’s output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it
+was trained for. This means we only need to train a single layer – the one we’re going to add. We <em>could</em> perform
+backpropagation through the complete model, trying to fine-tune Resnet’s weights as well, but that would have a significant
+effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet’s weights, those located iin the
+layers directly preceding the output – you might want to experiment with this at home.)</p>
 <div class="sourceCode" id="cb101"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb101-1"><a href="image-classification.html#cb101-1"></a><span class="cf">for</span> param <span class="kw">in</span> model.parameters():</span>
 <span id="cb101-2"><a href="image-classification.html#cb101-2"></a>    param.requires_grad <span class="op">=</span> <span class="va">False</span></span></code></pre></div>
 <p>To replace the output layer, the model is just modified in-place:</p>
@@ -395,8 +413,15 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
 <div class="sourceCode" id="cb103"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb103-1"><a href="image-classification.html#cb103-1"></a>criterion <span class="op">=</span> torch.nn.CrossEntropyLoss()</span>
 <span id="cb103-2"><a href="image-classification.html#cb103-2"></a></span>
 <span id="cb103-3"><a href="image-classification.html#cb103-3"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr<span class="op">=</span><span class="fl">1e-1</span>)</span></code></pre></div>
-<p>We set the learning rate to 0.1, but that was just a formality. As became widely known to <a href="">fast.ai’s deep learning lectures</a>, it always makes sense to spend some time upfront to determine a good learning rate, and then during training, evolve the learning rate according to some proven algorithm. While out-of-the-box, torch does not provide a tool like fast.ai’s learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger’s blog. Algorithms like one-cycle learning <span class="citation">(Smith and Topin <a href="#ref-abs-1708-07120" role="doc-biblioref">2017</a>)</span>, cyclical learning rates <span class="citation">(Smith <a href="#ref-Smith15a" role="doc-biblioref">2015</a>)</span>, or cosine annealing with warm restarts <span class="citation">(Loshchilov and Hutter <a href="#ref-LoshchilovH16a" role="doc-biblioref">2016</a>)</span> are, however, implemented in torch, and we’ll make use of <code>lr_scheduler.OneCycleLR</code> once we’ve determined an appropriate value for the required parameter <code>max_lr</code>.</p>
-<p>Here is how to find a good learning rate, from <a href="https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html">Sylvain Gugger</a>:</p>
+<p>We set the learning rate to 0.1, but that was just a formality. As became widely known to <a href="">fast.ai’s deep learning
+lectures</a>, it always makes sense to spend some time upfront to determine a good learning rate, and then during training,
+evolve the learning rate according to some proven algorithm. While out-of-the-box, torch does not provide a tool like
+fast.ai’s learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger’s blog.
+Algorithms like one-cycle learning <span class="citation">(Smith and Topin <a href="#ref-abs-1708-07120" role="doc-biblioref">2017</a>)</span>, cyclical learning rates <span class="citation">(Smith <a href="#ref-Smith15a" role="doc-biblioref">2015</a>)</span>, or cosine annealing with warm
+restarts <span class="citation">(Loshchilov and Hutter <a href="#ref-LoshchilovH16a" role="doc-biblioref">2016</a>)</span> are, however, implemented in torch, and we’ll make use of <code>lr_scheduler.OneCycleLR</code> once we’ve
+determined an appropriate value for the required parameter <code>max_lr</code>.</p>
+<p>Here is how to find a good learning rate, from <a href="https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html">Sylvain
+Gugger</a>:</p>
 <div class="sourceCode" id="cb104"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb104-1"><a href="image-classification.html#cb104-1"></a><span class="co"># from: https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html</span></span>
 <span id="cb104-2"><a href="image-classification.html#cb104-2"></a></span>
 <span id="cb104-3"><a href="image-classification.html#cb104-3"></a><span class="im">import</span> math</span>
@@ -443,11 +468,15 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
 <span id="cb105-2"><a href="image-classification.html#cb105-2"></a></span>
 <span id="cb105-3"><a href="image-classification.html#cb105-3"></a><span class="kw">library</span>(ggplot2)</span>
 <span id="cb105-4"><a href="image-classification.html#cb105-4"></a><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(logs, losses)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>()</span></code></pre></div>
-<p>The best learning rate is not the exact one where loss is at a minimum, instead, it should be picked somewhat earlier on the curve, while loss still decreases. We’ll try 0.05 here.</p>
-<p><code>OneCycleLR</code> will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the whole training period:</p>
+<p>The best learning rate is not the exact one where loss is at a minimum, instead, it should be picked somewhat earlier on the
+curve, while loss still decreases. We’ll try 0.05 here.</p>
+<p><code>OneCycleLR</code> will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the
+whole training period:</p>
 <div class="sourceCode" id="cb106"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb106-1"><a href="image-classification.html#cb106-1"></a>num_epochs <span class="op">=</span> <span class="dv">10</span></span>
 <span id="cb106-2"><a href="image-classification.html#cb106-2"></a>lr_scheduler <span class="op">=</span> torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr <span class="op">=</span> <span class="fl">0.05</span>, epochs <span class="op">=</span> num_epochs, steps_per_epoch<span class="op">=</span><span class="bu">len</span>(dataloaders[<span class="st">&#39;train&#39;</span>]))</span></code></pre></div>
-<p>Now we train for ten epochs. In every epoch, we iterate over both training and validation sets; performing optimization on the training set while just calculating accuracy on the test set. Note that <code>lr_scheduler.step()</code> has to be called explicitly after each batch, and it has to be called <em>after</em> <code>optimizer.step()</code>.</p>
+<p>Now we train for ten epochs. In every epoch, we iterate over both training and validation sets; performing optimization on the
+training set while just calculating accuracy on the test set. Note that <code>lr_scheduler.step()</code> has to be called explicitly
+after each batch, and it has to be called <em>after</em> <code>optimizer.step()</code>.</p>
 <div class="sourceCode" id="cb107"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb107-1"><a href="image-classification.html#cb107-1"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda:0&quot;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span>)</span>
 <span id="cb107-2"><a href="image-classification.html#cb107-2"></a>model <span class="op">=</span> model.to(device)</span>
 <span id="cb107-3"><a href="image-classification.html#cb107-3"></a></span>
@@ -523,7 +552,7 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
           </div>
         </div>
       </div>
-<a href="deeplearning-applications-intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="image-recognition-intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 <a href="unet.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>

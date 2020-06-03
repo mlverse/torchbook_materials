@@ -1,10 +1,16 @@
-# (PART) Using Torch {-}
+# (PART) Using Torch {.unnumbered}
 
-# Introduction {#using-torch-intro  .unnumbered}
+# Introduction {#using-torch-intro .unnumbered}
 
-In this section, we first define and train a simple neural network fro scratch. This will give us an idea of which ingredients are involved, and what their respective functions are. We then start using features from torch, incrementally replacing functional building blocks by their torch equivalents.
+In this section, we first define and train a simple neural network from scratch. This will give us an idea of the ingredients
+involved and and what they're good for. We then start using features from `torch`, incrementally replacing functional building
+blocks by their `torch` equivalents.
 
-Depending on your background, this section may be a quick and easy read; or you might find you'd like to read a bit more about neural networks in general, for understanding and intuition. Where ever you are on that spectrum though, our focus here is to call intention to the main concepts / building blocks, so you can spot them quickly and either add them to your "internal inventory", or arrange for further background reading.
+Depending on your background, this section may be a quick and easy read; or you might find you'd like to consult additional
+resources, such as the ones mentioned in the introduction. Whereever you are on that spectrum though, our focus here is to
+call intention to the main concepts / building blocks, so you can spot them quickly and either quickly add them to your
+"internal inventory", or arrange for further background reading.
 
-In this running example, the network we'll build is a toy network, about the shallowest you could make a "deep net". Don't worry though -- once we've covered the basics, the next section will introduce more realistic -- if simple -- deep learning applications. 
-
+In this running example, the network we'll build is a toy one, about the shallowest you could make a "deep net". Don't worry
+though -- once we've covered the basics, we're ready to dive into applications, which will range from introductory and
+pedagogical to real-world and relevant to various scientific and business areas.

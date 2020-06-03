@@ -1,0 +1,33 @@
+# (PART) Image Recognition {.unnumbered}
+
+# Introduction {#image-recognition-intro .unnumbered}
+
+As we write this, it is (still) appropriate to start our tour of applications with the area of image processing -- given that
+image classification constituted the first breakthrough that made deep learning take off (again -- or for the first time,
+under that label).
+
+Our first example will be about just that -- classification. This being 2020 though, we show how to make use of *pretrained*
+models and transfer learning. In general, the more your data resemble those used in training published models, the more you'll
+profit from not starting at zero. Certainly this will be the case when, say, you build on a model trained on
+[ImageNet](http://www.image-net.org/) and use it to classify your pets.
+
+While this could be considered a toy application, intended to demonstrate transfer learning and also, provide a gentle start
+into applied `torch`, the next one in this section is "serious": We distinguish tumor and non-tumor areas in brain scans. This
+technique, image *segmentation*, may also be relevant for you if you don't work in medicine, biology or related fields:
+Segmentation takes place whenever an image is not labeled as a whole, but split into different segments according to some
+criterion. For example, satellite images could be divided into different types of land cover such as river, forest,
+residential, and more.
+
+[...]
+
+A word about what is *not* here. For ethical reasons[^1], we do not cover either of face recognition nor object detection.
+While this may be immediately evident in the former case, the latter may have you ask: How is object detection worse than
+segmentation? Granted, algorithms per se aren't "more or less ethical" (assuming well-meaning designers, of course), but in
+practice, at least as of this writing, segmentation is primarily used in science and healthcare, while object detection is
+employed for surveillance in increasingly many places all over the world. Of course, not writing about object detection is a
+small step, but it's a step all the same, a faint echo at least of what Joe Redmon, creator of the famous YOLO series of
+object detection models, did when he stepped out of computer vision research:
+
+[^1]: see introduction
+
+![](images/pjreddie.png "Joe Redmon, informing the world that he left computer vision research for ethical reasons.")

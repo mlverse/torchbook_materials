@@ -14,19 +14,22 @@ rmd_files:
     "simple_net_modules.Rmd",
     "simple_net_optim.Rmd",
 
-
-    "deep_learning_classical_applications.Rmd",
+    # section: image processing
+    "image_recognition.Rmd",
     "image_classification.Rmd",
     "unet.Rmd",
-    # tbd tabular data
-    "GANs.Rmd",
-    "VAEs.Rmd",
 
-
-    "intermediate_deep_learning.Rmd",
+    # section: NLP
+    "natural_language_processing.Rmd",
     "seq_to_seq_with_attention.Rmd",
     "transformer_modules.Rmd",
-    # ?
+
+    # section: deep learning on tabular data
+
+
+    # section: self-supervised and generative deep learning
+    "GANs.Rmd",
+    "VAEs.Rmd",
 
 
     #"Probabilistic_deep_learning.Rmd",

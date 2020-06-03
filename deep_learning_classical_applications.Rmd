@@ -1,5 +1,0 @@
-# (PART) Deep learning: classical applications {-}
-
-# Introduction {#deeplearning-applications-intro  .unnumbered}
-
-In this section,

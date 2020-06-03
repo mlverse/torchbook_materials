@@ -4,6 +4,7 @@
 ## Introduction
 
 - address people new to DL as well as Keras/TF users
+- DL concepts will be introduced just briefly - name good resources
 - presuppose general ML knowledge
 
 - awareness/ethics

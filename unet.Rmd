@@ -1,4 +1,19 @@
-# U-Net {#unet}
+# Brain Image Segmentation with U-Net {#unet}
+
+## Image segmentation in a nutshell
+
+Now that we've seen how to *classify* images -- as of this writing, probably the "Hello World" of deep learning -- we proceed
+to a type of application vastly important in practice, especially in medicine, biology, geology and other natural sciences. In
+image *segmentation*, we're not just interested in labeling the entire image; instead, we want to classify every pixel (2-d)
+or voxel (3-d) according to some criterion.
+
+In medicine, for example, we might want to detect different cell types, or identify tumors or lesions. The decision could be
+two-way -- tumor cell yes or no? --, or there could be some higher number of classes to discern. To train a supervised model,
+ground truth data needs to be present. In these tasks, the ground truth comes in form of a *mask*: an image, of same spatial
+dimension as the target data, that designates the true classes. Loss values are calculated for every pixel (voxel) separately,
+and summed up to yield an aggregate that can be minimized.
+
+## Example application: MRI data
 
 ## heading
 
