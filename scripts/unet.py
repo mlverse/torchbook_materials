@@ -17,8 +17,6 @@ from skimage.io import imread
 exec(open('scripts/brainseg_utils.py').read())
 exec(open('scripts/brainseg_transforms.py').read())
 
-import os
-print(os.getcwd())
 # ------------------------------------------------------------------------------
 
 batch_size = 4
@@ -136,7 +134,7 @@ train_loader = torch.utils.data.DataLoader(
         batch_size = batch_size,
         shuffle = True,
         drop_last = True,
-        num_workers = 4
+        num_workers = 8
 )
 
 valid_loader = torch.utils.data.DataLoader(
@@ -157,7 +155,7 @@ class UNet(nn.Module):
     def __init__(
         self,
         channels_in = 3,
-        channels_out = 1,
+        n_classes = 1,
         depth = 5,
         n_filters = 6, 
     ):
@@ -176,7 +174,7 @@ class UNet(nn.Module):
                 UpBlock(prev_channels, 2 ** (n_filters + i))
             )
             prev_channels = 2 ** (n_filters + i)
-        self.last = nn.Conv2d(prev_channels, channels_out, kernel_size = 1)
+        self.last = nn.Conv2d(prev_channels, n_classes, kernel_size = 1)
     def forward(self, x):
         blocks = []
         for i, down in enumerate(self.down_path):
@@ -187,7 +185,7 @@ class UNet(nn.Module):
                 #print("after maxpool: x is {}".format(x.size()))
         for i, up in enumerate(self.up_path):
             x = up(x, blocks[-i - 1])
-        return self.last(x)
+        return F.sigmoid(self.last(x))
 
 class ConvBlock(nn.Module):
     def __init__(self, in_size, out_size):
@@ -247,21 +245,26 @@ class DiceLoss(nn.Module):
         return 1. - dsc
 
 
-#dsc_loss = DiceLoss()
-dsc_loss = nn.CrossEntropyLoss()
+dsc_loss = DiceLoss()
 
 optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum = 0.9)
-scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr = 0.01, steps_per_epoch = len(train_loader), epochs = 50)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optimizer,
+    max_lr = 0.1,
+    steps_per_epoch = len(train_loader),
+    epochs = 50
+)
 num_epochs = 50
 
 for epoch in range(num_epochs):
-    print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    print('Epoch {}/{}'.format(epoch, num_epochs - 1), flush = True)
     print('-' * 10)
     for phase in ['train', 'valid']:
+        print("Entering phase: " + phase, flush = True)
         if phase == 'train':
-            model.train() 
+            model = model.train() 
         else:
-            model.eval()   
+            model = model.eval()   
         running_loss = 0.0
         for inputs, labels in dataloaders[phase]:
             inputs = inputs.to(device)
@@ -274,10 +277,13 @@ for epoch in range(num_epochs):
                     loss.backward()
                     optimizer.step()
             running_loss += loss.item() * inputs.size(0)
-        if phase == 'train':
-            scheduler.step()
+            # The 1cycle learning rate policy changes the learning rate after every batch. 
+            # step should be called after a batch has been used for training.
+            if phase == 'train':
+                scheduler.step()
+                print(scheduler.get_last_lr(), flush = True)
         epoch_loss = running_loss / dataset_sizes[phase]
         print('{} Loss: {:.4f}'.format(
-            phase, epoch_loss))
+            phase, epoch_loss), flush = True)
     print()
 
