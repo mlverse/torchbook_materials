@@ -13,43 +13,47 @@ ground truth data needs to be present. In these tasks, the ground truth comes in
 dimension as the target data, that designates the true classes. Loss values are calculated for every pixel (voxel) separately,
 and summed up to yield an aggregate that can be minimized.
 
-## Example application: MRI data
+## Example application: MRI images
 
-## heading
+Our example application will be detecting abnormalities in brain scans. The dataset, used in [@BUDA2019218], contains MR
+images together with manual [FLAIR](https://en.wikipedia.org/wiki/Fluid-attenuated_inversion_recovery) abnormality
+segmentation masks. The dataset is available on [Kaggle](https://www.kaggle.com/mateuszbuda/lgg-mri-segmentation), and the
+paper is accompanied by a [GitHub repository](https://github.com/mateuszbuda/brain-segmentation-pytorch) that thankfully,
+includes all preprocessing steps. While our model below will be more customizable and generic than the authors', we completely
+follow their preprocessing routines (basically just porting their Python code to R).
 
-text
+If you're interested in this area of application, please consult the paper for background and additional information. If, on
+the other hand, you're mainly interested in the model, and plan to apply it to other types of data, feel free to just skim the
+extensive preprocessing code, and focus on the architecture instead.
+
+....
+
+Here are three examples of orientations where the masks actually indicate an abnormality:
+
+``` {.bash}
+montage TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif
+```
+
+Both FLAIR images and masks come in `.tif` format.
 
 ### heading
 
 text
 
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| down                                     |                              | up                                               |
-+==========================================+==============================+==================================================+
-| channels x width x height                |                              | channels x width x height                        |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 3 x 256 x 256 (input)                    |                              | 1 x 256 x 256 (1 x1 conv)                        |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-|                                          |                              | 64 x 256 x 256 (conv)                            |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-|                                          |                              | 128 x 256 x 256 (concat)                         |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 64 x 256 x 256 (conv)                    | CONCAT                       | 64 x 256 x 256 (conv + deconv)                   |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 64 x 128 x 128 (pool)                    |                              | 256 x 128 x 128 (concat)                         |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 128 x 128 x 128 (conv)                   | CONCAT                       | 128 x 128 x 128 (conv + deconv)                  |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 128 x 64 x 64 (pool)                     |                              | 512 x 64 x 64 (concat)                           |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 256 x 64 x 64 (conv)                     | CONCAT                       | 256 x 64 x 64 (conv + deconv)                    |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 256 x 32 x 32 (pool)                     |                              | 1024 x 32 x 32 (concat)                          |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 512 x 32 x 32 (conv)                     | CONCAT                       | 512 x 32 x 32 (deconv)                           |
-+------------------------------------------+------------------------------+--------------------------------------------------+
-| 512 x 16 x 16 (pool)                     |                              | 1024 x 16 x 16 (conv)                            |
-+------------------------------------------+------------------------------+--------------------------------------------------+
+| down                      |        | up                              |
+|---------------------------|--------|---------------------------------|
+| channels x width x height |        | channels x width x height       |
+| 3 x 256 x 256 (input)     |        | 1 x 256 x 256 (1 x1 conv)       |
+|                           |        | 64 x 256 x 256 (conv)           |
+|                           |        | 128 x 256 x 256 (concat)        |
+| 64 x 256 x 256 (conv)     | CONCAT | 64 x 256 x 256 (conv + deconv)  |
+| 64 x 128 x 128 (pool)     |        | 256 x 128 x 128 (concat)        |
+| 128 x 128 x 128 (conv)    | CONCAT | 128 x 128 x 128 (conv + deconv) |
+| 128 x 64 x 64 (pool)      |        | 512 x 64 x 64 (concat)          |
+| 256 x 64 x 64 (conv)      | CONCAT | 256 x 64 x 64 (conv + deconv)   |
+| 256 x 32 x 32 (pool)      |        | 1024 x 32 x 32 (concat)         |
+| 512 x 32 x 32 (conv)      | CONCAT | 512 x 32 x 32 (deconv)          |
+| 512 x 16 x 16 (pool)      |        | 1024 x 16 x 16 (conv)           |
 
 Number of channels goes up due to convolution layers; spatial downsizing occurs due to max pooling. (There is no max pooling
 at the "inflection point".)

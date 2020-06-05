@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 
 import numpy as np
 import os
+import copy
 import random
 import torchvision
 from torchvision import datasets, models, transforms
@@ -21,8 +22,8 @@ exec(open('scripts/brainseg_transforms.py').read())
 
 batch_size = 4
 
-train_dir = "data/lgg-mri-segmentation/kaggle_3m_train"
-valid_dir = "data/lgg-mri-segmentation/kaggle_3m_valid"
+train_dir = "data/kaggle_3m_train"
+valid_dir = "data/kaggle_3m_valid"
 image_size = 256
 
 aug_scale = 0.05
@@ -121,6 +122,7 @@ train_ds = BrainSegmentationDataset(
         images_dir = train_dir,
         image_size = image_size,
         transform = transforms(scale = aug_scale, angle = aug_angle, flip_prob=0.5),
+        random_sampling = True
 )
 
 valid_ds = BrainSegmentationDataset(
@@ -185,7 +187,7 @@ class UNet(nn.Module):
                 #print("after maxpool: x is {}".format(x.size()))
         for i, up in enumerate(self.up_path):
             x = up(x, blocks[-i - 1])
-        return F.sigmoid(self.last(x))
+        return torch.sigmoid(self.last(x))
 
 class ConvBlock(nn.Module):
     def __init__(self, in_size, out_size):
@@ -193,8 +195,12 @@ class ConvBlock(nn.Module):
         block = []
         block.append(nn.Conv2d(in_size, out_size, kernel_size = 3, padding = 1))
         block.append(nn.ReLU())
+        #block.append(nn.BatchNorm2d(out_size))
+        block.append(nn.Dropout(0.6))
         block.append(nn.Conv2d(out_size, out_size, kernel_size = 3, padding = 1))
         block.append(nn.ReLU())
+        #block.append(nn.BatchNorm2d(out_size))
+        block.append(nn.Dropout(0.6))
         self.block = nn.Sequential(*block)
     def forward(self, x):
         out = self.block(x)
@@ -246,16 +252,23 @@ class DiceLoss(nn.Module):
 
 
 dsc_loss = DiceLoss()
+bce_loss = nn.BCELoss()
+dice_weight = 0.3
 
 optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum = 0.9)
+
+num_epochs = 50
+
 scheduler = torch.optim.lr_scheduler.OneCycleLR(
     optimizer,
     max_lr = 0.1,
     steps_per_epoch = len(train_loader),
-    epochs = 50
+    epochs = num_epochs
 )
-num_epochs = 50
 
+best_model_wts = copy.deepcopy(model.state_dict())
+best_dice_coef = 0.0
+    
 for epoch in range(num_epochs):
     print('Epoch {}/{}'.format(epoch, num_epochs - 1), flush = True)
     print('-' * 10)
@@ -266,24 +279,41 @@ for epoch in range(num_epochs):
         else:
             model = model.eval()   
         running_loss = 0.0
+        running_dice = 0.0
+        running_bce = 0.0
         for inputs, labels in dataloaders[phase]:
             inputs = inputs.to(device)
             labels = labels.to(device)
             optimizer.zero_grad()
             with torch.set_grad_enabled(phase == 'train'):
                 preds = model(inputs)
-                loss = dsc_loss(preds, labels)
+                dice_loss = dsc_loss(preds, labels)
+                xent_loss = bce_loss(preds, labels)
+                loss = dice_weight * dice_loss + (1 - dice_weight) * xent_loss
                 if phase == 'train':
                     loss.backward()
                     optimizer.step()
             running_loss += loss.item() * inputs.size(0)
+            running_dice += dice_loss.item() * inputs.size(0)
+            running_bce += xent_loss.item() * inputs.size(0)
             # The 1cycle learning rate policy changes the learning rate after every batch. 
             # step should be called after a batch has been used for training.
             if phase == 'train':
                 scheduler.step()
-                print(scheduler.get_last_lr(), flush = True)
+              #print(scheduler.get_last_lr(), flush = True)
+        # these are per batch!
         epoch_loss = running_loss / dataset_sizes[phase]
-        print('{} Loss: {:.4f}'.format(
-            phase, epoch_loss), flush = True)
+        epoch_dice = running_dice / dataset_sizes[phase]
+        epoch_bce = running_bce / dataset_sizes[phase]
+        if phase == 'valid' and epoch_dice < best_dice_coef:
+            best_dice = epoch_dice
+            best_model_wts = copy.deepcopy(model.state_dict())
+        print('{} Loss: {:.4f}'.format(phase, epoch_loss), flush = True)
+        print('{} Dice coef: {:.4f}'.format(phase, epoch_dice), flush = True)
+        print('{} BCE: {:.4f}'.format(phase, epoch_bce), flush = True)
     print()
+
+model.load_state_dict(best_model_wts)
+torch.save(model.state_dict(), "mri.pt")
+
 
