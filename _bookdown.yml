@@ -23,7 +23,10 @@ rmd_files:
     "transformer_modules.Rmd",
 
     "tabular_data.Rmd",
+    # here also: recommender systems
     #
+
+    "time_series.Rmd",
     #
 
     "generative_deep_learning.Rmd",
