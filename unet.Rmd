@@ -4,8 +4,8 @@
 
 Now that we've seen how to *classify* images -- as of this writing, probably the "Hello World" of deep learning -- we proceed
 to a type of application vastly important in practice, especially in medicine, biology, geology and other natural sciences. In
-image *segmentation*, we're not just interested in labeling the entire image; instead, we want to classify every pixel (2-d)
-or voxel (3-d) according to some criterion.
+image *segmentation*, we're not interested in labeling the entire image; instead, we want to classify every pixel (2-d) or
+voxel (3-d) according to some criterion.
 
 In medicine, for example, we might want to detect different cell types, or identify tumors or lesions. The decision could be
 two-way -- tumor cell yes or no? --, or there could be some higher number of classes to discern. To train a supervised model,
@@ -13,28 +13,464 @@ ground truth data needs to be present. In these tasks, the ground truth comes in
 dimension as the target data, that designates the true classes. Loss values are calculated for every pixel (voxel) separately,
 and summed up to yield an aggregate that can be minimized.
 
+## U-Net
+
+Here is the "canonical U-Net architecture", as depicted in the original Rönneberger et al. paper [@RonnebergerFB15]. In
+different realizations, layer sizes, activations, ways to achieve downsizing and upsizing will vary, but there is one defining
+characteristic: The U-shape (clearly visible below), enriched by the "bridges" crossing over horizontally at all levels.
+
+![](images/unet.png "The original U-Net, as depicted in Ronnerberger et al. (2015).")
+
+In a nutshell, the left-hand side of the U is like a simple convnet used to classify images; the input is successively
+downsized spatially but at the same time, another dimension -- the *channels* dimension -- is used to successively encode a
+hierarchy of features, ranging from very basic and universal to very specialized. As the output, however, should have the same
+spatial resolution as the input, we need to upsize again -- this is taken care of by the right-hand side of the U. But, how
+are we going to arrive at a good *per-pixel* classification if so much spatial information is lost on the way? This is what
+the "bridges" are for: At each depth, the input to an upsampling layer is a *concatenation* of the previous layer's output --
+which went through the whole spatially-compress-and-decompress routine -- and some preserved intermediate representation from
+the "way down". Like that, a U-Net architecture combines attention to detail with feature extraction.
+
+In fact, this architecture, seen as a generic strategy, has been seen in many other places since its original appearance, and
+itself is flexible enough to incorporate strategies from other architectures, such as, for exmple, ResNet blocks.
+
 ## Example application: MRI images
 
-Our example application will be detecting abnormalities in brain scans. The dataset, used in [@BUDA2019218], contains MR
-images together with manual [FLAIR](https://en.wikipedia.org/wiki/Fluid-attenuated_inversion_recovery) abnormality
-segmentation masks. The dataset is available on [Kaggle](https://www.kaggle.com/mateuszbuda/lgg-mri-segmentation), and the
-paper is accompanied by a [GitHub repository](https://github.com/mateuszbuda/brain-segmentation-pytorch) that thankfully,
-includes all preprocessing steps. While our model below will be more customizable and generic than the authors', we completely
-follow their preprocessing routines (basically just porting their Python code to R).
+Just as the architecture is flexible, applicability is broad. Our example will be about detecting abnormalities in brain
+scans. The dataset, used in [@BUDA2019218], contains MR images together with manual
+[FLAIR](https://en.wikipedia.org/wiki/Fluid-attenuated_inversion_recovery) abnormality segmentation masks. The dataset is
+available on [Kaggle](https://www.kaggle.com/mateuszbuda/lgg-mri-segmentation), and the paper is accompanied by a [GitHub
+repository](https://github.com/mateuszbuda/brain-segmentation-pytorch) that thankfully, includes all preprocessing steps.
+While our model below will be more customizable and generic than the authors', we completely follow their preprocessing
+routines for the MRI data (basically just porting their Python code to R).
 
 If you're interested in this area of application, please consult the paper for background and additional information. If, on
 the other hand, you're mainly interested in the model, and plan to apply it to other types of data, feel free to just skim the
 extensive preprocessing code, and focus on the architecture instead.
 
-....
+As will often be the case in medical imaging applications, there is a class imbalance in this data. For every patient,
+sections have been taken at multiple positions (the number of sections per patient varies). Most sections will not have any
+lesions, so the masks will be coloured black everywhere.
 
 Here are three examples of orientations where the masks actually indicate an abnormality:
+
+![](images/scans.png "Examples of FLAIR images and corresponding masks")
 
 ``` {.bash}
 montage TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif
 ```
 
-Both FLAIR images and masks come in `.tif` format.
+## Preprocessing
+
+```{python}
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset
+
+import numpy as np
+import os
+import copy
+import random
+import torchvision
+from torchvision import datasets, models, transforms
+
+from skimage.io import imread
+
+```
+
+The data comes organized into folders containing FLAIR images and masks for a single patient. We randomly partition these into
+a training and a validation set, keeping the latter very small as overall, this dataset is not very big. (You might want to
+experiment with different splits or better even, use a cross-validation approach. We don't do that here as anyway, this
+apllication example is pretty extensive already.) "Randomly" here meant we picked (at random) two patients from each
+institution, as indicated by the pair of letters second in the folder names (tbd: check this!).
+
+```{python}
+train_dir = "data/kaggle_3m_train"
+valid_dir = "data/kaggle_3m_valid"
+```
+
+Preprocessing will be encapsulated in a `dataset` , that is, a structure that `torch` knows how to handle. Before we look at
+that structure, let's quickly look at helper functions and components it will make use of. As indicated above, these, as well
+as `BrainSegmentationDataset` itself, are direct ports of the Python preprocessing logic in [Mateusz Buda's GitHub
+repository](https://github.com/mateuszbuda/brain-segmentation-pytorch).
+
+#### Image preprocessing and transforms
+
+Both FLAIR images and masks come in `.tif` format. These images have to be preprocessed spatially (cropped, padded and
+resized), as well as normalized. The following functions will be called inside `BrainSegmentationDataset`:
+
+```{r}
+import numpy as np
+from medpy.filter.binary import largest_connected_component
+from skimage.exposure import rescale_intensity
+from skimage.transform import resize
+
+def crop_sample(x):
+    volume, mask = x
+    volume[volume < np.max(volume) * 0.1] = 0
+    z_projection = np.max(np.max(np.max(volume, axis=-1), axis=-1), axis=-1)
+    z_nonzero = np.nonzero(z_projection)
+    z_min = np.min(z_nonzero)
+    z_max = np.max(z_nonzero) + 1
+    y_projection = np.max(np.max(np.max(volume, axis=0), axis=-1), axis=-1)
+    y_nonzero = np.nonzero(y_projection)
+    y_min = np.min(y_nonzero)
+    y_max = np.max(y_nonzero) + 1
+    x_projection = np.max(np.max(np.max(volume, axis=0), axis=0), axis=-1)
+    x_nonzero = np.nonzero(x_projection)
+    x_min = np.min(x_nonzero)
+    x_max = np.max(x_nonzero) + 1
+    return (
+        volume[z_min:z_max, y_min:y_max, x_min:x_max],
+        mask[z_min:z_max, y_min:y_max, x_min:x_max],
+    )
+
+
+def pad_sample(x):
+    volume, mask = x
+    a = volume.shape[1]
+    b = volume.shape[2]
+    if a == b:
+        return volume, mask
+    diff = (max(a, b) - min(a, b)) / 2.0
+    if a > b:
+        padding = ((0, 0), (0, 0), (int(np.floor(diff)), int(np.ceil(diff))))
+    else:
+        padding = ((0, 0), (int(np.floor(diff)), int(np.ceil(diff))), (0, 0))
+    mask = np.pad(mask, padding, mode="constant", constant_values=0)
+    padding = padding + ((0, 0),)
+    volume = np.pad(volume, padding, mode="constant", constant_values=0)
+    return volume, mask
+
+
+def resize_sample(x, size=256):
+    volume, mask = x
+    v_shape = volume.shape
+    out_shape = (v_shape[0], size, size)
+    mask = resize(
+        mask,
+        output_shape=out_shape,
+        order=0,
+        mode="constant",
+        cval=0,
+        anti_aliasing=False,
+    )
+    out_shape = out_shape + (v_shape[3],)
+    volume = resize(
+        volume,
+        output_shape=out_shape,
+        order=2,
+        mode="constant",
+        cval=0,
+        anti_aliasing=False,
+    )
+    return volume, mask
+
+
+def normalize_volume(volume):
+    p10 = np.percentile(volume, 10)
+    p99 = np.percentile(volume, 99)
+    volume = rescale_intensity(volume, in_range=(p10, p99))
+    m = np.mean(volume, axis=(0, 1, 2))
+    s = np.std(volume, axis=(0, 1, 2))
+    volume = (volume - m) / s
+    return volume
+
+
+```
+
+On the training set, we'll also want to use data augmentation. Here are the relative `Transform`s:
+
+```{python}
+import numpy as np
+from skimage.transform import rescale, rotate
+from torchvision.transforms import Compose
+
+
+def transforms(scale=None, angle=None, flip_prob=None):
+    transform_list = []
+
+    if scale is not None:
+        transform_list.append(Scale(scale))
+    if angle is not None:
+        transform_list.append(Rotate(angle))
+    if flip_prob is not None:
+        transform_list.append(HorizontalFlip(flip_prob))
+
+    return Compose(transform_list)
+
+
+class Scale(object):
+
+    def __init__(self, scale):
+        self.scale = scale
+
+    def __call__(self, sample):
+        image, mask = sample
+
+        img_size = image.shape[0]
+
+        scale = np.random.uniform(low=1.0 - self.scale, high=1.0 + self.scale)
+
+        image = rescale(
+            image,
+            (scale, scale),
+            multichannel=True,
+            preserve_range=True,
+            mode="constant",
+            anti_aliasing=False,
+        )
+        mask = rescale(
+            mask,
+            (scale, scale),
+            order=0,
+            multichannel=True,
+            preserve_range=True,
+            mode="constant",
+            anti_aliasing=False,
+        )
+
+        if scale < 1.0:
+            diff = (img_size - image.shape[0]) / 2.0
+            padding = ((int(np.floor(diff)), int(np.ceil(diff))),) * 2 + ((0, 0),)
+            image = np.pad(image, padding, mode="constant", constant_values=0)
+            mask = np.pad(mask, padding, mode="constant", constant_values=0)
+        else:
+            x_min = (image.shape[0] - img_size) // 2
+            x_max = x_min + img_size
+            image = image[x_min:x_max, x_min:x_max, ...]
+            mask = mask[x_min:x_max, x_min:x_max, ...]
+
+        return image, mask
+
+
+class Rotate(object):
+
+    def __init__(self, angle):
+        self.angle = angle
+
+    def __call__(self, sample):
+        image, mask = sample
+
+        angle = np.random.uniform(low=-self.angle, high=self.angle)
+        image = rotate(image, angle, resize=False, preserve_range=True, mode="constant")
+        mask = rotate(
+            mask, angle, resize=False, order=0, preserve_range=True, mode="constant"
+        )
+        return image, mask
+
+
+class HorizontalFlip(object):
+
+    def __init__(self, flip_prob):
+        self.flip_prob = flip_prob
+
+    def __call__(self, sample):
+        image, mask = sample
+
+        if np.random.rand() > self.flip_prob:
+            return image, mask
+
+        image = np.fliplr(image).copy()
+        mask = np.fliplr(mask).copy()
+
+        return image, mask
+
+```
+
+#### BrainSegmentationDataset
+
+The `BrainSegmentationDataset` walks through a given directory, applies preprocessing and - possibly -- transformations, and
+returns batches of tensors as requested. Through the `init` method's `random_sampling` parameter, you can control whether
+*weighted sampling* should be applied to counter class imbalance: If set to true, FLAIR-mask pairs will be sampled in
+proportion to lesion size. From our experiments, training on this dataset is sped up by using weighted sampling, but final
+training performance is not much affected, and neither is performance on the validation set.
+
+```{python}
+class BrainSegmentationDataset(Dataset):
+    """Brain MRI dataset for FLAIR abnormality segmentation"""
+    in_channels = 3
+    out_channels = 1
+    def __init__(
+        self,
+        images_dir,
+        transform = None,
+        image_size = 256,
+        random_sampling = True,
+    ):
+        volumes = {}
+        masks = {}
+        print("reading images...")
+        for (dirpath, dirnames, filenames) in os.walk(images_dir):
+            image_slices = []
+            mask_slices = []
+            for filename in sorted(
+                filter(lambda f: ".tif" in f, filenames),
+                key=lambda x: int(x.split(".")[-2].split("_")[4]),
+            ):
+                filepath = os.path.join(dirpath, filename)
+                if "mask" in filename:
+                    mask_slices.append(imread(filepath, as_gray=True))
+                else:
+                    image_slices.append(imread(filepath))
+            if len(image_slices) > 0:
+                patient_id = dirpath.split("/")[-1]
+                volumes[patient_id] = np.array(image_slices[1:-1])
+                masks[patient_id] = np.array(mask_slices[1:-1])
+        self.patients = sorted(volumes)
+        print("preprocessing volumes...")
+        # create list of tuples (volume, mask)
+        self.volumes = [(volumes[k], masks[k]) for k in self.patients]
+        print("cropping volumes...")
+        # crop to smallest enclosing volume
+        self.volumes = [crop_sample(v) for v in self.volumes]
+        print("padding volumes...")
+        # pad to square
+        self.volumes = [pad_sample(v) for v in self.volumes]
+        print("resizing volumes...")
+        # resize
+        self.volumes = [resize_sample(v, size=image_size) for v in self.volumes]
+        print("normalizing volumes...")
+        # normalize channel-wise
+        self.volumes = [(normalize_volume(v), m) for v, m in self.volumes]
+        # probabilities for sampling slices based on masks
+        self.slice_weights = [m.sum(axis=-1).sum(axis=-1) for v, m in self.volumes]
+        self.slice_weights = [
+            (s + (s.sum() * 0.1 / len(s))) / (s.sum() * 1.1) for s in self.slice_weights
+        ]
+        # add channel dimension to masks
+        self.volumes = [(v, m[..., np.newaxis]) for (v, m) in self.volumes]
+        print("done creating dataset")
+        # create global index for patient and slice (idx -> (p_idx, s_idx))
+        num_slices = [v.shape[0] for v, m in self.volumes]
+        self.patient_slice_index = list(
+            zip(
+                sum([[i] * num_slices[i] for i in range(len(num_slices))], []),
+                sum([list(range(x)) for x in num_slices], []),
+            )
+        )
+        self.random_sampling = random_sampling
+        self.transform = transform
+    def __len__(self):
+        return len(self.patient_slice_index)
+    def __getitem__(self, idx):
+        patient = self.patient_slice_index[idx][0]
+        slice_n = self.patient_slice_index[idx][1]
+        if self.random_sampling:
+            patient = np.random.randint(len(self.volumes))
+            slice_n = np.random.choice(
+                range(self.volumes[patient][0].shape[0]), p=self.slice_weights[patient]
+            )
+        v, m = self.volumes[patient]
+        image = v[slice_n]
+        mask = m[slice_n]
+        if self.transform is not None:
+            image, mask = self.transform((image, mask))
+        # fix dimensions (C, H, W)
+        image = image.transpose(2, 0, 1)
+        mask = mask.transpose(2, 0, 1)
+        image_tensor = torch.from_numpy(image.astype(np.float32))
+        mask_tensor = torch.from_numpy(mask.astype(np.float32))
+        # return tensors
+        return image_tensor, mask_tensor
+
+```
+
+#### Loading the data
+
+We use data augmentation and shuffling on the training set, and none of those on the validation set:
+
+```{python}
+image_size = 256
+aug_scale = 0.05
+aug_angle = 15
+flip_prob = 0.5
+
+train_ds = BrainSegmentationDataset(
+        images_dir = train_dir,
+        image_size = image_size,
+        transform = transforms(scale = aug_scale, angle = aug_angle, flip_prob=0.5),
+        random_sampling = True
+)
+
+valid_ds = BrainSegmentationDataset(
+        images_dir = valid_dir,
+        image_size = image_size,
+        random_sampling=False
+)
+
+batch_size = 4
+
+train_loader = torch.utils.data.DataLoader(
+        train_ds,
+        batch_size = batch_size,
+        shuffle = True,
+        drop_last = True,
+        num_workers = 8
+)
+
+valid_loader = torch.utils.data.DataLoader(
+        valid_ds,
+        batch_size = batch_size,
+        drop_last = False,
+)
+
+dataloaders = {"train": train_loader, "valid": valid_loader}
+dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'valid']}
+```
+
+On to the model.
+
+## U-Net model
+
+We formulate the model in a generic way: The layers for the *up* and *down* paths are kept in lists. During the downward pass,
+the model saves away the intermediate activations, and during the upward phase, passes them on for concatenation (and thus,
+use in upsampling) as required.
+
+Model depth is configurable (`depth`), as is a starting point for the number of filters (`n_filters`): The first downward
+convolution block will have `2^n_filters` channels, and in every successive convolution block the exponent will be incremented
+by one.
+
+tbd other args
+
+```{python}
+class UNet(nn.Module):
+    def __init__(
+        self,
+        channels_in = 3,
+        n_classes = 1,
+        depth = 5,
+        n_filters = 6, 
+    ):
+        super(UNet, self).__init__()
+        self.depth = depth
+        prev_channels = channels_in
+        self.down_path = nn.ModuleList()
+        for i in range(depth):
+            self.down_path.append(
+                DownBlock(prev_channels, 2 ** (n_filters + i))
+            )
+            prev_channels = 2 ** (n_filters + i)
+        self.up_path = nn.ModuleList()
+        for i in reversed(range(depth - 1)):
+            self.up_path.append(
+                UpBlock(prev_channels, 2 ** (n_filters + i))
+            )
+            prev_channels = 2 ** (n_filters + i)
+        self.last = nn.Conv2d(prev_channels, n_classes, kernel_size = 1)
+    def forward(self, x):
+        blocks = []
+        for i, down in enumerate(self.down_path):
+            x = down(x)
+            if i != len(self.down_path) - 1:
+                blocks.append(x)
+                x = F.max_pool2d(x, 2)
+        for i, up in enumerate(self.up_path):
+            x = up(x, blocks[-i - 1])
+        return torch.sigmoid(self.last(x))
+{r}
+
+```
 
 ### heading
 

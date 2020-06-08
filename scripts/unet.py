@@ -20,14 +20,9 @@ exec(open('scripts/brainseg_transforms.py').read())
 
 # ------------------------------------------------------------------------------
 
-batch_size = 4
-
 train_dir = "data/kaggle_3m_train"
 valid_dir = "data/kaggle_3m_valid"
-image_size = 256
 
-aug_scale = 0.05
-aug_angle = 15
 
 # ------------------- load data ------------------------------------------------
 
@@ -118,6 +113,11 @@ class BrainSegmentationDataset(Dataset):
         # return tensors
         return image_tensor, mask_tensor
 
+image_size = 256
+aug_scale = 0.05
+aug_angle = 15
+flip_prob = 0.5
+
 train_ds = BrainSegmentationDataset(
         images_dir = train_dir,
         image_size = image_size,
@@ -130,6 +130,8 @@ valid_ds = BrainSegmentationDataset(
         image_size = image_size,
         random_sampling=False
 )
+
+batch_size = 4
 
 train_loader = torch.utils.data.DataLoader(
         train_ds,
@@ -317,3 +319,50 @@ model.load_state_dict(best_model_wts)
 torch.save(model.state_dict(), "mri.pt")
 
 
+#####################################################
+
+# Epoch 0/49
+# ----------
+# Entering phase: train
+# train Loss: 1.0315
+# train Dice coef: 2.3604
+# train BCE: 0.4620
+# Entering phase: valid
+# valid Loss: 1.3413
+# valid Dice coef: 3.2042
+# valid BCE: 0.5429
+# 
+# Epoch 1/49
+# ----------
+# Entering phase: train
+# train Loss: 0.7160
+# train Dice coef: 1.5426
+# train BCE: 0.3618
+# Entering phase: valid
+# valid Loss: 1.3800
+# valid Dice coef: 3.2879
+# valid BCE: 0.5624
+# 
+# ...
+# 
+# Epoch 48/49
+# ----------
+# Entering phase: train
+# train Loss: 0.2059
+# train Dice coef: 0.4564
+# train BCE: 0.0985
+# Entering phase: valid
+# valid Loss: 1.1764
+# valid Dice coef: 3.0436
+# valid BCE: 0.3762
+# 
+# Epoch 49/49
+# ----------
+# Entering phase: train
+# train Loss: 0.2033
+# train Dice coef: 0.4519
+# train BCE: 0.0968
+# Entering phase: valid
+# valid Loss: 1.1654
+# valid Dice coef: 3.0353
+# valid BCE: 0.3641
