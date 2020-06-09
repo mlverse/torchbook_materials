@@ -200,11 +200,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="8.1" data-path="unet.html"><a href="unet.html#image-segmentation-in-a-nutshell"><i class="fa fa-check"></i><b>8.1</b> Image segmentation in a nutshell</a></li>
 <li class="chapter" data-level="8.2" data-path="unet.html"><a href="unet.html#u-net"><i class="fa fa-check"></i><b>8.2</b> U-Net</a></li>
-<li class="chapter" data-level="8.3" data-path="unet.html"><a href="unet.html#example-application-mri-images"><i class="fa fa-check"></i><b>8.3</b> Example application: MRI images</a></li>
-<li class="chapter" data-level="8.4" data-path="unet.html"><a href="unet.html#preprocessing"><i class="fa fa-check"></i><b>8.4</b> Preprocessing</a></li>
-<li class="chapter" data-level="8.5" data-path="unet.html"><a href="unet.html#u-net-model"><i class="fa fa-check"></i><b>8.5</b> U-Net model</a>
+<li class="chapter" data-level="8.3" data-path="unet.html"><a href="unet.html#example-application-mri-images"><i class="fa fa-check"></i><b>8.3</b> Example application: MRI images</a>
 <ul>
-<li class="chapter" data-level="8.5.1" data-path="unet.html"><a href="unet.html#heading"><i class="fa fa-check"></i><b>8.5.1</b> heading</a></li>
+<li class="chapter" data-level="8.3.1" data-path="unet.html"><a href="unet.html#preprocessing"><i class="fa fa-check"></i><b>8.3.1</b> Preprocessing</a></li>
+<li class="chapter" data-level="8.3.2" data-path="unet.html"><a href="unet.html#u-net-model"><i class="fa fa-check"></i><b>8.3.2</b> U-Net model</a></li>
+<li class="chapter" data-level="8.3.3" data-path="unet.html"><a href="unet.html#loss"><i class="fa fa-check"></i><b>8.3.3</b> Loss</a></li>
+<li class="chapter" data-level="8.3.4" data-path="unet.html"><a href="unet.html#training-1"><i class="fa fa-check"></i><b>8.3.4</b> Training</a></li>
+<li class="chapter" data-level="8.3.5" data-path="unet.html"><a href="unet.html#predictions"><i class="fa fa-check"></i><b>8.3.5</b> Predictions</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III Natural language processing</b></span></li>
@@ -335,9 +337,8 @@ lesions, so the masks will be coloured black everywhere.</p>
 <p>Here are three examples of orientations where the masks actually indicate an abnormality:</p>
 <p><img src="images/scans.png" title="Examples of FLAIR images and corresponding masks" /></p>
 <div class="sourceCode" id="cb109"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb109-1"><a href="unet.html#cb109-1"></a><span class="ex">montage</span> TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif</span></code></pre></div>
-</div>
-<div id="preprocessing" class="section level2" number="8.4">
-<h2><span class="header-section-number">8.4</span> Preprocessing</h2>
+<div id="preprocessing" class="section level3" number="8.3.1">
+<h3><span class="header-section-number">8.3.1</span> Preprocessing</h3>
 <div class="sourceCode" id="cb110"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb110-1"><a href="unet.html#cb110-1"></a><span class="im">import</span> torch</span>
 <span id="cb110-2"><a href="unet.html#cb110-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
 <span id="cb110-3"><a href="unet.html#cb110-3"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
@@ -362,85 +363,85 @@ institution, as indicated by the pair of letters second in the folder names (tbd
 that structure, let’s quickly look at helper functions and components it will make use of. As indicated above, these, as well
 as <code>BrainSegmentationDataset</code> itself, are direct ports of the Python preprocessing logic in <a href="https://github.com/mateuszbuda/brain-segmentation-pytorch">Mateusz Buda’s GitHub
 repository</a>.</p>
-<div id="image-preprocessing-and-transforms" class="section level4" number="8.4.0.1">
-<h4><span class="header-section-number">8.4.0.1</span> Image preprocessing and transforms</h4>
+<div id="image-preprocessing-and-transforms" class="section level4" number="8.3.1.1">
+<h4><span class="header-section-number">8.3.1.1</span> Image preprocessing and transforms</h4>
 <p>Both FLAIR images and masks come in <code>.tif</code> format. These images have to be preprocessed spatially (cropped, padded and
 resized), as well as normalized. The following functions will be called inside <code>BrainSegmentationDataset</code>:</p>
-<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="unet.html#cb112-1"></a>import numpy as np</span>
-<span id="cb112-2"><a href="unet.html#cb112-2"></a>from medpy.filter.binary import largest_connected_component</span>
-<span id="cb112-3"><a href="unet.html#cb112-3"></a>from skimage.exposure import rescale_intensity</span>
-<span id="cb112-4"><a href="unet.html#cb112-4"></a>from skimage.transform import resize</span>
+<div class="sourceCode" id="cb112"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb112-1"><a href="unet.html#cb112-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb112-2"><a href="unet.html#cb112-2"></a><span class="im">from</span> medpy.<span class="bu">filter</span>.binary <span class="im">import</span> largest_connected_component</span>
+<span id="cb112-3"><a href="unet.html#cb112-3"></a><span class="im">from</span> skimage.exposure <span class="im">import</span> rescale_intensity</span>
+<span id="cb112-4"><a href="unet.html#cb112-4"></a><span class="im">from</span> skimage.transform <span class="im">import</span> resize</span>
 <span id="cb112-5"><a href="unet.html#cb112-5"></a></span>
-<span id="cb112-6"><a href="unet.html#cb112-6"></a>def <span class="kw">crop_sample</span>(x)<span class="op">:</span></span>
-<span id="cb112-7"><a href="unet.html#cb112-7"></a><span class="st">    </span>volume, mask =<span class="st"> </span>x</span>
-<span id="cb112-8"><a href="unet.html#cb112-8"></a>    volume[volume <span class="op">&lt;</span><span class="st"> </span><span class="kw">np.max</span>(volume) <span class="op">*</span><span class="st"> </span><span class="fl">0.1</span>] =<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb112-9"><a href="unet.html#cb112-9"></a>    z_projection =<span class="st"> </span><span class="kw">np.max</span>(<span class="kw">np.max</span>(<span class="kw">np.max</span>(volume, <span class="dt">axis=</span><span class="op">-</span><span class="dv">1</span>), <span class="dt">axis=</span><span class="op">-</span><span class="dv">1</span>), <span class="dt">axis=</span><span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb112-10"><a href="unet.html#cb112-10"></a>    z_nonzero =<span class="st"> </span><span class="kw">np.nonzero</span>(z_projection)</span>
-<span id="cb112-11"><a href="unet.html#cb112-11"></a>    z_min =<span class="st"> </span><span class="kw">np.min</span>(z_nonzero)</span>
-<span id="cb112-12"><a href="unet.html#cb112-12"></a>    z_max =<span class="st"> </span><span class="kw">np.max</span>(z_nonzero) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb112-13"><a href="unet.html#cb112-13"></a>    y_projection =<span class="st"> </span><span class="kw">np.max</span>(<span class="kw">np.max</span>(<span class="kw">np.max</span>(volume, <span class="dt">axis=</span><span class="dv">0</span>), <span class="dt">axis=</span><span class="op">-</span><span class="dv">1</span>), <span class="dt">axis=</span><span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb112-14"><a href="unet.html#cb112-14"></a>    y_nonzero =<span class="st"> </span><span class="kw">np.nonzero</span>(y_projection)</span>
-<span id="cb112-15"><a href="unet.html#cb112-15"></a>    y_min =<span class="st"> </span><span class="kw">np.min</span>(y_nonzero)</span>
-<span id="cb112-16"><a href="unet.html#cb112-16"></a>    y_max =<span class="st"> </span><span class="kw">np.max</span>(y_nonzero) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb112-17"><a href="unet.html#cb112-17"></a>    x_projection =<span class="st"> </span><span class="kw">np.max</span>(<span class="kw">np.max</span>(<span class="kw">np.max</span>(volume, <span class="dt">axis=</span><span class="dv">0</span>), <span class="dt">axis=</span><span class="dv">0</span>), <span class="dt">axis=</span><span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb112-18"><a href="unet.html#cb112-18"></a>    x_nonzero =<span class="st"> </span><span class="kw">np.nonzero</span>(x_projection)</span>
-<span id="cb112-19"><a href="unet.html#cb112-19"></a>    x_min =<span class="st"> </span><span class="kw">np.min</span>(x_nonzero)</span>
-<span id="cb112-20"><a href="unet.html#cb112-20"></a>    x_max =<span class="st"> </span><span class="kw">np.max</span>(x_nonzero) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb112-21"><a href="unet.html#cb112-21"></a>    <span class="kw">return</span> (</span>
-<span id="cb112-22"><a href="unet.html#cb112-22"></a>        volume[z_min<span class="op">:</span>z_max, y_min<span class="op">:</span>y_max, x_min<span class="op">:</span>x_max],</span>
-<span id="cb112-23"><a href="unet.html#cb112-23"></a>        mask[z_min<span class="op">:</span>z_max, y_min<span class="op">:</span>y_max, x_min<span class="op">:</span>x_max],</span>
+<span id="cb112-6"><a href="unet.html#cb112-6"></a><span class="kw">def</span> crop_sample(x):</span>
+<span id="cb112-7"><a href="unet.html#cb112-7"></a>    volume, mask <span class="op">=</span> x</span>
+<span id="cb112-8"><a href="unet.html#cb112-8"></a>    volume[volume <span class="op">&lt;</span> np.<span class="bu">max</span>(volume) <span class="op">*</span> <span class="fl">0.1</span>] <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb112-9"><a href="unet.html#cb112-9"></a>    z_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb112-10"><a href="unet.html#cb112-10"></a>    z_nonzero <span class="op">=</span> np.nonzero(z_projection)</span>
+<span id="cb112-11"><a href="unet.html#cb112-11"></a>    z_min <span class="op">=</span> np.<span class="bu">min</span>(z_nonzero)</span>
+<span id="cb112-12"><a href="unet.html#cb112-12"></a>    z_max <span class="op">=</span> np.<span class="bu">max</span>(z_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb112-13"><a href="unet.html#cb112-13"></a>    y_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb112-14"><a href="unet.html#cb112-14"></a>    y_nonzero <span class="op">=</span> np.nonzero(y_projection)</span>
+<span id="cb112-15"><a href="unet.html#cb112-15"></a>    y_min <span class="op">=</span> np.<span class="bu">min</span>(y_nonzero)</span>
+<span id="cb112-16"><a href="unet.html#cb112-16"></a>    y_max <span class="op">=</span> np.<span class="bu">max</span>(y_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb112-17"><a href="unet.html#cb112-17"></a>    x_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb112-18"><a href="unet.html#cb112-18"></a>    x_nonzero <span class="op">=</span> np.nonzero(x_projection)</span>
+<span id="cb112-19"><a href="unet.html#cb112-19"></a>    x_min <span class="op">=</span> np.<span class="bu">min</span>(x_nonzero)</span>
+<span id="cb112-20"><a href="unet.html#cb112-20"></a>    x_max <span class="op">=</span> np.<span class="bu">max</span>(x_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb112-21"><a href="unet.html#cb112-21"></a>    <span class="cf">return</span> (</span>
+<span id="cb112-22"><a href="unet.html#cb112-22"></a>        volume[z_min:z_max, y_min:y_max, x_min:x_max],</span>
+<span id="cb112-23"><a href="unet.html#cb112-23"></a>        mask[z_min:z_max, y_min:y_max, x_min:x_max],</span>
 <span id="cb112-24"><a href="unet.html#cb112-24"></a>    )</span>
 <span id="cb112-25"><a href="unet.html#cb112-25"></a></span>
 <span id="cb112-26"><a href="unet.html#cb112-26"></a></span>
-<span id="cb112-27"><a href="unet.html#cb112-27"></a>def <span class="kw">pad_sample</span>(x)<span class="op">:</span></span>
-<span id="cb112-28"><a href="unet.html#cb112-28"></a><span class="st">    </span>volume, mask =<span class="st"> </span>x</span>
-<span id="cb112-29"><a href="unet.html#cb112-29"></a>    a =<span class="st"> </span>volume.shape[<span class="dv">1</span>]</span>
-<span id="cb112-30"><a href="unet.html#cb112-30"></a>    b =<span class="st"> </span>volume.shape[<span class="dv">2</span>]</span>
-<span id="cb112-31"><a href="unet.html#cb112-31"></a>    <span class="cf">if</span> a <span class="op">==</span><span class="st"> </span>b<span class="op">:</span></span>
-<span id="cb112-32"><a href="unet.html#cb112-32"></a><span class="st">        </span>return volume, mask</span>
-<span id="cb112-33"><a href="unet.html#cb112-33"></a>    diff =<span class="st"> </span>(<span class="kw">max</span>(a, b) <span class="op">-</span><span class="st"> </span><span class="kw">min</span>(a, b)) <span class="op">/</span><span class="st"> </span><span class="fl">2.0</span></span>
-<span id="cb112-34"><a href="unet.html#cb112-34"></a>    <span class="cf">if</span> a <span class="op">&gt;</span><span class="st"> </span>b<span class="op">:</span></span>
-<span id="cb112-35"><a href="unet.html#cb112-35"></a><span class="st">        </span>padding =<span class="st"> </span>((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="dv">0</span>, <span class="dv">0</span>), (<span class="kw">int</span>(<span class="kw">np.floor</span>(diff)), <span class="kw">int</span>(<span class="kw">np.ceil</span>(diff))))</span>
-<span id="cb112-36"><a href="unet.html#cb112-36"></a>    <span class="cf">else</span><span class="op">:</span></span>
-<span id="cb112-37"><a href="unet.html#cb112-37"></a><span class="st">        </span>padding =<span class="st"> </span>((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="kw">int</span>(<span class="kw">np.floor</span>(diff)), <span class="kw">int</span>(<span class="kw">np.ceil</span>(diff))), (<span class="dv">0</span>, <span class="dv">0</span>))</span>
-<span id="cb112-38"><a href="unet.html#cb112-38"></a>    mask =<span class="st"> </span><span class="kw">np.pad</span>(mask, padding, <span class="dt">mode=</span><span class="st">&quot;constant&quot;</span>, <span class="dt">constant_values=</span><span class="dv">0</span>)</span>
-<span id="cb112-39"><a href="unet.html#cb112-39"></a>    padding =<span class="st"> </span>padding <span class="op">+</span><span class="st"> </span>((<span class="dv">0</span>, <span class="dv">0</span>),)</span>
-<span id="cb112-40"><a href="unet.html#cb112-40"></a>    volume =<span class="st"> </span><span class="kw">np.pad</span>(volume, padding, <span class="dt">mode=</span><span class="st">&quot;constant&quot;</span>, <span class="dt">constant_values=</span><span class="dv">0</span>)</span>
-<span id="cb112-41"><a href="unet.html#cb112-41"></a>    return volume, mask</span>
+<span id="cb112-27"><a href="unet.html#cb112-27"></a><span class="kw">def</span> pad_sample(x):</span>
+<span id="cb112-28"><a href="unet.html#cb112-28"></a>    volume, mask <span class="op">=</span> x</span>
+<span id="cb112-29"><a href="unet.html#cb112-29"></a>    a <span class="op">=</span> volume.shape[<span class="dv">1</span>]</span>
+<span id="cb112-30"><a href="unet.html#cb112-30"></a>    b <span class="op">=</span> volume.shape[<span class="dv">2</span>]</span>
+<span id="cb112-31"><a href="unet.html#cb112-31"></a>    <span class="cf">if</span> a <span class="op">==</span> b:</span>
+<span id="cb112-32"><a href="unet.html#cb112-32"></a>        <span class="cf">return</span> volume, mask</span>
+<span id="cb112-33"><a href="unet.html#cb112-33"></a>    diff <span class="op">=</span> (<span class="bu">max</span>(a, b) <span class="op">-</span> <span class="bu">min</span>(a, b)) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb112-34"><a href="unet.html#cb112-34"></a>    <span class="cf">if</span> a <span class="op">&gt;</span> b:</span>
+<span id="cb112-35"><a href="unet.html#cb112-35"></a>        padding <span class="op">=</span> ((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="dv">0</span>, <span class="dv">0</span>), (<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))))</span>
+<span id="cb112-36"><a href="unet.html#cb112-36"></a>    <span class="cf">else</span>:</span>
+<span id="cb112-37"><a href="unet.html#cb112-37"></a>        padding <span class="op">=</span> ((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))), (<span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb112-38"><a href="unet.html#cb112-38"></a>    mask <span class="op">=</span> np.pad(mask, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb112-39"><a href="unet.html#cb112-39"></a>    padding <span class="op">=</span> padding <span class="op">+</span> ((<span class="dv">0</span>, <span class="dv">0</span>),)</span>
+<span id="cb112-40"><a href="unet.html#cb112-40"></a>    volume <span class="op">=</span> np.pad(volume, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb112-41"><a href="unet.html#cb112-41"></a>    <span class="cf">return</span> volume, mask</span>
 <span id="cb112-42"><a href="unet.html#cb112-42"></a></span>
 <span id="cb112-43"><a href="unet.html#cb112-43"></a></span>
-<span id="cb112-44"><a href="unet.html#cb112-44"></a>def <span class="kw">resize_sample</span>(x, <span class="dt">size=</span><span class="dv">256</span>)<span class="op">:</span></span>
-<span id="cb112-45"><a href="unet.html#cb112-45"></a><span class="st">    </span>volume, mask =<span class="st"> </span>x</span>
-<span id="cb112-46"><a href="unet.html#cb112-46"></a>    v_shape =<span class="st"> </span>volume.shape</span>
-<span id="cb112-47"><a href="unet.html#cb112-47"></a>    out_shape =<span class="st"> </span>(v_shape[<span class="dv">0</span>], size, size)</span>
-<span id="cb112-48"><a href="unet.html#cb112-48"></a>    mask =<span class="st"> </span><span class="kw">resize</span>(</span>
+<span id="cb112-44"><a href="unet.html#cb112-44"></a><span class="kw">def</span> resize_sample(x, size<span class="op">=</span><span class="dv">256</span>):</span>
+<span id="cb112-45"><a href="unet.html#cb112-45"></a>    volume, mask <span class="op">=</span> x</span>
+<span id="cb112-46"><a href="unet.html#cb112-46"></a>    v_shape <span class="op">=</span> volume.shape</span>
+<span id="cb112-47"><a href="unet.html#cb112-47"></a>    out_shape <span class="op">=</span> (v_shape[<span class="dv">0</span>], size, size)</span>
+<span id="cb112-48"><a href="unet.html#cb112-48"></a>    mask <span class="op">=</span> resize(</span>
 <span id="cb112-49"><a href="unet.html#cb112-49"></a>        mask,</span>
-<span id="cb112-50"><a href="unet.html#cb112-50"></a>        <span class="dt">output_shape=</span>out_shape,</span>
-<span id="cb112-51"><a href="unet.html#cb112-51"></a>        <span class="dt">order=</span><span class="dv">0</span>,</span>
-<span id="cb112-52"><a href="unet.html#cb112-52"></a>        <span class="dt">mode=</span><span class="st">&quot;constant&quot;</span>,</span>
-<span id="cb112-53"><a href="unet.html#cb112-53"></a>        <span class="dt">cval=</span><span class="dv">0</span>,</span>
-<span id="cb112-54"><a href="unet.html#cb112-54"></a>        <span class="dt">anti_aliasing=</span>False,</span>
+<span id="cb112-50"><a href="unet.html#cb112-50"></a>        output_shape<span class="op">=</span>out_shape,</span>
+<span id="cb112-51"><a href="unet.html#cb112-51"></a>        order<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb112-52"><a href="unet.html#cb112-52"></a>        mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
+<span id="cb112-53"><a href="unet.html#cb112-53"></a>        cval<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb112-54"><a href="unet.html#cb112-54"></a>        anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
 <span id="cb112-55"><a href="unet.html#cb112-55"></a>    )</span>
-<span id="cb112-56"><a href="unet.html#cb112-56"></a>    out_shape =<span class="st"> </span>out_shape <span class="op">+</span><span class="st"> </span>(v_shape[<span class="dv">3</span>],)</span>
-<span id="cb112-57"><a href="unet.html#cb112-57"></a>    volume =<span class="st"> </span><span class="kw">resize</span>(</span>
+<span id="cb112-56"><a href="unet.html#cb112-56"></a>    out_shape <span class="op">=</span> out_shape <span class="op">+</span> (v_shape[<span class="dv">3</span>],)</span>
+<span id="cb112-57"><a href="unet.html#cb112-57"></a>    volume <span class="op">=</span> resize(</span>
 <span id="cb112-58"><a href="unet.html#cb112-58"></a>        volume,</span>
-<span id="cb112-59"><a href="unet.html#cb112-59"></a>        <span class="dt">output_shape=</span>out_shape,</span>
-<span id="cb112-60"><a href="unet.html#cb112-60"></a>        <span class="dt">order=</span><span class="dv">2</span>,</span>
-<span id="cb112-61"><a href="unet.html#cb112-61"></a>        <span class="dt">mode=</span><span class="st">&quot;constant&quot;</span>,</span>
-<span id="cb112-62"><a href="unet.html#cb112-62"></a>        <span class="dt">cval=</span><span class="dv">0</span>,</span>
-<span id="cb112-63"><a href="unet.html#cb112-63"></a>        <span class="dt">anti_aliasing=</span>False,</span>
+<span id="cb112-59"><a href="unet.html#cb112-59"></a>        output_shape<span class="op">=</span>out_shape,</span>
+<span id="cb112-60"><a href="unet.html#cb112-60"></a>        order<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb112-61"><a href="unet.html#cb112-61"></a>        mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
+<span id="cb112-62"><a href="unet.html#cb112-62"></a>        cval<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb112-63"><a href="unet.html#cb112-63"></a>        anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
 <span id="cb112-64"><a href="unet.html#cb112-64"></a>    )</span>
-<span id="cb112-65"><a href="unet.html#cb112-65"></a>    return volume, mask</span>
+<span id="cb112-65"><a href="unet.html#cb112-65"></a>    <span class="cf">return</span> volume, mask</span>
 <span id="cb112-66"><a href="unet.html#cb112-66"></a></span>
 <span id="cb112-67"><a href="unet.html#cb112-67"></a></span>
-<span id="cb112-68"><a href="unet.html#cb112-68"></a>def <span class="kw">normalize_volume</span>(volume)<span class="op">:</span></span>
-<span id="cb112-69"><a href="unet.html#cb112-69"></a><span class="st">    </span>p10 =<span class="st"> </span><span class="kw">np.percentile</span>(volume, <span class="dv">10</span>)</span>
-<span id="cb112-70"><a href="unet.html#cb112-70"></a>    p99 =<span class="st"> </span><span class="kw">np.percentile</span>(volume, <span class="dv">99</span>)</span>
-<span id="cb112-71"><a href="unet.html#cb112-71"></a>    volume =<span class="st"> </span><span class="kw">rescale_intensity</span>(volume, <span class="dt">in_range=</span>(p10, p99))</span>
-<span id="cb112-72"><a href="unet.html#cb112-72"></a>    m =<span class="st"> </span><span class="kw">np.mean</span>(volume, <span class="dt">axis=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb112-73"><a href="unet.html#cb112-73"></a>    s =<span class="st"> </span><span class="kw">np.std</span>(volume, <span class="dt">axis=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb112-74"><a href="unet.html#cb112-74"></a>    volume =<span class="st"> </span>(volume <span class="op">-</span><span class="st"> </span>m) <span class="op">/</span><span class="st"> </span>s</span>
-<span id="cb112-75"><a href="unet.html#cb112-75"></a>    return volume</span></code></pre></div>
+<span id="cb112-68"><a href="unet.html#cb112-68"></a><span class="kw">def</span> normalize_volume(volume):</span>
+<span id="cb112-69"><a href="unet.html#cb112-69"></a>    p10 <span class="op">=</span> np.percentile(volume, <span class="dv">10</span>)</span>
+<span id="cb112-70"><a href="unet.html#cb112-70"></a>    p99 <span class="op">=</span> np.percentile(volume, <span class="dv">99</span>)</span>
+<span id="cb112-71"><a href="unet.html#cb112-71"></a>    volume <span class="op">=</span> rescale_intensity(volume, in_range<span class="op">=</span>(p10, p99))</span>
+<span id="cb112-72"><a href="unet.html#cb112-72"></a>    m <span class="op">=</span> np.mean(volume, axis<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb112-73"><a href="unet.html#cb112-73"></a>    s <span class="op">=</span> np.std(volume, axis<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb112-74"><a href="unet.html#cb112-74"></a>    volume <span class="op">=</span> (volume <span class="op">-</span> m) <span class="op">/</span> s</span>
+<span id="cb112-75"><a href="unet.html#cb112-75"></a>    <span class="cf">return</span> volume</span></code></pre></div>
 <p>On the training set, we’ll also want to use data augmentation. Here are the relative <code>Transform</code>s:</p>
 <div class="sourceCode" id="cb113"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb113-1"><a href="unet.html#cb113-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb113-2"><a href="unet.html#cb113-2"></a><span class="im">from</span> skimage.transform <span class="im">import</span> rescale, rotate</span>
@@ -536,8 +537,8 @@ resized), as well as normalized. The following functions will be called inside <
 <span id="cb113-92"><a href="unet.html#cb113-92"></a></span>
 <span id="cb113-93"><a href="unet.html#cb113-93"></a>        <span class="cf">return</span> image, mask</span></code></pre></div>
 </div>
-<div id="brainsegmentationdataset" class="section level4" number="8.4.0.2">
-<h4><span class="header-section-number">8.4.0.2</span> BrainSegmentationDataset</h4>
+<div id="brainsegmentationdataset" class="section level4" number="8.3.1.2">
+<h4><span class="header-section-number">8.3.1.2</span> BrainSegmentationDataset</h4>
 <p>The <code>BrainSegmentationDataset</code> walks through a given directory, applies preprocessing and - possibly – transformations, and
 returns batches of tensors as requested. Through the <code>init</code> method’s <code>random_sampling</code> parameter, you can control whether
 <em>weighted sampling</em> should be applied to counter class imbalance: If set to true, FLAIR-mask pairs will be sampled in
@@ -630,8 +631,8 @@ training performance is not much affected, and neither is performance on the val
 <span id="cb114-85"><a href="unet.html#cb114-85"></a>        <span class="co"># return tensors</span></span>
 <span id="cb114-86"><a href="unet.html#cb114-86"></a>        <span class="cf">return</span> image_tensor, mask_tensor</span></code></pre></div>
 </div>
-<div id="loading-the-data" class="section level4" number="8.4.0.3">
-<h4><span class="header-section-number">8.4.0.3</span> Loading the data</h4>
+<div id="loading-the-data" class="section level4" number="8.3.1.3">
+<h4><span class="header-section-number">8.3.1.3</span> Loading the data</h4>
 <p>We use data augmentation and shuffling on the training set, and none of those on the validation set:</p>
 <div class="sourceCode" id="cb115"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb115-1"><a href="unet.html#cb115-1"></a>image_size <span class="op">=</span> <span class="dv">256</span></span>
 <span id="cb115-2"><a href="unet.html#cb115-2"></a>aug_scale <span class="op">=</span> <span class="fl">0.05</span></span>
@@ -672,15 +673,16 @@ training performance is not much affected, and neither is performance on the val
 <p>On to the model.</p>
 </div>
 </div>
-<div id="u-net-model" class="section level2" number="8.5">
-<h2><span class="header-section-number">8.5</span> U-Net model</h2>
+<div id="u-net-model" class="section level3" number="8.3.2">
+<h3><span class="header-section-number">8.3.2</span> U-Net model</h3>
 <p>We formulate the model in a generic way: The layers for the <em>up</em> and <em>down</em> paths are kept in lists. During the downward pass,
 the model saves away the intermediate activations, and during the upward phase, passes them on for concatenation (and thus,
 use in upsampling) as required.</p>
 <p>Model depth is configurable (<code>depth</code>), as is a starting point for the number of filters (<code>n_filters</code>): The first downward
 convolution block will have <code>2^n_filters</code> channels, and in every successive convolution block the exponent will be incremented
-by one.</p>
-<p>tbd other args</p>
+by one. The number of input channels (in our example: 3) and the number of output classes can be changed, as well. With a
+binary problem, although logically the number of classes is two, there is no need for two output channels; a single output
+channel with sigmoid activation is enough. If you had, say, four different cell types instead, you’d set <code>n_classes</code> to four.</p>
 <div class="sourceCode" id="cb116"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb116-1"><a href="unet.html#cb116-1"></a><span class="kw">class</span> UNet(nn.Module):</span>
 <span id="cb116-2"><a href="unet.html#cb116-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
 <span id="cb116-3"><a href="unet.html#cb116-3"></a>        <span class="va">self</span>,</span>
@@ -716,10 +718,54 @@ by one.</p>
 <span id="cb116-33"><a href="unet.html#cb116-33"></a>            x <span class="op">=</span> up(x, blocks[<span class="op">-</span>i <span class="op">-</span> <span class="dv">1</span>])</span>
 <span id="cb116-34"><a href="unet.html#cb116-34"></a>        <span class="cf">return</span> torch.sigmoid(<span class="va">self</span>.last(x))</span>
 <span id="cb116-35"><a href="unet.html#cb116-35"></a>{r}</span></code></pre></div>
-<div id="heading" class="section level3" number="8.5.1">
-<h3><span class="header-section-number">8.5.1</span> heading</h3>
-<p>text</p>
+<p>As you’ll have seen, this top-level module makes use of two helper modules, <code>DownBlock</code> and <code>UpBlock</code>. These again assemble
+and call instances of <code>ConvBlock</code>, the lowest-level module, that chains convolutional, activation, dropout and batchnorm
+layers. For this specific application, we’ve found that batchnorm actually resulted in deteriorated performance on the
+validation set, probably due to very small batch size. When working with other datasets and/or larger batches that could be
+very different.</p>
+<div class="sourceCode" id="cb117"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb117-1"><a href="unet.html#cb117-1"></a><span class="kw">class</span> ConvBlock(nn.Module):</span>
+<span id="cb117-2"><a href="unet.html#cb117-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
+<span id="cb117-3"><a href="unet.html#cb117-3"></a>        <span class="bu">super</span>(ConvBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb117-4"><a href="unet.html#cb117-4"></a>        block <span class="op">=</span> []</span>
+<span id="cb117-5"><a href="unet.html#cb117-5"></a>        block.append(nn.Conv2d(in_size, out_size, kernel_size <span class="op">=</span> <span class="dv">3</span>, padding <span class="op">=</span> <span class="dv">1</span>))</span>
+<span id="cb117-6"><a href="unet.html#cb117-6"></a>        block.append(nn.ReLU())</span>
+<span id="cb117-7"><a href="unet.html#cb117-7"></a>        <span class="co">#block.append(nn.BatchNorm2d(out_size))</span></span>
+<span id="cb117-8"><a href="unet.html#cb117-8"></a>        block.append(nn.Dropout(<span class="fl">0.6</span>))</span>
+<span id="cb117-9"><a href="unet.html#cb117-9"></a>        block.append(nn.Conv2d(out_size, out_size, kernel_size <span class="op">=</span> <span class="dv">3</span>, padding <span class="op">=</span> <span class="dv">1</span>))</span>
+<span id="cb117-10"><a href="unet.html#cb117-10"></a>        block.append(nn.ReLU())</span>
+<span id="cb117-11"><a href="unet.html#cb117-11"></a>        <span class="co">#block.append(nn.BatchNorm2d(out_size))</span></span>
+<span id="cb117-12"><a href="unet.html#cb117-12"></a>        block.append(nn.Dropout(<span class="fl">0.6</span>))</span>
+<span id="cb117-13"><a href="unet.html#cb117-13"></a>        <span class="va">self</span>.block <span class="op">=</span> nn.Sequential(<span class="op">*</span>block)</span>
+<span id="cb117-14"><a href="unet.html#cb117-14"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb117-15"><a href="unet.html#cb117-15"></a>        out <span class="op">=</span> <span class="va">self</span>.block(x)</span>
+<span id="cb117-16"><a href="unet.html#cb117-16"></a>        <span class="cf">return</span> out</span></code></pre></div>
+<div class="sourceCode" id="cb118"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb118-1"><a href="unet.html#cb118-1"></a><span class="kw">class</span> DownBlock(nn.Module):</span>
+<span id="cb118-2"><a href="unet.html#cb118-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
+<span id="cb118-3"><a href="unet.html#cb118-3"></a>        <span class="bu">super</span>(DownBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb118-4"><a href="unet.html#cb118-4"></a>        <span class="va">self</span>.conv_block <span class="op">=</span> ConvBlock(in_size, out_size)</span>
+<span id="cb118-5"><a href="unet.html#cb118-5"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb118-6"><a href="unet.html#cb118-6"></a>        down <span class="op">=</span> <span class="va">self</span>.conv_block(x)</span>
+<span id="cb118-7"><a href="unet.html#cb118-7"></a>        <span class="cf">return</span> down</span></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb119-1"><a href="unet.html#cb119-1"></a><span class="kw">class</span> UpBlock(nn.Module):</span>
+<span id="cb119-2"><a href="unet.html#cb119-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
+<span id="cb119-3"><a href="unet.html#cb119-3"></a>        <span class="bu">super</span>(UpBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb119-4"><a href="unet.html#cb119-4"></a>        <span class="va">self</span>.up <span class="op">=</span> nn.ConvTranspose2d(in_size, out_size, kernel_size <span class="op">=</span> <span class="dv">2</span>, stride <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb119-5"><a href="unet.html#cb119-5"></a>        <span class="va">self</span>.conv_block <span class="op">=</span> ConvBlock(in_size, out_size)</span>
+<span id="cb119-6"><a href="unet.html#cb119-6"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, bridge):</span>
+<span id="cb119-7"><a href="unet.html#cb119-7"></a>        up <span class="op">=</span> <span class="va">self</span>.up(x)</span>
+<span id="cb119-8"><a href="unet.html#cb119-8"></a>        out <span class="op">=</span> torch.cat([up, bridge], <span class="dv">1</span>)</span>
+<span id="cb119-9"><a href="unet.html#cb119-9"></a>        out <span class="op">=</span> <span class="va">self</span>.conv_block(out)</span>
+<span id="cb119-10"><a href="unet.html#cb119-10"></a>        <span class="cf">return</span> out</span></code></pre></div>
+<p>We instantiate the model with default parameters.</p>
+<div class="sourceCode" id="cb120"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb120-1"><a href="unet.html#cb120-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
+<span id="cb120-2"><a href="unet.html#cb120-2"></a>model <span class="op">=</span> UNet().to(device)</span></code></pre></div>
+<p>This results in a U-structure of the following dimensionality:</p>
 <table>
+<colgroup>
+<col width="20%" />
+<col width="55%" />
+<col width="24%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th>down</th>
@@ -785,13 +831,162 @@ by one.</p>
 </tr>
 <tr class="even">
 <td>512 x 16 x 16 (pool)</td>
-<td></td>
+<td>------------------------------------&gt;</td>
 <td>1024 x 16 x 16 (conv)</td>
 </tr>
 </tbody>
 </table>
-<p>Number of channels goes up due to convolution layers; spatial downsizing occurs due to max pooling. (There is no max pooling
-at the “inflection point”.)</p>
+<p>Note that when on the <em>down</em> path, the number of channels goes <em>up</em>, this is due to the convolution layers; spatial
+downsizing, however, occurs due to max pooling. This is an implementation feature, not a requirement – we could replace max
+pooling by using <code>strides</code> greater than <code>1</code> in the conv layers instead. This is another place where for a concrete
+application, you might want to experiment a bit.</p>
+<p>On the <em>up</em> path, we conveniently concatenate stored-away activations preceding max pooling layers to upwards-“bubbling”
+activations of same spatial resolution. The concatenated values are then upsized spatially using transposed convolutions,
+while the number of filters is reduced by conv layers. As an alternative to transposed convolution, you might want to try
+<code>UpSampling</code> layers.</p>
+</div>
+<div id="loss" class="section level3" number="8.3.3">
+<h3><span class="header-section-number">8.3.3</span> Loss</h3>
+<p>Thinking about loss functions that match the task, the first that probably comes to mind is binary crossentropy,
+<code>torch.nn.BCELoss</code>, applied pixel-wise. We’ll use it …</p>
+<div class="sourceCode" id="cb121"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb121-1"><a href="unet.html#cb121-1"></a>bce_loss <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
+<p>but we’ll augment it by another, called <em>dice loss</em> after the <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient">dice
+coefficient</a>:<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<p><span class="math display">\[
+d = \frac{2 * |X \cap Y|}{|X \cup Y|}
+\]</span></p>
+<p>The dice coefficient is similar in spirit to the <a href="https://en.wikipedia.org/wiki/Jaccard_index">Jaccard index</a>, also known as
+<em>intersection over union</em>, but differs in that it scales the numerator by two. Here is an implementation of the derived loss:</p>
+<div class="sourceCode" id="cb122"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb122-1"><a href="unet.html#cb122-1"></a><span class="kw">class</span> DiceLoss(nn.Module):</span>
+<span id="cb122-2"><a href="unet.html#cb122-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb122-3"><a href="unet.html#cb122-3"></a>        <span class="bu">super</span>(DiceLoss, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb122-4"><a href="unet.html#cb122-4"></a>        <span class="va">self</span>.smooth <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb122-5"><a href="unet.html#cb122-5"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, y_pred, y_true):</span>
+<span id="cb122-6"><a href="unet.html#cb122-6"></a>        <span class="cf">assert</span> y_pred.size() <span class="op">==</span> y_true.size()</span>
+<span id="cb122-7"><a href="unet.html#cb122-7"></a>        y_pred <span class="op">=</span> y_pred[:, <span class="dv">0</span>].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb122-8"><a href="unet.html#cb122-8"></a>        y_true <span class="op">=</span> y_true[:, <span class="dv">0</span>].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb122-9"><a href="unet.html#cb122-9"></a>        intersection <span class="op">=</span> (y_pred <span class="op">*</span> y_true).<span class="bu">sum</span>()</span>
+<span id="cb122-10"><a href="unet.html#cb122-10"></a>        dsc <span class="op">=</span> (<span class="fl">2.</span> <span class="op">*</span> intersection <span class="op">+</span> <span class="va">self</span>.smooth) <span class="op">/</span> (</span>
+<span id="cb122-11"><a href="unet.html#cb122-11"></a>            y_pred.<span class="bu">sum</span>() <span class="op">+</span> y_true.<span class="bu">sum</span>() <span class="op">+</span> <span class="va">self</span>.smooth</span>
+<span id="cb122-12"><a href="unet.html#cb122-12"></a>        )</span>
+<span id="cb122-13"><a href="unet.html#cb122-13"></a>        <span class="cf">return</span> <span class="fl">1.</span> <span class="op">-</span> dsc</span></code></pre></div>
+<p>Dice loss, defined as one minus the dice coefficient, is said to improve training on imbalanced datasets. Looking closely, we
+see that if a mask is all zero, the only way to not to incur loss is by predicting all zeroes, as well.</p>
+<p>For easy experimentation, we combine make it so both losses are combined in a weighted fashion:</p>
+<div class="sourceCode" id="cb123"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb123-1"><a href="unet.html#cb123-1"></a>dice_loss <span class="op">=</span> DiceLoss()</span>
+<span id="cb123-2"><a href="unet.html#cb123-2"></a></span>
+<span id="cb123-3"><a href="unet.html#cb123-3"></a>dice_weight <span class="op">=</span> <span class="fl">0.3</span></span></code></pre></div>
+</div>
+<div id="training-1" class="section level3" number="8.3.4">
+<h3><span class="header-section-number">8.3.4</span> Training</h3>
+<p>We train for fifty epochs, continously saving the model weights that are best so far.</p>
+<div class="sourceCode" id="cb124"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb124-1"><a href="unet.html#cb124-1"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.1</span>, momentum <span class="op">=</span> <span class="fl">0.9</span>)</span>
+<span id="cb124-2"><a href="unet.html#cb124-2"></a></span>
+<span id="cb124-3"><a href="unet.html#cb124-3"></a>scheduler <span class="op">=</span> torch.optim.lr_scheduler.OneCycleLR(</span>
+<span id="cb124-4"><a href="unet.html#cb124-4"></a>    optimizer,</span>
+<span id="cb124-5"><a href="unet.html#cb124-5"></a>    max_lr <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span id="cb124-6"><a href="unet.html#cb124-6"></a>    steps_per_epoch <span class="op">=</span> <span class="bu">len</span>(train_loader),</span>
+<span id="cb124-7"><a href="unet.html#cb124-7"></a>    epochs <span class="op">=</span> num_epochs</span>
+<span id="cb124-8"><a href="unet.html#cb124-8"></a>)</span>
+<span id="cb124-9"><a href="unet.html#cb124-9"></a></span>
+<span id="cb124-10"><a href="unet.html#cb124-10"></a>best_model_wts <span class="op">=</span> copy.deepcopy(model.state_dict())</span>
+<span id="cb124-11"><a href="unet.html#cb124-11"></a>best_dice_coef <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb124-12"><a href="unet.html#cb124-12"></a></span>
+<span id="cb124-13"><a href="unet.html#cb124-13"></a>num_epochs <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb124-14"><a href="unet.html#cb124-14"></a></span>
+<span id="cb124-15"><a href="unet.html#cb124-15"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
+<span id="cb124-16"><a href="unet.html#cb124-16"></a>    <span class="bu">print</span>(<span class="st">&#39;Epoch </span><span class="sc">{}</span><span class="st">/</span><span class="sc">{}</span><span class="st">&#39;</span>.<span class="bu">format</span>(epoch, num_epochs <span class="op">-</span> <span class="dv">1</span>), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb124-17"><a href="unet.html#cb124-17"></a>    <span class="bu">print</span>(<span class="st">&#39;-&#39;</span> <span class="op">*</span> <span class="dv">10</span>)</span>
+<span id="cb124-18"><a href="unet.html#cb124-18"></a>    <span class="cf">for</span> phase <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>]:</span>
+<span id="cb124-19"><a href="unet.html#cb124-19"></a>        <span class="bu">print</span>(<span class="st">&quot;Entering phase: &quot;</span> <span class="op">+</span> phase, flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb124-20"><a href="unet.html#cb124-20"></a>        <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb124-21"><a href="unet.html#cb124-21"></a>            model <span class="op">=</span> model.train() </span>
+<span id="cb124-22"><a href="unet.html#cb124-22"></a>        <span class="cf">else</span>:</span>
+<span id="cb124-23"><a href="unet.html#cb124-23"></a>            model <span class="op">=</span> model.<span class="bu">eval</span>()   </span>
+<span id="cb124-24"><a href="unet.html#cb124-24"></a>        running_loss <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb124-25"><a href="unet.html#cb124-25"></a>        running_dice <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb124-26"><a href="unet.html#cb124-26"></a>        running_bce <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb124-27"><a href="unet.html#cb124-27"></a>        <span class="cf">for</span> inputs, labels <span class="kw">in</span> dataloaders[phase]:</span>
+<span id="cb124-28"><a href="unet.html#cb124-28"></a>            inputs <span class="op">=</span> inputs.to(device)</span>
+<span id="cb124-29"><a href="unet.html#cb124-29"></a>            labels <span class="op">=</span> labels.to(device)</span>
+<span id="cb124-30"><a href="unet.html#cb124-30"></a>            optimizer.zero_grad()</span>
+<span id="cb124-31"><a href="unet.html#cb124-31"></a>            <span class="cf">with</span> torch.set_grad_enabled(phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>):</span>
+<span id="cb124-32"><a href="unet.html#cb124-32"></a>                preds <span class="op">=</span> model(inputs)</span>
+<span id="cb124-33"><a href="unet.html#cb124-33"></a>                dice_loss <span class="op">=</span> dsc_loss(preds, labels)</span>
+<span id="cb124-34"><a href="unet.html#cb124-34"></a>                xent_loss <span class="op">=</span> bce_loss(preds, labels)</span>
+<span id="cb124-35"><a href="unet.html#cb124-35"></a>                loss <span class="op">=</span> dice_weight <span class="op">*</span> dice_loss <span class="op">+</span> (<span class="dv">1</span> <span class="op">-</span> dice_weight) <span class="op">*</span> xent_loss</span>
+<span id="cb124-36"><a href="unet.html#cb124-36"></a>                <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb124-37"><a href="unet.html#cb124-37"></a>                    loss.backward()</span>
+<span id="cb124-38"><a href="unet.html#cb124-38"></a>                    optimizer.step()</span>
+<span id="cb124-39"><a href="unet.html#cb124-39"></a>            running_loss <span class="op">+=</span> loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
+<span id="cb124-40"><a href="unet.html#cb124-40"></a>            running_dice <span class="op">+=</span> dice_loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
+<span id="cb124-41"><a href="unet.html#cb124-41"></a>            <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb124-42"><a href="unet.html#cb124-42"></a>                scheduler.step()</span>
+<span id="cb124-43"><a href="unet.html#cb124-43"></a>        epoch_loss <span class="op">=</span> running_loss <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb124-44"><a href="unet.html#cb124-44"></a>        epoch_dice <span class="op">=</span> running_dice <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb124-45"><a href="unet.html#cb124-45"></a>        epoch_bce <span class="op">=</span> running_bce <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb124-46"><a href="unet.html#cb124-46"></a>        <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;valid&#39;</span> <span class="kw">and</span> epoch_dice <span class="op">&lt;</span> best_dice_coef:</span>
+<span id="cb124-47"><a href="unet.html#cb124-47"></a>            best_dice <span class="op">=</span> epoch_dice</span>
+<span id="cb124-48"><a href="unet.html#cb124-48"></a>            best_model_wts <span class="op">=</span> copy.deepcopy(model.state_dict())</span>
+<span id="cb124-49"><a href="unet.html#cb124-49"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Loss: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_loss), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb124-50"><a href="unet.html#cb124-50"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Dice coef: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_dice), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb124-51"><a href="unet.html#cb124-51"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> BCE: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_bce), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb124-52"><a href="unet.html#cb124-52"></a>    <span class="bu">print</span>()</span>
+<span id="cb124-53"><a href="unet.html#cb124-53"></a></span>
+<span id="cb124-54"><a href="unet.html#cb124-54"></a>model.load_state_dict(best_model_wts)</span>
+<span id="cb124-55"><a href="unet.html#cb124-55"></a>torch.save(model.state_dict(), <span class="st">&quot;mri.pt&quot;</span>)</span></code></pre></div>
+<p>Here is a excerpt from the training history:</p>
+<pre><code>Epoch 0/49
+----------
+Entering phase: train
+train Loss: 1.0315
+train Dice coef: 2.3604
+train BCE: 0.4620
+Entering phase: valid
+valid Loss: 1.3413
+valid Dice coef: 3.2042
+valid BCE: 0.5429
+
+Epoch 1/49
+----------
+Entering phase: train
+train Loss: 0.7160
+train Dice coef: 1.5426
+train BCE: 0.3618
+Entering phase: valid
+valid Loss: 1.3800
+valid Dice coef: 3.2879
+valid BCE: 0.5624
+
+...
+
+Epoch 48/49
+----------
+Entering phase: train
+train Loss: 0.2059
+train Dice coef: 0.4564
+train BCE: 0.0985
+Entering phase: valid
+valid Loss: 1.1764
+valid Dice coef: 3.0436
+valid BCE: 0.3762
+
+Epoch 49/49
+----------
+Entering phase: train
+train Loss: 0.2033
+train Dice coef: 0.4519
+train BCE: 0.0968
+Entering phase: valid
+valid Loss: 1.1654
+valid Dice coef: 3.0353
+valid BCE: 0.3641
+
+</code></pre>
+</div>
+<div id="predictions" class="section level3" number="8.3.5">
+<h3><span class="header-section-number">8.3.5</span> Predictions</h3>
+<p>TBD when in R.</p>
 
 </div>
 </div>

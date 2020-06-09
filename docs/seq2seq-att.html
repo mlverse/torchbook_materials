@@ -200,11 +200,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="8.1" data-path="unet.html"><a href="unet.html#image-segmentation-in-a-nutshell"><i class="fa fa-check"></i><b>8.1</b> Image segmentation in a nutshell</a></li>
 <li class="chapter" data-level="8.2" data-path="unet.html"><a href="unet.html#u-net"><i class="fa fa-check"></i><b>8.2</b> U-Net</a></li>
-<li class="chapter" data-level="8.3" data-path="unet.html"><a href="unet.html#example-application-mri-images"><i class="fa fa-check"></i><b>8.3</b> Example application: MRI images</a></li>
-<li class="chapter" data-level="8.4" data-path="unet.html"><a href="unet.html#preprocessing"><i class="fa fa-check"></i><b>8.4</b> Preprocessing</a></li>
-<li class="chapter" data-level="8.5" data-path="unet.html"><a href="unet.html#u-net-model"><i class="fa fa-check"></i><b>8.5</b> U-Net model</a>
+<li class="chapter" data-level="8.3" data-path="unet.html"><a href="unet.html#example-application-mri-images"><i class="fa fa-check"></i><b>8.3</b> Example application: MRI images</a>
 <ul>
-<li class="chapter" data-level="8.5.1" data-path="unet.html"><a href="unet.html#heading"><i class="fa fa-check"></i><b>8.5.1</b> heading</a></li>
+<li class="chapter" data-level="8.3.1" data-path="unet.html"><a href="unet.html#preprocessing"><i class="fa fa-check"></i><b>8.3.1</b> Preprocessing</a></li>
+<li class="chapter" data-level="8.3.2" data-path="unet.html"><a href="unet.html#u-net-model"><i class="fa fa-check"></i><b>8.3.2</b> U-Net model</a></li>
+<li class="chapter" data-level="8.3.3" data-path="unet.html"><a href="unet.html#loss"><i class="fa fa-check"></i><b>8.3.3</b> Loss</a></li>
+<li class="chapter" data-level="8.3.4" data-path="unet.html"><a href="unet.html#training-1"><i class="fa fa-check"></i><b>8.3.4</b> Training</a></li>
+<li class="chapter" data-level="8.3.5" data-path="unet.html"><a href="unet.html#predictions"><i class="fa fa-check"></i><b>8.3.5</b> Predictions</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III Natural language processing</b></span></li>
@@ -316,83 +318,83 @@ same. Our example will use Bahdanau-style <span class="citation">(Bahdanau, Cho,
 input and how to transform it to a tensor.</p>
 <p>In our example, the source language will be English, and the target will be French. Here, we ask torch to use Spacy as a
 tokenizer for both languages, and what tokens to use to mark sentence beginnings and endings:</p>
-<div class="sourceCode" id="cb117"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb117-1"><a href="seq2seq-att.html#cb117-1"></a><span class="im">import</span> torch</span>
-<span id="cb117-2"><a href="seq2seq-att.html#cb117-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
-<span id="cb117-3"><a href="seq2seq-att.html#cb117-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
-<span id="cb117-4"><a href="seq2seq-att.html#cb117-4"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
-<span id="cb117-5"><a href="seq2seq-att.html#cb117-5"></a></span>
-<span id="cb117-6"><a href="seq2seq-att.html#cb117-6"></a><span class="im">from</span> torchtext.data <span class="im">import</span> Field, BucketIterator</span>
-<span id="cb117-7"><a href="seq2seq-att.html#cb117-7"></a><span class="im">from</span> torchtext.datasets <span class="im">import</span> IWSLT</span>
-<span id="cb117-8"><a href="seq2seq-att.html#cb117-8"></a></span>
-<span id="cb117-9"><a href="seq2seq-att.html#cb117-9"></a><span class="im">import</span> random</span>
-<span id="cb117-10"><a href="seq2seq-att.html#cb117-10"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb117-11"><a href="seq2seq-att.html#cb117-11"></a><span class="im">import</span> math</span>
-<span id="cb117-12"><a href="seq2seq-att.html#cb117-12"></a></span>
-<span id="cb117-13"><a href="seq2seq-att.html#cb117-13"></a>src_spec <span class="op">=</span> Field(</span>
-<span id="cb117-14"><a href="seq2seq-att.html#cb117-14"></a>  tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
-<span id="cb117-15"><a href="seq2seq-att.html#cb117-15"></a>  tokenizer_language<span class="op">=</span><span class="st">&quot;en&quot;</span>,</span>
-<span id="cb117-16"><a href="seq2seq-att.html#cb117-16"></a>  init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
-<span id="cb117-17"><a href="seq2seq-att.html#cb117-17"></a>  eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
-<span id="cb117-18"><a href="seq2seq-att.html#cb117-18"></a>  lower <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb117-19"><a href="seq2seq-att.html#cb117-19"></a></span>
-<span id="cb117-20"><a href="seq2seq-att.html#cb117-20"></a>trg_spec <span class="op">=</span> Field(</span>
-<span id="cb117-21"><a href="seq2seq-att.html#cb117-21"></a>  tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
-<span id="cb117-22"><a href="seq2seq-att.html#cb117-22"></a>  tokenizer_language<span class="op">=</span><span class="st">&quot;fr&quot;</span>,</span>
-<span id="cb117-23"><a href="seq2seq-att.html#cb117-23"></a>  init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
-<span id="cb117-24"><a href="seq2seq-att.html#cb117-24"></a>  eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
-<span id="cb117-25"><a href="seq2seq-att.html#cb117-25"></a>  lower <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb126-1"><a href="seq2seq-att.html#cb126-1"></a><span class="im">import</span> torch</span>
+<span id="cb126-2"><a href="seq2seq-att.html#cb126-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb126-3"><a href="seq2seq-att.html#cb126-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
+<span id="cb126-4"><a href="seq2seq-att.html#cb126-4"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
+<span id="cb126-5"><a href="seq2seq-att.html#cb126-5"></a></span>
+<span id="cb126-6"><a href="seq2seq-att.html#cb126-6"></a><span class="im">from</span> torchtext.data <span class="im">import</span> Field, BucketIterator</span>
+<span id="cb126-7"><a href="seq2seq-att.html#cb126-7"></a><span class="im">from</span> torchtext.datasets <span class="im">import</span> IWSLT</span>
+<span id="cb126-8"><a href="seq2seq-att.html#cb126-8"></a></span>
+<span id="cb126-9"><a href="seq2seq-att.html#cb126-9"></a><span class="im">import</span> random</span>
+<span id="cb126-10"><a href="seq2seq-att.html#cb126-10"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb126-11"><a href="seq2seq-att.html#cb126-11"></a><span class="im">import</span> math</span>
+<span id="cb126-12"><a href="seq2seq-att.html#cb126-12"></a></span>
+<span id="cb126-13"><a href="seq2seq-att.html#cb126-13"></a>src_spec <span class="op">=</span> Field(</span>
+<span id="cb126-14"><a href="seq2seq-att.html#cb126-14"></a>  tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
+<span id="cb126-15"><a href="seq2seq-att.html#cb126-15"></a>  tokenizer_language<span class="op">=</span><span class="st">&quot;en&quot;</span>,</span>
+<span id="cb126-16"><a href="seq2seq-att.html#cb126-16"></a>  init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
+<span id="cb126-17"><a href="seq2seq-att.html#cb126-17"></a>  eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
+<span id="cb126-18"><a href="seq2seq-att.html#cb126-18"></a>  lower <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb126-19"><a href="seq2seq-att.html#cb126-19"></a></span>
+<span id="cb126-20"><a href="seq2seq-att.html#cb126-20"></a>trg_spec <span class="op">=</span> Field(</span>
+<span id="cb126-21"><a href="seq2seq-att.html#cb126-21"></a>  tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
+<span id="cb126-22"><a href="seq2seq-att.html#cb126-22"></a>  tokenizer_language<span class="op">=</span><span class="st">&quot;fr&quot;</span>,</span>
+<span id="cb126-23"><a href="seq2seq-att.html#cb126-23"></a>  init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
+<span id="cb126-24"><a href="seq2seq-att.html#cb126-24"></a>  eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
+<span id="cb126-25"><a href="seq2seq-att.html#cb126-25"></a>  lower <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div>
 <p>These <code>Field</code>s will soon be used to store the <em>vocabularies</em> for both languages, that is, the mappings from words to integers.
 But first, we need a dataset. We use the data from the 2016 IWSLT TED talk translation contest, nicely downloadable, and
 already split into training, validation and testing subsets by torch:</p>
-<div class="sourceCode" id="cb118"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb118-1"><a href="seq2seq-att.html#cb118-1"></a>train_data, valid_data, test_data <span class="op">=</span> IWSLT.splits(exts <span class="op">=</span> (<span class="st">&#39;.en&#39;</span>, <span class="st">&#39;.fr&#39;</span>), fields <span class="op">=</span> (src_spec, trg_spec))</span>
-<span id="cb118-2"><a href="seq2seq-att.html#cb118-2"></a></span>
-<span id="cb118-3"><a href="seq2seq-att.html#cb118-3"></a><span class="bu">len</span>(train_data.examples), <span class="bu">len</span>(valid_data.examples), <span class="bu">len</span>(test_data.examples)</span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb127-1"><a href="seq2seq-att.html#cb127-1"></a>train_data, valid_data, test_data <span class="op">=</span> IWSLT.splits(exts <span class="op">=</span> (<span class="st">&#39;.en&#39;</span>, <span class="st">&#39;.fr&#39;</span>), fields <span class="op">=</span> (src_spec, trg_spec))</span>
+<span id="cb127-2"><a href="seq2seq-att.html#cb127-2"></a></span>
+<span id="cb127-3"><a href="seq2seq-att.html#cb127-3"></a><span class="bu">len</span>(train_data.examples), <span class="bu">len</span>(valid_data.examples), <span class="bu">len</span>(test_data.examples)</span></code></pre></div>
 <pre><code>{(220400, 1026, 1305)}</code></pre>
 <p>As you see, the training set is gigantic, so one epoch of training will take some time even on a decent GPU. Let’s see a few
 examples:</p>
-<div class="sourceCode" id="cb120"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb120-1"><a href="seq2seq-att.html#cb120-1"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111</span>])</span>
-<span id="cb120-2"><a href="seq2seq-att.html#cb120-2"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">11111</span>])</span>
-<span id="cb120-3"><a href="seq2seq-att.html#cb120-3"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111111</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb129"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb129-1"><a href="seq2seq-att.html#cb129-1"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111</span>])</span>
+<span id="cb129-2"><a href="seq2seq-att.html#cb129-2"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">11111</span>])</span>
+<span id="cb129-3"><a href="seq2seq-att.html#cb129-3"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111111</span>])</span></code></pre></div>
 <pre><code>{&#39;src&#39;: [&#39;on&#39;, &#39;one&#39;, &#39;of&#39;, &#39;the&#39;, &#39;last&#39;, &#39;dive&#39;, &#39;series&#39;, &#39;,&#39;, &#39;we&#39;, &#39;counted&#39;, &#39;200&#39;, &#39;species&#39;, &#39;in&#39;, &#39;these&#39;, &#39;areas&#39;, &#39;--&#39;, &#39;198&#39;, &#39;were&#39;, &#39;new&#39;, &#39;,&#39;, &#39;new&#39;, &#39;species&#39;, &#39;.&#39;], &#39;trg&#39;: [&#39;dans&#39;, &#39;une&#39;, &#39;des&#39;, &#39;plus&#39;, &#39;récentes&#39;, &#39;plongées&#39;, &#39;on&#39;, &#39;a&#39;, &#39;compté&#39;, &#39;200&#39;, &#39;espèces&#39;, &#39;dans&#39;, &#39;ces&#39;, &#39;régions&#39;, &#39;.&#39;, &#39;198&#39;, &#39;étaient&#39;, &#39;nouvelles&#39;, &#39;-&#39;, &#39;de&#39;, &#39;nouvelles&#39;, &#39;espèces&#39;, &#39;.&#39;]}
 
 {&#39;src&#39;: [&#39;this&#39;, &#39;is&#39;, &#39;one&#39;, &#39;of&#39;, &#39;the&#39;, &#39;true&#39;, &#39;masterpieces&#39;, &#39;in&#39;, &#39;puzzle&#39;, &#39;design&#39;, &#39;besides&#39;, &#39;rubik&#39;, &quot;&#39;s&quot;, &#39;cube&#39;, &#39;.&#39;], &#39;trg&#39;: [&quot;c&#39;&quot;, &#39;est&#39;, &#39;un&#39;, &#39;des&#39;, &#39;véritables&#39;, &#39;chefs&#39;, &#39;-&#39;, &quot;d&#39;&quot;, &#39;œuvre&#39;, &#39;en&#39;, &#39;terme&#39;, &#39;de&#39;, &#39;casse-tête&#39;, &#39;,&#39;, &#39;avec&#39;, &#39;le&#39;, &quot;rubik&#39;&quot;, &#39;s&#39;, &#39;cube&#39;, &#39;.&#39;]}
 
 {&#39;src&#39;: [&#39;i&#39;, &#39;sat&#39;, &#39;him&#39;, &#39;down&#39;, &#39;,&#39;, &#39;i&#39;, &#39;caricatured&#39;, &#39;him&#39;, &#39;,&#39;, &#39;and&#39;, &#39;since&#39;, &#39;then&#39;, &#39;i&#39;, &quot;&#39;ve&quot;, &#39;caricatured&#39;, &#39;hundreds&#39;, &#39;of&#39;, &#39;celebrities&#39;, &#39;.&#39;], &#39;trg&#39;: [&#39;je&#39;, &#39;me&#39;, &#39;suis&#39;, &#39;assis&#39;, &#39;,&#39;, &#39;je&#39;, &quot;l&#39;&quot;, &#39;ai&#39;, &#39;caricaturé&#39;, &#39;,&#39;, &#39;et&#39;, &#39;vu&#39;, &#39;que&#39;, &quot;j&#39;&quot;, &#39;avais&#39;, &#39;caricaturé&#39;, &#39;des&#39;, &#39;centaines&#39;, &#39;de&#39;, &#39;célébrités&#39;, &#39;.&#39;]}</code></pre>
 <p>Now we can build the vocabularies on the source and target, respectively.</p>
-<div class="sourceCode" id="cb122"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb122-1"><a href="seq2seq-att.html#cb122-1"></a>src_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb122-2"><a href="seq2seq-att.html#cb122-2"></a></span>
-<span id="cb122-3"><a href="seq2seq-att.html#cb122-3"></a>trg_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb122-4"><a href="seq2seq-att.html#cb122-4"></a></span>
-<span id="cb122-5"><a href="seq2seq-att.html#cb122-5"></a><span class="bu">len</span>(src_spec.vocab), <span class="bu">len</span>(trg_spec.vocab)</span></code></pre></div>
+<div class="sourceCode" id="cb131"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb131-1"><a href="seq2seq-att.html#cb131-1"></a>src_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb131-2"><a href="seq2seq-att.html#cb131-2"></a></span>
+<span id="cb131-3"><a href="seq2seq-att.html#cb131-3"></a>trg_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb131-4"><a href="seq2seq-att.html#cb131-4"></a></span>
+<span id="cb131-5"><a href="seq2seq-att.html#cb131-5"></a><span class="bu">len</span>(src_spec.vocab), <span class="bu">len</span>(trg_spec.vocab)</span></code></pre></div>
 <pre><code>(34948, 45032)</code></pre>
 <p><code>vocab</code> is a dictionary, with tokens as keys and integers as values:</p>
-<div class="sourceCode" id="cb124"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb124-1"><a href="seq2seq-att.html#cb124-1"></a>src_spec.vocab.stoi[<span class="st">&quot;cat&quot;</span>], trg_spec.vocab.stoi[<span class="st">&quot;chat&quot;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb133"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb133-1"><a href="seq2seq-att.html#cb133-1"></a>src_spec.vocab.stoi[<span class="st">&quot;cat&quot;</span>], trg_spec.vocab.stoi[<span class="st">&quot;chat&quot;</span>]</span></code></pre></div>
 <pre><code>(2036, 2424)</code></pre>
 <p>In locations 1-4, we have the special tokens indicating unknown input, padding, start of sentence and end of sentence.</p>
-<div class="sourceCode" id="cb126"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb126-1"><a href="seq2seq-att.html#cb126-1"></a>src_spec.vocab.itos[<span class="dv">0</span>], src_spec.vocab.itos[<span class="dv">1</span>], src_spec.vocab.itos[<span class="dv">2</span>], src_spec.vocab.itos[<span class="dv">3</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb135"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb135-1"><a href="seq2seq-att.html#cb135-1"></a>src_spec.vocab.itos[<span class="dv">0</span>], src_spec.vocab.itos[<span class="dv">1</span>], src_spec.vocab.itos[<span class="dv">2</span>], src_spec.vocab.itos[<span class="dv">3</span>]</span></code></pre></div>
 <pre><code>(&#39;&lt;unk&gt;&#39;, &#39;&lt;pad&gt;&#39;, &#39;&lt;sos&gt;&#39;, &#39;&lt;eos&gt;&#39;)</code></pre>
 <p>Preprocessing-wise, that’s already it. All that remains to be done before proceeding to model definition is to create
 iterators for the training, validation and testing sets. The <code>BucketIterator</code> class will assemble batches so that sentences of
 similar length go together:</p>
-<div class="sourceCode" id="cb128"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb128-1"><a href="seq2seq-att.html#cb128-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
-<span id="cb128-2"><a href="seq2seq-att.html#cb128-2"></a></span>
-<span id="cb128-3"><a href="seq2seq-att.html#cb128-3"></a>batch_size <span class="op">=</span> <span class="dv">8</span></span>
-<span id="cb128-4"><a href="seq2seq-att.html#cb128-4"></a></span>
-<span id="cb128-5"><a href="seq2seq-att.html#cb128-5"></a>train_iterator, valid_iterator, test_iterator <span class="op">=</span> BucketIterator.splits(</span>
-<span id="cb128-6"><a href="seq2seq-att.html#cb128-6"></a>    (train_data, valid_data, test_data),</span>
-<span id="cb128-7"><a href="seq2seq-att.html#cb128-7"></a>    batch_size <span class="op">=</span> batch_size,</span>
-<span id="cb128-8"><a href="seq2seq-att.html#cb128-8"></a>    device <span class="op">=</span> device)</span></code></pre></div>
+<div class="sourceCode" id="cb137"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb137-1"><a href="seq2seq-att.html#cb137-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
+<span id="cb137-2"><a href="seq2seq-att.html#cb137-2"></a></span>
+<span id="cb137-3"><a href="seq2seq-att.html#cb137-3"></a>batch_size <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb137-4"><a href="seq2seq-att.html#cb137-4"></a></span>
+<span id="cb137-5"><a href="seq2seq-att.html#cb137-5"></a>train_iterator, valid_iterator, test_iterator <span class="op">=</span> BucketIterator.splits(</span>
+<span id="cb137-6"><a href="seq2seq-att.html#cb137-6"></a>    (train_data, valid_data, test_data),</span>
+<span id="cb137-7"><a href="seq2seq-att.html#cb137-7"></a>    batch_size <span class="op">=</span> batch_size,</span>
+<span id="cb137-8"><a href="seq2seq-att.html#cb137-8"></a>    device <span class="op">=</span> device)</span></code></pre></div>
 <p>Let’s inspect the first batch.</p>
-<div class="sourceCode" id="cb129"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb129-1"><a href="seq2seq-att.html#cb129-1"></a>batch <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(train_iterator))</span>
-<span id="cb129-2"><a href="seq2seq-att.html#cb129-2"></a>batch.src.shape, batch.trg.shape</span></code></pre></div>
+<div class="sourceCode" id="cb138"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb138-1"><a href="seq2seq-att.html#cb138-1"></a>batch <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(train_iterator))</span>
+<span id="cb138-2"><a href="seq2seq-att.html#cb138-2"></a>batch.src.shape, batch.trg.shape</span></code></pre></div>
 <pre><code>(torch.Size([26, 8]), torch.Size([34, 8]))</code></pre>
 <p>If you’ve been working with Keras / TensorFlow, you may be surprised to see the batch dimension winding up in second place.
 This is due to a default setting of <code>torchtext</code> <code>Field</code>s (which we could have changed had we wanted to):</p>
-<div class="sourceCode" id="cb131"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb131-1"><a href="seq2seq-att.html#cb131-1"></a>train_data.fields[<span class="st">&quot;src&quot;</span>]._batch_first</span></code></pre></div>
+<div class="sourceCode" id="cb140"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb140-1"><a href="seq2seq-att.html#cb140-1"></a>train_data.fields[<span class="st">&quot;src&quot;</span>]._batch_first</span></code></pre></div>
 <pre><code>False</code></pre>
 <p>Another interesting observation, especially if you come from Keras: Every batch really is of (potentially) different sentence
 length, keeping the amount of padding minimal:</p>
-<div class="sourceCode" id="cb133"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb133-1"><a href="seq2seq-att.html#cb133-1"></a>batch.src[ :, <span class="dv">0</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb142"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb142-1"><a href="seq2seq-att.html#cb142-1"></a>batch.src[ :, <span class="dv">0</span>]</span></code></pre></div>
 <pre><code>tensor([    2,    59,    10, 15954,     0,    64,     4,    15,   242,    42,
           690,     4,    28,    14,    18,     6,  1239, 17430,    13,   445,
             5,     3,     1,     1,     1,     1], device=&#39;cuda:0&#39;)</code></pre>
@@ -412,53 +414,53 @@ using an LSTM instead): The respective tensors are</p>
 and</li>
 <li>the last hidden state (available from Keras using <code>return_state = True</code>)</li>
 </ul>
-<div class="sourceCode" id="cb135"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb135-1"><a href="seq2seq-att.html#cb135-1"></a>num_input_features <span class="op">=</span> <span class="bu">len</span>(src_spec.vocab)</span>
-<span id="cb135-2"><a href="seq2seq-att.html#cb135-2"></a></span>
-<span id="cb135-3"><a href="seq2seq-att.html#cb135-3"></a>encoder_embedding_dim <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb135-4"><a href="seq2seq-att.html#cb135-4"></a>encoder_hidden_dim <span class="op">=</span> <span class="dv">64</span></span>
-<span id="cb135-5"><a href="seq2seq-att.html#cb135-5"></a></span>
-<span id="cb135-6"><a href="seq2seq-att.html#cb135-6"></a>decoder_hidden_dim <span class="op">=</span> <span class="dv">64</span></span>
-<span id="cb135-7"><a href="seq2seq-att.html#cb135-7"></a></span>
-<span id="cb135-8"><a href="seq2seq-att.html#cb135-8"></a>encoder_dropout <span class="op">=</span> <span class="fl">0.5</span></span>
-<span id="cb135-9"><a href="seq2seq-att.html#cb135-9"></a></span>
-<span id="cb135-10"><a href="seq2seq-att.html#cb135-10"></a></span>
-<span id="cb135-11"><a href="seq2seq-att.html#cb135-11"></a><span class="kw">class</span> Encoder(nn.Module):</span>
-<span id="cb135-12"><a href="seq2seq-att.html#cb135-12"></a>  </span>
-<span id="cb135-13"><a href="seq2seq-att.html#cb135-13"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_input_features, embedding_dim, encoder_hidden_dim, decoder_hidden_dim, dropout):</span>
-<span id="cb135-14"><a href="seq2seq-att.html#cb135-14"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb135-15"><a href="seq2seq-att.html#cb135-15"></a>        <span class="va">self</span>.num_input_features <span class="op">=</span> num_input_features</span>
-<span id="cb135-16"><a href="seq2seq-att.html#cb135-16"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
-<span id="cb135-17"><a href="seq2seq-att.html#cb135-17"></a>        <span class="va">self</span>.encoder_hidden_dim <span class="op">=</span> encoder_hidden_dim</span>
-<span id="cb135-18"><a href="seq2seq-att.html#cb135-18"></a>        <span class="va">self</span>.decoder_hidden_dim <span class="op">=</span> decoder_hidden_dim</span>
-<span id="cb135-19"><a href="seq2seq-att.html#cb135-19"></a>        <span class="va">self</span>.dropout <span class="op">=</span> dropout</span>
-<span id="cb135-20"><a href="seq2seq-att.html#cb135-20"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_input_features, embedding_dim)</span>
-<span id="cb135-21"><a href="seq2seq-att.html#cb135-21"></a>        <span class="va">self</span>.rnn <span class="op">=</span> nn.GRU(embedding_dim, encoder_hidden_dim, bidirectional <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb135-22"><a href="seq2seq-att.html#cb135-22"></a>        <span class="va">self</span>.fc <span class="op">=</span> nn.Linear(encoder_hidden_dim <span class="op">*</span> <span class="dv">2</span>, decoder_hidden_dim)</span>
-<span id="cb135-23"><a href="seq2seq-att.html#cb135-23"></a>        <span class="va">self</span>.dropout <span class="op">=</span> nn.Dropout(dropout)</span>
-<span id="cb135-24"><a href="seq2seq-att.html#cb135-24"></a>    </span>
-<span id="cb135-25"><a href="seq2seq-att.html#cb135-25"></a>    <span class="co"># src: seq_len * bs</span></span>
-<span id="cb135-26"><a href="seq2seq-att.html#cb135-26"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src):</span>
-<span id="cb135-27"><a href="seq2seq-att.html#cb135-27"></a>        </span>
-<span id="cb135-28"><a href="seq2seq-att.html#cb135-28"></a>        <span class="co"># embedded: seq_len * bs * embedding_dim</span></span>
-<span id="cb135-29"><a href="seq2seq-att.html#cb135-29"></a>        <span class="co"># each input token gets embedded to degree embedding_dim</span></span>
-<span id="cb135-30"><a href="seq2seq-att.html#cb135-30"></a>        embedded <span class="op">=</span> <span class="va">self</span>.dropout(<span class="va">self</span>.embedding(src))</span>
-<span id="cb135-31"><a href="seq2seq-att.html#cb135-31"></a>        <span class="co"># output: seq_len * bs * (2 * hidden_size)</span></span>
-<span id="cb135-32"><a href="seq2seq-att.html#cb135-32"></a>        <span class="co">#  =&gt; tensor containing the output features h_t for each t (!)</span></span>
-<span id="cb135-33"><a href="seq2seq-att.html#cb135-33"></a>        <span class="co"># hidden: 2 * bs * hidden_size</span></span>
-<span id="cb135-34"><a href="seq2seq-att.html#cb135-34"></a>        <span class="co">#  =&gt; tensor containing the hidden state for t = seq_len</span></span>
-<span id="cb135-35"><a href="seq2seq-att.html#cb135-35"></a>        outputs, hidden <span class="op">=</span> <span class="va">self</span>.rnn(embedded)</span>
-<span id="cb135-36"><a href="seq2seq-att.html#cb135-36"></a>        <span class="co"># concatenate last state from both directions</span></span>
-<span id="cb135-37"><a href="seq2seq-att.html#cb135-37"></a>        <span class="co"># input size to fc then is bs * 2 * hidden_size</span></span>
-<span id="cb135-38"><a href="seq2seq-att.html#cb135-38"></a>        hidden <span class="op">=</span> torch.tanh(<span class="va">self</span>.fc(torch.cat((hidden[<span class="op">-</span><span class="dv">2</span>,:,:], hidden[<span class="op">-</span><span class="dv">1</span>,:,:]), dim <span class="op">=</span> <span class="dv">1</span>)))</span>
-<span id="cb135-39"><a href="seq2seq-att.html#cb135-39"></a>        <span class="co"># hidden is now bs * decoder_hidden_dim</span></span>
-<span id="cb135-40"><a href="seq2seq-att.html#cb135-40"></a>        <span class="cf">return</span> outputs, hidden</span>
-<span id="cb135-41"><a href="seq2seq-att.html#cb135-41"></a></span>
-<span id="cb135-42"><a href="seq2seq-att.html#cb135-42"></a>encoder <span class="op">=</span> Encoder(num_input_features, encoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, encoder_dropout).to(device)</span></code></pre></div>
+<div class="sourceCode" id="cb144"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb144-1"><a href="seq2seq-att.html#cb144-1"></a>num_input_features <span class="op">=</span> <span class="bu">len</span>(src_spec.vocab)</span>
+<span id="cb144-2"><a href="seq2seq-att.html#cb144-2"></a></span>
+<span id="cb144-3"><a href="seq2seq-att.html#cb144-3"></a>encoder_embedding_dim <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb144-4"><a href="seq2seq-att.html#cb144-4"></a>encoder_hidden_dim <span class="op">=</span> <span class="dv">64</span></span>
+<span id="cb144-5"><a href="seq2seq-att.html#cb144-5"></a></span>
+<span id="cb144-6"><a href="seq2seq-att.html#cb144-6"></a>decoder_hidden_dim <span class="op">=</span> <span class="dv">64</span></span>
+<span id="cb144-7"><a href="seq2seq-att.html#cb144-7"></a></span>
+<span id="cb144-8"><a href="seq2seq-att.html#cb144-8"></a>encoder_dropout <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb144-9"><a href="seq2seq-att.html#cb144-9"></a></span>
+<span id="cb144-10"><a href="seq2seq-att.html#cb144-10"></a></span>
+<span id="cb144-11"><a href="seq2seq-att.html#cb144-11"></a><span class="kw">class</span> Encoder(nn.Module):</span>
+<span id="cb144-12"><a href="seq2seq-att.html#cb144-12"></a>  </span>
+<span id="cb144-13"><a href="seq2seq-att.html#cb144-13"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_input_features, embedding_dim, encoder_hidden_dim, decoder_hidden_dim, dropout):</span>
+<span id="cb144-14"><a href="seq2seq-att.html#cb144-14"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb144-15"><a href="seq2seq-att.html#cb144-15"></a>        <span class="va">self</span>.num_input_features <span class="op">=</span> num_input_features</span>
+<span id="cb144-16"><a href="seq2seq-att.html#cb144-16"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
+<span id="cb144-17"><a href="seq2seq-att.html#cb144-17"></a>        <span class="va">self</span>.encoder_hidden_dim <span class="op">=</span> encoder_hidden_dim</span>
+<span id="cb144-18"><a href="seq2seq-att.html#cb144-18"></a>        <span class="va">self</span>.decoder_hidden_dim <span class="op">=</span> decoder_hidden_dim</span>
+<span id="cb144-19"><a href="seq2seq-att.html#cb144-19"></a>        <span class="va">self</span>.dropout <span class="op">=</span> dropout</span>
+<span id="cb144-20"><a href="seq2seq-att.html#cb144-20"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_input_features, embedding_dim)</span>
+<span id="cb144-21"><a href="seq2seq-att.html#cb144-21"></a>        <span class="va">self</span>.rnn <span class="op">=</span> nn.GRU(embedding_dim, encoder_hidden_dim, bidirectional <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb144-22"><a href="seq2seq-att.html#cb144-22"></a>        <span class="va">self</span>.fc <span class="op">=</span> nn.Linear(encoder_hidden_dim <span class="op">*</span> <span class="dv">2</span>, decoder_hidden_dim)</span>
+<span id="cb144-23"><a href="seq2seq-att.html#cb144-23"></a>        <span class="va">self</span>.dropout <span class="op">=</span> nn.Dropout(dropout)</span>
+<span id="cb144-24"><a href="seq2seq-att.html#cb144-24"></a>    </span>
+<span id="cb144-25"><a href="seq2seq-att.html#cb144-25"></a>    <span class="co"># src: seq_len * bs</span></span>
+<span id="cb144-26"><a href="seq2seq-att.html#cb144-26"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src):</span>
+<span id="cb144-27"><a href="seq2seq-att.html#cb144-27"></a>        </span>
+<span id="cb144-28"><a href="seq2seq-att.html#cb144-28"></a>        <span class="co"># embedded: seq_len * bs * embedding_dim</span></span>
+<span id="cb144-29"><a href="seq2seq-att.html#cb144-29"></a>        <span class="co"># each input token gets embedded to degree embedding_dim</span></span>
+<span id="cb144-30"><a href="seq2seq-att.html#cb144-30"></a>        embedded <span class="op">=</span> <span class="va">self</span>.dropout(<span class="va">self</span>.embedding(src))</span>
+<span id="cb144-31"><a href="seq2seq-att.html#cb144-31"></a>        <span class="co"># output: seq_len * bs * (2 * hidden_size)</span></span>
+<span id="cb144-32"><a href="seq2seq-att.html#cb144-32"></a>        <span class="co">#  =&gt; tensor containing the output features h_t for each t (!)</span></span>
+<span id="cb144-33"><a href="seq2seq-att.html#cb144-33"></a>        <span class="co"># hidden: 2 * bs * hidden_size</span></span>
+<span id="cb144-34"><a href="seq2seq-att.html#cb144-34"></a>        <span class="co">#  =&gt; tensor containing the hidden state for t = seq_len</span></span>
+<span id="cb144-35"><a href="seq2seq-att.html#cb144-35"></a>        outputs, hidden <span class="op">=</span> <span class="va">self</span>.rnn(embedded)</span>
+<span id="cb144-36"><a href="seq2seq-att.html#cb144-36"></a>        <span class="co"># concatenate last state from both directions</span></span>
+<span id="cb144-37"><a href="seq2seq-att.html#cb144-37"></a>        <span class="co"># input size to fc then is bs * 2 * hidden_size</span></span>
+<span id="cb144-38"><a href="seq2seq-att.html#cb144-38"></a>        hidden <span class="op">=</span> torch.tanh(<span class="va">self</span>.fc(torch.cat((hidden[<span class="op">-</span><span class="dv">2</span>,:,:], hidden[<span class="op">-</span><span class="dv">1</span>,:,:]), dim <span class="op">=</span> <span class="dv">1</span>)))</span>
+<span id="cb144-39"><a href="seq2seq-att.html#cb144-39"></a>        <span class="co"># hidden is now bs * decoder_hidden_dim</span></span>
+<span id="cb144-40"><a href="seq2seq-att.html#cb144-40"></a>        <span class="cf">return</span> outputs, hidden</span>
+<span id="cb144-41"><a href="seq2seq-att.html#cb144-41"></a></span>
+<span id="cb144-42"><a href="seq2seq-att.html#cb144-42"></a>encoder <span class="op">=</span> Encoder(num_input_features, encoder_embedding_dim, encoder_hidden_dim, decoder_hidden_dim, encoder_dropout).to(device)</span></code></pre></div>
 <p>As a quick check, let’s call the encoder on the first batch’s input sentence:</p>
-<div class="sourceCode" id="cb136"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb136-1"><a href="seq2seq-att.html#cb136-1"></a>encoder_output <span class="op">=</span> encoder.forward(batch.src)</span>
-<span id="cb136-2"><a href="seq2seq-att.html#cb136-2"></a>encoder_outputs <span class="op">=</span> encoder_output[<span class="dv">0</span>]</span>
-<span id="cb136-3"><a href="seq2seq-att.html#cb136-3"></a>decoder_hidden <span class="op">=</span> encoder_output[<span class="dv">1</span>]</span>
-<span id="cb136-4"><a href="seq2seq-att.html#cb136-4"></a>encoder_outputs.size(), decoder_hidden.size()</span></code></pre></div>
+<div class="sourceCode" id="cb145"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb145-1"><a href="seq2seq-att.html#cb145-1"></a>encoder_output <span class="op">=</span> encoder.forward(batch.src)</span>
+<span id="cb145-2"><a href="seq2seq-att.html#cb145-2"></a>encoder_outputs <span class="op">=</span> encoder_output[<span class="dv">0</span>]</span>
+<span id="cb145-3"><a href="seq2seq-att.html#cb145-3"></a>decoder_hidden <span class="op">=</span> encoder_output[<span class="dv">1</span>]</span>
+<span id="cb145-4"><a href="seq2seq-att.html#cb145-4"></a>encoder_outputs.size(), decoder_hidden.size()</span></code></pre></div>
 <pre><code># output is seq_len * bs * (2 * hidden_size)
 # hidden is bs * decoder_hidden_dim
 (torch.Size([26, 8, 128]), torch.Size([8, 64]))</code></pre>
@@ -469,42 +471,42 @@ and</li>
 <p>Every time it is called to generate a single target token, the decoder will ask the attention module to <em>score</em> every token in
 the input sequence as to its relevance in the current context. To this end, it will need to know about the current decoder
 state as well the whole of the input sequence:</p>
-<div class="sourceCode" id="cb138"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb138-1"><a href="seq2seq-att.html#cb138-1"></a>a <span class="op">=</span> <span class="va">self</span>.attention(decoder_hidden, encoder_outputs)</span></code></pre></div>
+<div class="sourceCode" id="cb147"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb147-1"><a href="seq2seq-att.html#cb147-1"></a>a <span class="op">=</span> <span class="va">self</span>.attention(decoder_hidden, encoder_outputs)</span></code></pre></div>
 <p>The attention module correlates decoder hidden state with all input tokens in the sequence (line 22) and returns a normalized
 relevance score for each of them (lines 25/26). Like we said above, different ways exist to calculate the scores – this one
 concatenates the things to be correlated and passes them through a linear layer; one popular alternative would be to multiply
 them.</p>
-<div class="sourceCode" id="cb139"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb139-1"><a href="seq2seq-att.html#cb139-1"></a>attention_dim <span class="op">=</span> <span class="dv">8</span></span>
-<span id="cb139-2"><a href="seq2seq-att.html#cb139-2"></a></span>
-<span id="cb139-3"><a href="seq2seq-att.html#cb139-3"></a><span class="kw">class</span> Attention(nn.Module):</span>
-<span id="cb139-4"><a href="seq2seq-att.html#cb139-4"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, encoder_hidden_dim, decoder_hidden_dim, attention_dim):</span>
-<span id="cb139-5"><a href="seq2seq-att.html#cb139-5"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb139-6"><a href="seq2seq-att.html#cb139-6"></a>        <span class="va">self</span>.encoder_hidden_dim <span class="op">=</span> encoder_hidden_dim</span>
-<span id="cb139-7"><a href="seq2seq-att.html#cb139-7"></a>        <span class="va">self</span>.decoder_hidden_dim <span class="op">=</span> decoder_hidden_dim</span>
-<span id="cb139-8"><a href="seq2seq-att.html#cb139-8"></a>        <span class="va">self</span>.attention_in <span class="op">=</span> (encoder_hidden_dim <span class="op">*</span> <span class="dv">2</span>) <span class="op">+</span> decoder_hidden_dim</span>
-<span id="cb139-9"><a href="seq2seq-att.html#cb139-9"></a>        <span class="va">self</span>.attention <span class="op">=</span> nn.Linear(<span class="va">self</span>.attention_in, attention_dim)</span>
-<span id="cb139-10"><a href="seq2seq-att.html#cb139-10"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, decoder_hidden, encoder_outputs):</span>
-<span id="cb139-11"><a href="seq2seq-att.html#cb139-11"></a>        src_len <span class="op">=</span> encoder_outputs.shape[<span class="dv">0</span>]</span>
-<span id="cb139-12"><a href="seq2seq-att.html#cb139-12"></a>        <span class="co"># bs * decoder_hidden_dim -&gt;  bs * 1 * decoder_hidden_dim -&gt; bs * seq_len * decoder_hidden_dim</span></span>
-<span id="cb139-13"><a href="seq2seq-att.html#cb139-13"></a>        <span class="co"># repeats hidden for every source token</span></span>
-<span id="cb139-14"><a href="seq2seq-att.html#cb139-14"></a>        repeated_decoder_hidden <span class="op">=</span> decoder_hidden.unsqueeze(<span class="dv">1</span>).repeat(<span class="dv">1</span>, src_len, <span class="dv">1</span>)</span>
-<span id="cb139-15"><a href="seq2seq-att.html#cb139-15"></a>        <span class="co"># bs * seq_len * (2 * hidden)</span></span>
-<span id="cb139-16"><a href="seq2seq-att.html#cb139-16"></a>        encoder_outputs <span class="op">=</span> encoder_outputs.permute(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>)</span>
-<span id="cb139-17"><a href="seq2seq-att.html#cb139-17"></a>        <span class="co"># after cat: bs * seq_len * (hidden + 2 * hidden)</span></span>
-<span id="cb139-18"><a href="seq2seq-att.html#cb139-18"></a>        <span class="co"># =&gt; concatenates, for every batch item and source token, hidden state from decoder</span></span>
-<span id="cb139-19"><a href="seq2seq-att.html#cb139-19"></a>        <span class="co"># (encoder, initially) and encoder output</span></span>
-<span id="cb139-20"><a href="seq2seq-att.html#cb139-20"></a>        <span class="co"># energy then is bs * seq_len * attention_dim</span></span>
-<span id="cb139-21"><a href="seq2seq-att.html#cb139-21"></a>        energy <span class="op">=</span> torch.tanh(<span class="va">self</span>.attention(torch.cat((repeated_decoder_hidden, encoder_outputs), dim <span class="op">=</span> <span class="dv">2</span>)))</span>
-<span id="cb139-22"><a href="seq2seq-att.html#cb139-22"></a>        <span class="co"># bs * seq_len </span></span>
-<span id="cb139-23"><a href="seq2seq-att.html#cb139-23"></a>        <span class="co"># a score for every source token</span></span>
-<span id="cb139-24"><a href="seq2seq-att.html#cb139-24"></a>        attention <span class="op">=</span> torch.<span class="bu">sum</span>(energy, dim<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb139-25"><a href="seq2seq-att.html#cb139-25"></a>        <span class="cf">return</span> F.softmax(attention, dim<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb139-26"><a href="seq2seq-att.html#cb139-26"></a></span>
-<span id="cb139-27"><a href="seq2seq-att.html#cb139-27"></a>attention <span class="op">=</span> Attention(encoder_hidden_dim, decoder_hidden_dim, attention_dim).to(device)</span></code></pre></div>
+<div class="sourceCode" id="cb148"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb148-1"><a href="seq2seq-att.html#cb148-1"></a>attention_dim <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb148-2"><a href="seq2seq-att.html#cb148-2"></a></span>
+<span id="cb148-3"><a href="seq2seq-att.html#cb148-3"></a><span class="kw">class</span> Attention(nn.Module):</span>
+<span id="cb148-4"><a href="seq2seq-att.html#cb148-4"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, encoder_hidden_dim, decoder_hidden_dim, attention_dim):</span>
+<span id="cb148-5"><a href="seq2seq-att.html#cb148-5"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb148-6"><a href="seq2seq-att.html#cb148-6"></a>        <span class="va">self</span>.encoder_hidden_dim <span class="op">=</span> encoder_hidden_dim</span>
+<span id="cb148-7"><a href="seq2seq-att.html#cb148-7"></a>        <span class="va">self</span>.decoder_hidden_dim <span class="op">=</span> decoder_hidden_dim</span>
+<span id="cb148-8"><a href="seq2seq-att.html#cb148-8"></a>        <span class="va">self</span>.attention_in <span class="op">=</span> (encoder_hidden_dim <span class="op">*</span> <span class="dv">2</span>) <span class="op">+</span> decoder_hidden_dim</span>
+<span id="cb148-9"><a href="seq2seq-att.html#cb148-9"></a>        <span class="va">self</span>.attention <span class="op">=</span> nn.Linear(<span class="va">self</span>.attention_in, attention_dim)</span>
+<span id="cb148-10"><a href="seq2seq-att.html#cb148-10"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, decoder_hidden, encoder_outputs):</span>
+<span id="cb148-11"><a href="seq2seq-att.html#cb148-11"></a>        src_len <span class="op">=</span> encoder_outputs.shape[<span class="dv">0</span>]</span>
+<span id="cb148-12"><a href="seq2seq-att.html#cb148-12"></a>        <span class="co"># bs * decoder_hidden_dim -&gt;  bs * 1 * decoder_hidden_dim -&gt; bs * seq_len * decoder_hidden_dim</span></span>
+<span id="cb148-13"><a href="seq2seq-att.html#cb148-13"></a>        <span class="co"># repeats hidden for every source token</span></span>
+<span id="cb148-14"><a href="seq2seq-att.html#cb148-14"></a>        repeated_decoder_hidden <span class="op">=</span> decoder_hidden.unsqueeze(<span class="dv">1</span>).repeat(<span class="dv">1</span>, src_len, <span class="dv">1</span>)</span>
+<span id="cb148-15"><a href="seq2seq-att.html#cb148-15"></a>        <span class="co"># bs * seq_len * (2 * hidden)</span></span>
+<span id="cb148-16"><a href="seq2seq-att.html#cb148-16"></a>        encoder_outputs <span class="op">=</span> encoder_outputs.permute(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>)</span>
+<span id="cb148-17"><a href="seq2seq-att.html#cb148-17"></a>        <span class="co"># after cat: bs * seq_len * (hidden + 2 * hidden)</span></span>
+<span id="cb148-18"><a href="seq2seq-att.html#cb148-18"></a>        <span class="co"># =&gt; concatenates, for every batch item and source token, hidden state from decoder</span></span>
+<span id="cb148-19"><a href="seq2seq-att.html#cb148-19"></a>        <span class="co"># (encoder, initially) and encoder output</span></span>
+<span id="cb148-20"><a href="seq2seq-att.html#cb148-20"></a>        <span class="co"># energy then is bs * seq_len * attention_dim</span></span>
+<span id="cb148-21"><a href="seq2seq-att.html#cb148-21"></a>        energy <span class="op">=</span> torch.tanh(<span class="va">self</span>.attention(torch.cat((repeated_decoder_hidden, encoder_outputs), dim <span class="op">=</span> <span class="dv">2</span>)))</span>
+<span id="cb148-22"><a href="seq2seq-att.html#cb148-22"></a>        <span class="co"># bs * seq_len </span></span>
+<span id="cb148-23"><a href="seq2seq-att.html#cb148-23"></a>        <span class="co"># a score for every source token</span></span>
+<span id="cb148-24"><a href="seq2seq-att.html#cb148-24"></a>        attention <span class="op">=</span> torch.<span class="bu">sum</span>(energy, dim<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb148-25"><a href="seq2seq-att.html#cb148-25"></a>        <span class="cf">return</span> F.softmax(attention, dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb148-26"><a href="seq2seq-att.html#cb148-26"></a></span>
+<span id="cb148-27"><a href="seq2seq-att.html#cb148-27"></a>attention <span class="op">=</span> Attention(encoder_hidden_dim, decoder_hidden_dim, attention_dim).to(device)</span></code></pre></div>
 <p>As we know how this module will be called, we can try it, too, in isolation:</p>
-<div class="sourceCode" id="cb140"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb140-1"><a href="seq2seq-att.html#cb140-1"></a>a <span class="op">=</span> attention(decoder_hidden, encoder_outputs)</span>
-<span id="cb140-2"><a href="seq2seq-att.html#cb140-2"></a><span class="co"># will be bs * seq_len</span></span>
-<span id="cb140-3"><a href="seq2seq-att.html#cb140-3"></a>a.size()</span></code></pre></div>
+<div class="sourceCode" id="cb149"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb149-1"><a href="seq2seq-att.html#cb149-1"></a>a <span class="op">=</span> attention(decoder_hidden, encoder_outputs)</span>
+<span id="cb149-2"><a href="seq2seq-att.html#cb149-2"></a><span class="co"># will be bs * seq_len</span></span>
+<span id="cb149-3"><a href="seq2seq-att.html#cb149-3"></a>a.size()</span></code></pre></div>
 <p>Now to the place where it gets used, the decoder.</p>
 </div>
 <div id="decoder" class="section level3" number="9.3.3">
@@ -524,190 +526,190 @@ compute the attention weights.</li>
 obtain what is sometimes called the <em>attention vector</em> (line 26). This is then passed to an RNN, together with the embedded
 input data. A processed version of the RNN’s output, as well as the last hidden state, are returned, ready for use in
 generating the next token.</p>
-<div class="sourceCode" id="cb141"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb141-1"><a href="seq2seq-att.html#cb141-1"></a>num_output_features <span class="op">=</span> <span class="bu">len</span>(trg_spec.vocab)</span>
-<span id="cb141-2"><a href="seq2seq-att.html#cb141-2"></a>decoder_embedding_dim <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb141-3"><a href="seq2seq-att.html#cb141-3"></a>decoder_dropout <span class="op">=</span> <span class="fl">0.5</span></span>
-<span id="cb141-4"><a href="seq2seq-att.html#cb141-4"></a></span>
-<span id="cb141-5"><a href="seq2seq-att.html#cb141-5"></a><span class="kw">class</span> Decoder(nn.Module):</span>
-<span id="cb141-6"><a href="seq2seq-att.html#cb141-6"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_output_features, embedding_dim, encoder_hidden_dim, decoder_hidden_dim, dropout, attention):</span>
-<span id="cb141-7"><a href="seq2seq-att.html#cb141-7"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb141-8"><a href="seq2seq-att.html#cb141-8"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
-<span id="cb141-9"><a href="seq2seq-att.html#cb141-9"></a>        <span class="va">self</span>.encoder_hidden_dim <span class="op">=</span> encoder_hidden_dim</span>
-<span id="cb141-10"><a href="seq2seq-att.html#cb141-10"></a>        <span class="va">self</span>.decoder_hidden_dim <span class="op">=</span> decoder_hidden_dim</span>
-<span id="cb141-11"><a href="seq2seq-att.html#cb141-11"></a>        <span class="va">self</span>.num_output_features <span class="op">=</span> num_output_features</span>
-<span id="cb141-12"><a href="seq2seq-att.html#cb141-12"></a>        <span class="va">self</span>.dropout <span class="op">=</span> dropout</span>
-<span id="cb141-13"><a href="seq2seq-att.html#cb141-13"></a>        <span class="va">self</span>.attention <span class="op">=</span> attention</span>
-<span id="cb141-14"><a href="seq2seq-att.html#cb141-14"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_output_features, embedding_dim)</span>
-<span id="cb141-15"><a href="seq2seq-att.html#cb141-15"></a>        <span class="va">self</span>.rnn <span class="op">=</span> nn.GRU((encoder_hidden_dim <span class="op">*</span> <span class="dv">2</span>) <span class="op">+</span> embedding_dim, decoder_hidden_dim)</span>
-<span id="cb141-16"><a href="seq2seq-att.html#cb141-16"></a>        <span class="va">self</span>.out <span class="op">=</span> nn.Linear(<span class="va">self</span>.attention.attention_in <span class="op">+</span> embedding_dim, num_output_features)</span>
-<span id="cb141-17"><a href="seq2seq-att.html#cb141-17"></a>        <span class="va">self</span>.dropout <span class="op">=</span> nn.Dropout(dropout)</span>
-<span id="cb141-18"><a href="seq2seq-att.html#cb141-18"></a>    <span class="kw">def</span> _weighted_encoder_rep(<span class="va">self</span>, decoder_hidden, encoder_outputs):</span>
-<span id="cb141-19"><a href="seq2seq-att.html#cb141-19"></a>        <span class="co"># bs * seq_len</span></span>
-<span id="cb141-20"><a href="seq2seq-att.html#cb141-20"></a>        a <span class="op">=</span> <span class="va">self</span>.attention(decoder_hidden, encoder_outputs)</span>
-<span id="cb141-21"><a href="seq2seq-att.html#cb141-21"></a>        <span class="co"># bs * 1 * seq_len</span></span>
-<span id="cb141-22"><a href="seq2seq-att.html#cb141-22"></a>        a <span class="op">=</span> a.unsqueeze(<span class="dv">1</span>)</span>
-<span id="cb141-23"><a href="seq2seq-att.html#cb141-23"></a>        <span class="co"># bs * seq_len * (2 * hidden_size)</span></span>
-<span id="cb141-24"><a href="seq2seq-att.html#cb141-24"></a>        encoder_outputs <span class="op">=</span> encoder_outputs.permute(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>)</span>
-<span id="cb141-25"><a href="seq2seq-att.html#cb141-25"></a>        <span class="co"># bs * 1 * (2 * hidden_size)</span></span>
-<span id="cb141-26"><a href="seq2seq-att.html#cb141-26"></a>        weighted_encoder_rep <span class="op">=</span> torch.bmm(a, encoder_outputs)</span>
-<span id="cb141-27"><a href="seq2seq-att.html#cb141-27"></a>        <span class="co"># 1 * bs * (2 * hidden_size)</span></span>
-<span id="cb141-28"><a href="seq2seq-att.html#cb141-28"></a>        weighted_encoder_rep <span class="op">=</span> weighted_encoder_rep.permute(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>)</span>
-<span id="cb141-29"><a href="seq2seq-att.html#cb141-29"></a>        <span class="cf">return</span> weighted_encoder_rep</span>
-<span id="cb141-30"><a href="seq2seq-att.html#cb141-30"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>, decoder_hidden, encoder_outputs):</span>
-<span id="cb141-31"><a href="seq2seq-att.html#cb141-31"></a>        <span class="co"># 1 * bs</span></span>
-<span id="cb141-32"><a href="seq2seq-att.html#cb141-32"></a>        <span class="bu">input</span> <span class="op">=</span> <span class="bu">input</span>.unsqueeze(<span class="dv">0</span>)</span>
-<span id="cb141-33"><a href="seq2seq-att.html#cb141-33"></a>        <span class="co"># 1 * bs * decoder_embedding_dim</span></span>
-<span id="cb141-34"><a href="seq2seq-att.html#cb141-34"></a>        embedded <span class="op">=</span> <span class="va">self</span>.dropout(<span class="va">self</span>.embedding(<span class="bu">input</span>))</span>
-<span id="cb141-35"><a href="seq2seq-att.html#cb141-35"></a>        <span class="co"># 1 * bs * (2 * hidden_size)</span></span>
-<span id="cb141-36"><a href="seq2seq-att.html#cb141-36"></a>        weighted_encoder_rep <span class="op">=</span> <span class="va">self</span>._weighted_encoder_rep(decoder_hidden, encoder_outputs)</span>
-<span id="cb141-37"><a href="seq2seq-att.html#cb141-37"></a>        <span class="co"># concatenate input embedding and score from attention module</span></span>
-<span id="cb141-38"><a href="seq2seq-att.html#cb141-38"></a>        <span class="co"># embedded: 1 * bs * decoder_embedding_dim</span></span>
-<span id="cb141-39"><a href="seq2seq-att.html#cb141-39"></a>        <span class="co"># weighted_encoder_rep: 1 * bs * (2 * hidden_size)</span></span>
-<span id="cb141-40"><a href="seq2seq-att.html#cb141-40"></a>        <span class="co"># rnn_input: 1 * bs * (decoder_embedding_dim + (2 * hidden_size))</span></span>
-<span id="cb141-41"><a href="seq2seq-att.html#cb141-41"></a>        rnn_input <span class="op">=</span> torch.cat((embedded, weighted_encoder_rep), dim <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb141-42"><a href="seq2seq-att.html#cb141-42"></a>        <span class="co"># output: 1 * bs * decoder_hidden_dim</span></span>
-<span id="cb141-43"><a href="seq2seq-att.html#cb141-43"></a>        <span class="co"># decoder_hidden: 1 * bs * decoder_hidden_dim (after unsqueeze)</span></span>
-<span id="cb141-44"><a href="seq2seq-att.html#cb141-44"></a>        output, decoder_hidden <span class="op">=</span> <span class="va">self</span>.rnn(rnn_input, decoder_hidden.unsqueeze(<span class="dv">0</span>))</span>
-<span id="cb141-45"><a href="seq2seq-att.html#cb141-45"></a>        embedded <span class="op">=</span> embedded.squeeze(<span class="dv">0</span>)</span>
-<span id="cb141-46"><a href="seq2seq-att.html#cb141-46"></a>        output <span class="op">=</span> output.squeeze(<span class="dv">0</span>)</span>
-<span id="cb141-47"><a href="seq2seq-att.html#cb141-47"></a>        weighted_encoder_rep <span class="op">=</span> weighted_encoder_rep.squeeze(<span class="dv">0</span>)</span>
-<span id="cb141-48"><a href="seq2seq-att.html#cb141-48"></a>        output <span class="op">=</span> <span class="va">self</span>.out(torch.cat((output, weighted_encoder_rep, embedded), dim <span class="op">=</span> <span class="dv">1</span>))</span>
-<span id="cb141-49"><a href="seq2seq-att.html#cb141-49"></a>        <span class="co"># output is bs * num_output_features</span></span>
-<span id="cb141-50"><a href="seq2seq-att.html#cb141-50"></a>        <span class="cf">return</span> output, decoder_hidden.squeeze(<span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb150"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb150-1"><a href="seq2seq-att.html#cb150-1"></a>num_output_features <span class="op">=</span> <span class="bu">len</span>(trg_spec.vocab)</span>
+<span id="cb150-2"><a href="seq2seq-att.html#cb150-2"></a>decoder_embedding_dim <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb150-3"><a href="seq2seq-att.html#cb150-3"></a>decoder_dropout <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb150-4"><a href="seq2seq-att.html#cb150-4"></a></span>
+<span id="cb150-5"><a href="seq2seq-att.html#cb150-5"></a><span class="kw">class</span> Decoder(nn.Module):</span>
+<span id="cb150-6"><a href="seq2seq-att.html#cb150-6"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_output_features, embedding_dim, encoder_hidden_dim, decoder_hidden_dim, dropout, attention):</span>
+<span id="cb150-7"><a href="seq2seq-att.html#cb150-7"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb150-8"><a href="seq2seq-att.html#cb150-8"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
+<span id="cb150-9"><a href="seq2seq-att.html#cb150-9"></a>        <span class="va">self</span>.encoder_hidden_dim <span class="op">=</span> encoder_hidden_dim</span>
+<span id="cb150-10"><a href="seq2seq-att.html#cb150-10"></a>        <span class="va">self</span>.decoder_hidden_dim <span class="op">=</span> decoder_hidden_dim</span>
+<span id="cb150-11"><a href="seq2seq-att.html#cb150-11"></a>        <span class="va">self</span>.num_output_features <span class="op">=</span> num_output_features</span>
+<span id="cb150-12"><a href="seq2seq-att.html#cb150-12"></a>        <span class="va">self</span>.dropout <span class="op">=</span> dropout</span>
+<span id="cb150-13"><a href="seq2seq-att.html#cb150-13"></a>        <span class="va">self</span>.attention <span class="op">=</span> attention</span>
+<span id="cb150-14"><a href="seq2seq-att.html#cb150-14"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_output_features, embedding_dim)</span>
+<span id="cb150-15"><a href="seq2seq-att.html#cb150-15"></a>        <span class="va">self</span>.rnn <span class="op">=</span> nn.GRU((encoder_hidden_dim <span class="op">*</span> <span class="dv">2</span>) <span class="op">+</span> embedding_dim, decoder_hidden_dim)</span>
+<span id="cb150-16"><a href="seq2seq-att.html#cb150-16"></a>        <span class="va">self</span>.out <span class="op">=</span> nn.Linear(<span class="va">self</span>.attention.attention_in <span class="op">+</span> embedding_dim, num_output_features)</span>
+<span id="cb150-17"><a href="seq2seq-att.html#cb150-17"></a>        <span class="va">self</span>.dropout <span class="op">=</span> nn.Dropout(dropout)</span>
+<span id="cb150-18"><a href="seq2seq-att.html#cb150-18"></a>    <span class="kw">def</span> _weighted_encoder_rep(<span class="va">self</span>, decoder_hidden, encoder_outputs):</span>
+<span id="cb150-19"><a href="seq2seq-att.html#cb150-19"></a>        <span class="co"># bs * seq_len</span></span>
+<span id="cb150-20"><a href="seq2seq-att.html#cb150-20"></a>        a <span class="op">=</span> <span class="va">self</span>.attention(decoder_hidden, encoder_outputs)</span>
+<span id="cb150-21"><a href="seq2seq-att.html#cb150-21"></a>        <span class="co"># bs * 1 * seq_len</span></span>
+<span id="cb150-22"><a href="seq2seq-att.html#cb150-22"></a>        a <span class="op">=</span> a.unsqueeze(<span class="dv">1</span>)</span>
+<span id="cb150-23"><a href="seq2seq-att.html#cb150-23"></a>        <span class="co"># bs * seq_len * (2 * hidden_size)</span></span>
+<span id="cb150-24"><a href="seq2seq-att.html#cb150-24"></a>        encoder_outputs <span class="op">=</span> encoder_outputs.permute(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>)</span>
+<span id="cb150-25"><a href="seq2seq-att.html#cb150-25"></a>        <span class="co"># bs * 1 * (2 * hidden_size)</span></span>
+<span id="cb150-26"><a href="seq2seq-att.html#cb150-26"></a>        weighted_encoder_rep <span class="op">=</span> torch.bmm(a, encoder_outputs)</span>
+<span id="cb150-27"><a href="seq2seq-att.html#cb150-27"></a>        <span class="co"># 1 * bs * (2 * hidden_size)</span></span>
+<span id="cb150-28"><a href="seq2seq-att.html#cb150-28"></a>        weighted_encoder_rep <span class="op">=</span> weighted_encoder_rep.permute(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>)</span>
+<span id="cb150-29"><a href="seq2seq-att.html#cb150-29"></a>        <span class="cf">return</span> weighted_encoder_rep</span>
+<span id="cb150-30"><a href="seq2seq-att.html#cb150-30"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>, decoder_hidden, encoder_outputs):</span>
+<span id="cb150-31"><a href="seq2seq-att.html#cb150-31"></a>        <span class="co"># 1 * bs</span></span>
+<span id="cb150-32"><a href="seq2seq-att.html#cb150-32"></a>        <span class="bu">input</span> <span class="op">=</span> <span class="bu">input</span>.unsqueeze(<span class="dv">0</span>)</span>
+<span id="cb150-33"><a href="seq2seq-att.html#cb150-33"></a>        <span class="co"># 1 * bs * decoder_embedding_dim</span></span>
+<span id="cb150-34"><a href="seq2seq-att.html#cb150-34"></a>        embedded <span class="op">=</span> <span class="va">self</span>.dropout(<span class="va">self</span>.embedding(<span class="bu">input</span>))</span>
+<span id="cb150-35"><a href="seq2seq-att.html#cb150-35"></a>        <span class="co"># 1 * bs * (2 * hidden_size)</span></span>
+<span id="cb150-36"><a href="seq2seq-att.html#cb150-36"></a>        weighted_encoder_rep <span class="op">=</span> <span class="va">self</span>._weighted_encoder_rep(decoder_hidden, encoder_outputs)</span>
+<span id="cb150-37"><a href="seq2seq-att.html#cb150-37"></a>        <span class="co"># concatenate input embedding and score from attention module</span></span>
+<span id="cb150-38"><a href="seq2seq-att.html#cb150-38"></a>        <span class="co"># embedded: 1 * bs * decoder_embedding_dim</span></span>
+<span id="cb150-39"><a href="seq2seq-att.html#cb150-39"></a>        <span class="co"># weighted_encoder_rep: 1 * bs * (2 * hidden_size)</span></span>
+<span id="cb150-40"><a href="seq2seq-att.html#cb150-40"></a>        <span class="co"># rnn_input: 1 * bs * (decoder_embedding_dim + (2 * hidden_size))</span></span>
+<span id="cb150-41"><a href="seq2seq-att.html#cb150-41"></a>        rnn_input <span class="op">=</span> torch.cat((embedded, weighted_encoder_rep), dim <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb150-42"><a href="seq2seq-att.html#cb150-42"></a>        <span class="co"># output: 1 * bs * decoder_hidden_dim</span></span>
+<span id="cb150-43"><a href="seq2seq-att.html#cb150-43"></a>        <span class="co"># decoder_hidden: 1 * bs * decoder_hidden_dim (after unsqueeze)</span></span>
+<span id="cb150-44"><a href="seq2seq-att.html#cb150-44"></a>        output, decoder_hidden <span class="op">=</span> <span class="va">self</span>.rnn(rnn_input, decoder_hidden.unsqueeze(<span class="dv">0</span>))</span>
+<span id="cb150-45"><a href="seq2seq-att.html#cb150-45"></a>        embedded <span class="op">=</span> embedded.squeeze(<span class="dv">0</span>)</span>
+<span id="cb150-46"><a href="seq2seq-att.html#cb150-46"></a>        output <span class="op">=</span> output.squeeze(<span class="dv">0</span>)</span>
+<span id="cb150-47"><a href="seq2seq-att.html#cb150-47"></a>        weighted_encoder_rep <span class="op">=</span> weighted_encoder_rep.squeeze(<span class="dv">0</span>)</span>
+<span id="cb150-48"><a href="seq2seq-att.html#cb150-48"></a>        output <span class="op">=</span> <span class="va">self</span>.out(torch.cat((output, weighted_encoder_rep, embedded), dim <span class="op">=</span> <span class="dv">1</span>))</span>
+<span id="cb150-49"><a href="seq2seq-att.html#cb150-49"></a>        <span class="co"># output is bs * num_output_features</span></span>
+<span id="cb150-50"><a href="seq2seq-att.html#cb150-50"></a>        <span class="cf">return</span> output, decoder_hidden.squeeze(<span class="dv">0</span>)</span></code></pre></div>
 <p>Now we put it all together.</p>
 </div>
 <div id="seq2seq-module" class="section level3" number="9.3.4">
 <h3><span class="header-section-number">9.3.4</span> Seq2seq module</h3>
 <p>A single call of the top-level <code>Seq2Seq</code> module will translate a single sentence – or a batch of sentences, rather –,
 calling the encoder just once and the decoder, in a loop.</p>
-<div class="sourceCode" id="cb142"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb142-1"><a href="seq2seq-att.html#cb142-1"></a><span class="kw">class</span> Seq2Seq(nn.Module):</span>
-<span id="cb142-2"><a href="seq2seq-att.html#cb142-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, encoder, decoder, device):</span>
-<span id="cb142-3"><a href="seq2seq-att.html#cb142-3"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb142-4"><a href="seq2seq-att.html#cb142-4"></a>        <span class="va">self</span>.encoder <span class="op">=</span> encoder</span>
-<span id="cb142-5"><a href="seq2seq-att.html#cb142-5"></a>        <span class="va">self</span>.decoder <span class="op">=</span> decoder</span>
-<span id="cb142-6"><a href="seq2seq-att.html#cb142-6"></a>        <span class="va">self</span>.device <span class="op">=</span> device</span>
-<span id="cb142-7"><a href="seq2seq-att.html#cb142-7"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src, trg, teacher_forcing_ratio <span class="op">=</span> <span class="fl">0.5</span>):</span>
-<span id="cb142-8"><a href="seq2seq-att.html#cb142-8"></a>        batch_size <span class="op">=</span> src.shape[<span class="dv">1</span>]</span>
-<span id="cb142-9"><a href="seq2seq-att.html#cb142-9"></a>        max_len <span class="op">=</span> trg.shape[<span class="dv">0</span>]</span>
-<span id="cb142-10"><a href="seq2seq-att.html#cb142-10"></a>        trg_vocab_size <span class="op">=</span> <span class="va">self</span>.decoder.num_output_features</span>
-<span id="cb142-11"><a href="seq2seq-att.html#cb142-11"></a>        outputs <span class="op">=</span> torch.zeros(max_len, batch_size, trg_vocab_size).to(<span class="va">self</span>.device)</span>
-<span id="cb142-12"><a href="seq2seq-att.html#cb142-12"></a>        encoder_outputs, hidden <span class="op">=</span> <span class="va">self</span>.encoder(src)</span>
-<span id="cb142-13"><a href="seq2seq-att.html#cb142-13"></a>        <span class="co"># first input to the decoder is the &lt;sos&gt; token</span></span>
-<span id="cb142-14"><a href="seq2seq-att.html#cb142-14"></a>        output <span class="op">=</span> trg[<span class="dv">0</span>,:]</span>
-<span id="cb142-15"><a href="seq2seq-att.html#cb142-15"></a>        <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, max_len):</span>
-<span id="cb142-16"><a href="seq2seq-att.html#cb142-16"></a>            output, hidden <span class="op">=</span> <span class="va">self</span>.decoder(output, hidden, encoder_outputs)</span>
-<span id="cb142-17"><a href="seq2seq-att.html#cb142-17"></a>            outputs[t] <span class="op">=</span> output</span>
-<span id="cb142-18"><a href="seq2seq-att.html#cb142-18"></a>            teacher_force <span class="op">=</span> random.random() <span class="op">&lt;</span> teacher_forcing_ratio</span>
-<span id="cb142-19"><a href="seq2seq-att.html#cb142-19"></a>            top1 <span class="op">=</span> output.<span class="bu">max</span>(<span class="dv">1</span>)[<span class="dv">1</span>]</span>
-<span id="cb142-20"><a href="seq2seq-att.html#cb142-20"></a>            output <span class="op">=</span> (trg[t] <span class="cf">if</span> teacher_force <span class="cf">else</span> top1)</span>
-<span id="cb142-21"><a href="seq2seq-att.html#cb142-21"></a>        <span class="cf">return</span> outputs</span>
-<span id="cb142-22"><a href="seq2seq-att.html#cb142-22"></a></span>
-<span id="cb142-23"><a href="seq2seq-att.html#cb142-23"></a>model <span class="op">=</span> Seq2Seq(encoder, decoder, device).to(device)</span>
-<span id="cb142-24"><a href="seq2seq-att.html#cb142-24"></a></span>
-<span id="cb142-25"><a href="seq2seq-att.html#cb142-25"></a></span>
-<span id="cb142-26"><a href="seq2seq-att.html#cb142-26"></a><span class="kw">def</span> init_weights(m):</span>
-<span id="cb142-27"><a href="seq2seq-att.html#cb142-27"></a>    <span class="cf">for</span> name, param <span class="kw">in</span> m.named_parameters():</span>
-<span id="cb142-28"><a href="seq2seq-att.html#cb142-28"></a>        <span class="cf">if</span> <span class="st">&#39;weight&#39;</span> <span class="kw">in</span> name:</span>
-<span id="cb142-29"><a href="seq2seq-att.html#cb142-29"></a>            nn.init.normal_(param.data, mean<span class="op">=</span><span class="dv">0</span>, std<span class="op">=</span><span class="fl">0.01</span>)</span>
-<span id="cb142-30"><a href="seq2seq-att.html#cb142-30"></a>        <span class="cf">else</span>:</span>
-<span id="cb142-31"><a href="seq2seq-att.html#cb142-31"></a>            nn.init.constant_(param.data, <span class="dv">0</span>)</span>
-<span id="cb142-32"><a href="seq2seq-att.html#cb142-32"></a>model.<span class="bu">apply</span>(init_weights)</span></code></pre></div>
+<div class="sourceCode" id="cb151"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb151-1"><a href="seq2seq-att.html#cb151-1"></a><span class="kw">class</span> Seq2Seq(nn.Module):</span>
+<span id="cb151-2"><a href="seq2seq-att.html#cb151-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, encoder, decoder, device):</span>
+<span id="cb151-3"><a href="seq2seq-att.html#cb151-3"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb151-4"><a href="seq2seq-att.html#cb151-4"></a>        <span class="va">self</span>.encoder <span class="op">=</span> encoder</span>
+<span id="cb151-5"><a href="seq2seq-att.html#cb151-5"></a>        <span class="va">self</span>.decoder <span class="op">=</span> decoder</span>
+<span id="cb151-6"><a href="seq2seq-att.html#cb151-6"></a>        <span class="va">self</span>.device <span class="op">=</span> device</span>
+<span id="cb151-7"><a href="seq2seq-att.html#cb151-7"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src, trg, teacher_forcing_ratio <span class="op">=</span> <span class="fl">0.5</span>):</span>
+<span id="cb151-8"><a href="seq2seq-att.html#cb151-8"></a>        batch_size <span class="op">=</span> src.shape[<span class="dv">1</span>]</span>
+<span id="cb151-9"><a href="seq2seq-att.html#cb151-9"></a>        max_len <span class="op">=</span> trg.shape[<span class="dv">0</span>]</span>
+<span id="cb151-10"><a href="seq2seq-att.html#cb151-10"></a>        trg_vocab_size <span class="op">=</span> <span class="va">self</span>.decoder.num_output_features</span>
+<span id="cb151-11"><a href="seq2seq-att.html#cb151-11"></a>        outputs <span class="op">=</span> torch.zeros(max_len, batch_size, trg_vocab_size).to(<span class="va">self</span>.device)</span>
+<span id="cb151-12"><a href="seq2seq-att.html#cb151-12"></a>        encoder_outputs, hidden <span class="op">=</span> <span class="va">self</span>.encoder(src)</span>
+<span id="cb151-13"><a href="seq2seq-att.html#cb151-13"></a>        <span class="co"># first input to the decoder is the &lt;sos&gt; token</span></span>
+<span id="cb151-14"><a href="seq2seq-att.html#cb151-14"></a>        output <span class="op">=</span> trg[<span class="dv">0</span>,:]</span>
+<span id="cb151-15"><a href="seq2seq-att.html#cb151-15"></a>        <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, max_len):</span>
+<span id="cb151-16"><a href="seq2seq-att.html#cb151-16"></a>            output, hidden <span class="op">=</span> <span class="va">self</span>.decoder(output, hidden, encoder_outputs)</span>
+<span id="cb151-17"><a href="seq2seq-att.html#cb151-17"></a>            outputs[t] <span class="op">=</span> output</span>
+<span id="cb151-18"><a href="seq2seq-att.html#cb151-18"></a>            teacher_force <span class="op">=</span> random.random() <span class="op">&lt;</span> teacher_forcing_ratio</span>
+<span id="cb151-19"><a href="seq2seq-att.html#cb151-19"></a>            top1 <span class="op">=</span> output.<span class="bu">max</span>(<span class="dv">1</span>)[<span class="dv">1</span>]</span>
+<span id="cb151-20"><a href="seq2seq-att.html#cb151-20"></a>            output <span class="op">=</span> (trg[t] <span class="cf">if</span> teacher_force <span class="cf">else</span> top1)</span>
+<span id="cb151-21"><a href="seq2seq-att.html#cb151-21"></a>        <span class="cf">return</span> outputs</span>
+<span id="cb151-22"><a href="seq2seq-att.html#cb151-22"></a></span>
+<span id="cb151-23"><a href="seq2seq-att.html#cb151-23"></a>model <span class="op">=</span> Seq2Seq(encoder, decoder, device).to(device)</span>
+<span id="cb151-24"><a href="seq2seq-att.html#cb151-24"></a></span>
+<span id="cb151-25"><a href="seq2seq-att.html#cb151-25"></a></span>
+<span id="cb151-26"><a href="seq2seq-att.html#cb151-26"></a><span class="kw">def</span> init_weights(m):</span>
+<span id="cb151-27"><a href="seq2seq-att.html#cb151-27"></a>    <span class="cf">for</span> name, param <span class="kw">in</span> m.named_parameters():</span>
+<span id="cb151-28"><a href="seq2seq-att.html#cb151-28"></a>        <span class="cf">if</span> <span class="st">&#39;weight&#39;</span> <span class="kw">in</span> name:</span>
+<span id="cb151-29"><a href="seq2seq-att.html#cb151-29"></a>            nn.init.normal_(param.data, mean<span class="op">=</span><span class="dv">0</span>, std<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb151-30"><a href="seq2seq-att.html#cb151-30"></a>        <span class="cf">else</span>:</span>
+<span id="cb151-31"><a href="seq2seq-att.html#cb151-31"></a>            nn.init.constant_(param.data, <span class="dv">0</span>)</span>
+<span id="cb151-32"><a href="seq2seq-att.html#cb151-32"></a>model.<span class="bu">apply</span>(init_weights)</span></code></pre></div>
 <p>Now we’re ready to train.</p>
 </div>
 </div>
 <div id="training-and-evaluation" class="section level2" number="9.4">
 <h2><span class="header-section-number">9.4</span> Training and evaluation</h2>
 <p>All logic being contained in the modules, the training loop is concise:</p>
-<div class="sourceCode" id="cb143"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb143-1"><a href="seq2seq-att.html#cb143-1"></a>optimizer <span class="op">=</span> optim.Adam(model.parameters())</span>
-<span id="cb143-2"><a href="seq2seq-att.html#cb143-2"></a>pad_idx <span class="op">=</span> trg_spec.vocab.stoi[<span class="st">&#39;&lt;pad&gt;&#39;</span>]</span>
-<span id="cb143-3"><a href="seq2seq-att.html#cb143-3"></a>criterion <span class="op">=</span> nn.CrossEntropyLoss(ignore_index <span class="op">=</span> pad_idx)</span>
-<span id="cb143-4"><a href="seq2seq-att.html#cb143-4"></a></span>
-<span id="cb143-5"><a href="seq2seq-att.html#cb143-5"></a><span class="kw">def</span> train(model, iterator, optimizer, criterion, clip):</span>
-<span id="cb143-6"><a href="seq2seq-att.html#cb143-6"></a>    model.train()</span>
-<span id="cb143-7"><a href="seq2seq-att.html#cb143-7"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb143-8"><a href="seq2seq-att.html#cb143-8"></a>    <span class="cf">for</span> i, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
-<span id="cb143-9"><a href="seq2seq-att.html#cb143-9"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">1000</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(i, end <span class="op">=</span> <span class="st">&quot; &quot;</span>, flush<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb143-10"><a href="seq2seq-att.html#cb143-10"></a>        src <span class="op">=</span> batch.src</span>
-<span id="cb143-11"><a href="seq2seq-att.html#cb143-11"></a>        trg <span class="op">=</span> batch.trg</span>
-<span id="cb143-12"><a href="seq2seq-att.html#cb143-12"></a>        optimizer.zero_grad()</span>
-<span id="cb143-13"><a href="seq2seq-att.html#cb143-13"></a>        <span class="co"># seq_len * bs * num_output_features</span></span>
-<span id="cb143-14"><a href="seq2seq-att.html#cb143-14"></a>        output <span class="op">=</span> model(src, trg)</span>
-<span id="cb143-15"><a href="seq2seq-att.html#cb143-15"></a>        <span class="co"># ((seq_len - 1) * bs) * num_output_features (output[1:] is (seq_len - 1) * bs * num_output_features))</span></span>
-<span id="cb143-16"><a href="seq2seq-att.html#cb143-16"></a>        output <span class="op">=</span> output[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>, output.shape[<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb143-17"><a href="seq2seq-att.html#cb143-17"></a>        <span class="co"># (trg_len - 1) </span></span>
-<span id="cb143-18"><a href="seq2seq-att.html#cb143-18"></a>        trg <span class="op">=</span> trg[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb143-19"><a href="seq2seq-att.html#cb143-19"></a>        loss <span class="op">=</span> criterion(output, trg)</span>
-<span id="cb143-20"><a href="seq2seq-att.html#cb143-20"></a>        loss.backward()</span>
-<span id="cb143-21"><a href="seq2seq-att.html#cb143-21"></a>        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)</span>
-<span id="cb143-22"><a href="seq2seq-att.html#cb143-22"></a>        optimizer.step()</span>
-<span id="cb143-23"><a href="seq2seq-att.html#cb143-23"></a>        epoch_loss <span class="op">+=</span> loss.item()</span>
-<span id="cb143-24"><a href="seq2seq-att.html#cb143-24"></a>    <span class="bu">print</span>()</span>
-<span id="cb143-25"><a href="seq2seq-att.html#cb143-25"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span></code></pre></div>
+<div class="sourceCode" id="cb152"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb152-1"><a href="seq2seq-att.html#cb152-1"></a>optimizer <span class="op">=</span> optim.Adam(model.parameters())</span>
+<span id="cb152-2"><a href="seq2seq-att.html#cb152-2"></a>pad_idx <span class="op">=</span> trg_spec.vocab.stoi[<span class="st">&#39;&lt;pad&gt;&#39;</span>]</span>
+<span id="cb152-3"><a href="seq2seq-att.html#cb152-3"></a>criterion <span class="op">=</span> nn.CrossEntropyLoss(ignore_index <span class="op">=</span> pad_idx)</span>
+<span id="cb152-4"><a href="seq2seq-att.html#cb152-4"></a></span>
+<span id="cb152-5"><a href="seq2seq-att.html#cb152-5"></a><span class="kw">def</span> train(model, iterator, optimizer, criterion, clip):</span>
+<span id="cb152-6"><a href="seq2seq-att.html#cb152-6"></a>    model.train()</span>
+<span id="cb152-7"><a href="seq2seq-att.html#cb152-7"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb152-8"><a href="seq2seq-att.html#cb152-8"></a>    <span class="cf">for</span> i, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
+<span id="cb152-9"><a href="seq2seq-att.html#cb152-9"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">1000</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(i, end <span class="op">=</span> <span class="st">&quot; &quot;</span>, flush<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb152-10"><a href="seq2seq-att.html#cb152-10"></a>        src <span class="op">=</span> batch.src</span>
+<span id="cb152-11"><a href="seq2seq-att.html#cb152-11"></a>        trg <span class="op">=</span> batch.trg</span>
+<span id="cb152-12"><a href="seq2seq-att.html#cb152-12"></a>        optimizer.zero_grad()</span>
+<span id="cb152-13"><a href="seq2seq-att.html#cb152-13"></a>        <span class="co"># seq_len * bs * num_output_features</span></span>
+<span id="cb152-14"><a href="seq2seq-att.html#cb152-14"></a>        output <span class="op">=</span> model(src, trg)</span>
+<span id="cb152-15"><a href="seq2seq-att.html#cb152-15"></a>        <span class="co"># ((seq_len - 1) * bs) * num_output_features (output[1:] is (seq_len - 1) * bs * num_output_features))</span></span>
+<span id="cb152-16"><a href="seq2seq-att.html#cb152-16"></a>        output <span class="op">=</span> output[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>, output.shape[<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb152-17"><a href="seq2seq-att.html#cb152-17"></a>        <span class="co"># (trg_len - 1) </span></span>
+<span id="cb152-18"><a href="seq2seq-att.html#cb152-18"></a>        trg <span class="op">=</span> trg[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb152-19"><a href="seq2seq-att.html#cb152-19"></a>        loss <span class="op">=</span> criterion(output, trg)</span>
+<span id="cb152-20"><a href="seq2seq-att.html#cb152-20"></a>        loss.backward()</span>
+<span id="cb152-21"><a href="seq2seq-att.html#cb152-21"></a>        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)</span>
+<span id="cb152-22"><a href="seq2seq-att.html#cb152-22"></a>        optimizer.step()</span>
+<span id="cb152-23"><a href="seq2seq-att.html#cb152-23"></a>        epoch_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb152-24"><a href="seq2seq-att.html#cb152-24"></a>    <span class="bu">print</span>()</span>
+<span id="cb152-25"><a href="seq2seq-att.html#cb152-25"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span></code></pre></div>
 <p>We will want to monitor performance while training, so here is a helper function that sets the model to evaluation mode, turns
 off teacher forcing and computes the loss:</p>
-<div class="sourceCode" id="cb144"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb144-1"><a href="seq2seq-att.html#cb144-1"></a><span class="kw">def</span> evaluate(model, iterator, criterion):</span>
-<span id="cb144-2"><a href="seq2seq-att.html#cb144-2"></a>    model.<span class="bu">eval</span>()</span>
-<span id="cb144-3"><a href="seq2seq-att.html#cb144-3"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb144-4"><a href="seq2seq-att.html#cb144-4"></a>    <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb144-5"><a href="seq2seq-att.html#cb144-5"></a>        <span class="cf">for</span> _, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
-<span id="cb144-6"><a href="seq2seq-att.html#cb144-6"></a>            src <span class="op">=</span> batch.src</span>
-<span id="cb144-7"><a href="seq2seq-att.html#cb144-7"></a>            trg <span class="op">=</span> batch.trg</span>
-<span id="cb144-8"><a href="seq2seq-att.html#cb144-8"></a>            output <span class="op">=</span> model(src, trg, <span class="dv">0</span>) </span>
-<span id="cb144-9"><a href="seq2seq-att.html#cb144-9"></a>            output <span class="op">=</span> output[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>, output.shape[<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb144-10"><a href="seq2seq-att.html#cb144-10"></a>            trg <span class="op">=</span> trg[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb144-11"><a href="seq2seq-att.html#cb144-11"></a>            loss <span class="op">=</span> criterion(output, trg)</span>
-<span id="cb144-12"><a href="seq2seq-att.html#cb144-12"></a>            epoch_loss <span class="op">+=</span> loss.item()</span>
-<span id="cb144-13"><a href="seq2seq-att.html#cb144-13"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span></code></pre></div>
+<div class="sourceCode" id="cb153"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb153-1"><a href="seq2seq-att.html#cb153-1"></a><span class="kw">def</span> evaluate(model, iterator, criterion):</span>
+<span id="cb153-2"><a href="seq2seq-att.html#cb153-2"></a>    model.<span class="bu">eval</span>()</span>
+<span id="cb153-3"><a href="seq2seq-att.html#cb153-3"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb153-4"><a href="seq2seq-att.html#cb153-4"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb153-5"><a href="seq2seq-att.html#cb153-5"></a>        <span class="cf">for</span> _, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
+<span id="cb153-6"><a href="seq2seq-att.html#cb153-6"></a>            src <span class="op">=</span> batch.src</span>
+<span id="cb153-7"><a href="seq2seq-att.html#cb153-7"></a>            trg <span class="op">=</span> batch.trg</span>
+<span id="cb153-8"><a href="seq2seq-att.html#cb153-8"></a>            output <span class="op">=</span> model(src, trg, <span class="dv">0</span>) </span>
+<span id="cb153-9"><a href="seq2seq-att.html#cb153-9"></a>            output <span class="op">=</span> output[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>, output.shape[<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb153-10"><a href="seq2seq-att.html#cb153-10"></a>            trg <span class="op">=</span> trg[<span class="dv">1</span>:].view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb153-11"><a href="seq2seq-att.html#cb153-11"></a>            loss <span class="op">=</span> criterion(output, trg)</span>
+<span id="cb153-12"><a href="seq2seq-att.html#cb153-12"></a>            epoch_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb153-13"><a href="seq2seq-att.html#cb153-13"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span></code></pre></div>
 <p>Of course, what we really are interested in is how the translations look to us humans; here is a function that translates
 whatever we pass it:</p>
-<div class="sourceCode" id="cb145"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb145-1"><a href="seq2seq-att.html#cb145-1"></a><span class="kw">def</span> translate_sentence(sentence, src_field, trg_field, model, device, max_len <span class="op">=</span> <span class="dv">50</span>):</span>
-<span id="cb145-2"><a href="seq2seq-att.html#cb145-2"></a>    model.<span class="bu">eval</span>()</span>
-<span id="cb145-3"><a href="seq2seq-att.html#cb145-3"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(sentence, <span class="bu">str</span>):</span>
-<span id="cb145-4"><a href="seq2seq-att.html#cb145-4"></a>        nlp <span class="op">=</span> spacy.load(<span class="st">&#39;en&#39;</span>)</span>
-<span id="cb145-5"><a href="seq2seq-att.html#cb145-5"></a>        tokens <span class="op">=</span> [token.text.lower() <span class="cf">for</span> token <span class="kw">in</span> nlp(sentence)]</span>
-<span id="cb145-6"><a href="seq2seq-att.html#cb145-6"></a>    <span class="cf">else</span>:</span>
-<span id="cb145-7"><a href="seq2seq-att.html#cb145-7"></a>        tokens <span class="op">=</span> [token.lower() <span class="cf">for</span> token <span class="kw">in</span> sentence]</span>
-<span id="cb145-8"><a href="seq2seq-att.html#cb145-8"></a>    tokens <span class="op">=</span> [src_field.init_token] <span class="op">+</span> tokens <span class="op">+</span> [src_field.eos_token]</span>
-<span id="cb145-9"><a href="seq2seq-att.html#cb145-9"></a>    src_indexes <span class="op">=</span> [src_field.vocab.stoi[token] <span class="cf">for</span> token <span class="kw">in</span> tokens]</span>
-<span id="cb145-10"><a href="seq2seq-att.html#cb145-10"></a>    src_tensor <span class="op">=</span> torch.LongTensor(src_indexes).unsqueeze(<span class="dv">1</span>).to(device)</span>
-<span id="cb145-11"><a href="seq2seq-att.html#cb145-11"></a>    src_len <span class="op">=</span> torch.LongTensor([<span class="bu">len</span>(src_indexes)]).to(device)</span>
-<span id="cb145-12"><a href="seq2seq-att.html#cb145-12"></a>    <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb145-13"><a href="seq2seq-att.html#cb145-13"></a>        encoder_outputs, hidden <span class="op">=</span> model.encoder(src_tensor)</span>
-<span id="cb145-14"><a href="seq2seq-att.html#cb145-14"></a>    trg_indexes <span class="op">=</span> [trg_field.vocab.stoi[trg_field.init_token]]</span>
-<span id="cb145-15"><a href="seq2seq-att.html#cb145-15"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(max_len):</span>
-<span id="cb145-16"><a href="seq2seq-att.html#cb145-16"></a>        trg_tensor <span class="op">=</span> torch.LongTensor([trg_indexes[<span class="op">-</span><span class="dv">1</span>]]).to(device)</span>
-<span id="cb145-17"><a href="seq2seq-att.html#cb145-17"></a>        <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb145-18"><a href="seq2seq-att.html#cb145-18"></a>            output, hidden <span class="op">=</span> model.decoder(trg_tensor, hidden, encoder_outputs)</span>
-<span id="cb145-19"><a href="seq2seq-att.html#cb145-19"></a>            pred_token <span class="op">=</span> output.argmax(<span class="dv">1</span>).item()</span>
-<span id="cb145-20"><a href="seq2seq-att.html#cb145-20"></a>            trg_indexes.append(pred_token)</span>
-<span id="cb145-21"><a href="seq2seq-att.html#cb145-21"></a>            <span class="cf">if</span> pred_token <span class="op">==</span> trg_field.vocab.stoi[trg_field.eos_token]: <span class="cf">break</span></span>
-<span id="cb145-22"><a href="seq2seq-att.html#cb145-22"></a>    trg_tokens <span class="op">=</span> [trg_field.vocab.itos[i] <span class="cf">for</span> i <span class="kw">in</span> trg_indexes]</span>
-<span id="cb145-23"><a href="seq2seq-att.html#cb145-23"></a>    <span class="cf">return</span> trg_tokens[<span class="dv">1</span>:]</span></code></pre></div>
+<div class="sourceCode" id="cb154"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb154-1"><a href="seq2seq-att.html#cb154-1"></a><span class="kw">def</span> translate_sentence(sentence, src_field, trg_field, model, device, max_len <span class="op">=</span> <span class="dv">50</span>):</span>
+<span id="cb154-2"><a href="seq2seq-att.html#cb154-2"></a>    model.<span class="bu">eval</span>()</span>
+<span id="cb154-3"><a href="seq2seq-att.html#cb154-3"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(sentence, <span class="bu">str</span>):</span>
+<span id="cb154-4"><a href="seq2seq-att.html#cb154-4"></a>        nlp <span class="op">=</span> spacy.load(<span class="st">&#39;en&#39;</span>)</span>
+<span id="cb154-5"><a href="seq2seq-att.html#cb154-5"></a>        tokens <span class="op">=</span> [token.text.lower() <span class="cf">for</span> token <span class="kw">in</span> nlp(sentence)]</span>
+<span id="cb154-6"><a href="seq2seq-att.html#cb154-6"></a>    <span class="cf">else</span>:</span>
+<span id="cb154-7"><a href="seq2seq-att.html#cb154-7"></a>        tokens <span class="op">=</span> [token.lower() <span class="cf">for</span> token <span class="kw">in</span> sentence]</span>
+<span id="cb154-8"><a href="seq2seq-att.html#cb154-8"></a>    tokens <span class="op">=</span> [src_field.init_token] <span class="op">+</span> tokens <span class="op">+</span> [src_field.eos_token]</span>
+<span id="cb154-9"><a href="seq2seq-att.html#cb154-9"></a>    src_indexes <span class="op">=</span> [src_field.vocab.stoi[token] <span class="cf">for</span> token <span class="kw">in</span> tokens]</span>
+<span id="cb154-10"><a href="seq2seq-att.html#cb154-10"></a>    src_tensor <span class="op">=</span> torch.LongTensor(src_indexes).unsqueeze(<span class="dv">1</span>).to(device)</span>
+<span id="cb154-11"><a href="seq2seq-att.html#cb154-11"></a>    src_len <span class="op">=</span> torch.LongTensor([<span class="bu">len</span>(src_indexes)]).to(device)</span>
+<span id="cb154-12"><a href="seq2seq-att.html#cb154-12"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb154-13"><a href="seq2seq-att.html#cb154-13"></a>        encoder_outputs, hidden <span class="op">=</span> model.encoder(src_tensor)</span>
+<span id="cb154-14"><a href="seq2seq-att.html#cb154-14"></a>    trg_indexes <span class="op">=</span> [trg_field.vocab.stoi[trg_field.init_token]]</span>
+<span id="cb154-15"><a href="seq2seq-att.html#cb154-15"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(max_len):</span>
+<span id="cb154-16"><a href="seq2seq-att.html#cb154-16"></a>        trg_tensor <span class="op">=</span> torch.LongTensor([trg_indexes[<span class="op">-</span><span class="dv">1</span>]]).to(device)</span>
+<span id="cb154-17"><a href="seq2seq-att.html#cb154-17"></a>        <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb154-18"><a href="seq2seq-att.html#cb154-18"></a>            output, hidden <span class="op">=</span> model.decoder(trg_tensor, hidden, encoder_outputs)</span>
+<span id="cb154-19"><a href="seq2seq-att.html#cb154-19"></a>            pred_token <span class="op">=</span> output.argmax(<span class="dv">1</span>).item()</span>
+<span id="cb154-20"><a href="seq2seq-att.html#cb154-20"></a>            trg_indexes.append(pred_token)</span>
+<span id="cb154-21"><a href="seq2seq-att.html#cb154-21"></a>            <span class="cf">if</span> pred_token <span class="op">==</span> trg_field.vocab.stoi[trg_field.eos_token]: <span class="cf">break</span></span>
+<span id="cb154-22"><a href="seq2seq-att.html#cb154-22"></a>    trg_tokens <span class="op">=</span> [trg_field.vocab.itos[i] <span class="cf">for</span> i <span class="kw">in</span> trg_indexes]</span>
+<span id="cb154-23"><a href="seq2seq-att.html#cb154-23"></a>    <span class="cf">return</span> trg_tokens[<span class="dv">1</span>:]</span></code></pre></div>
 <p>Now here is the training loop. Every epoch, we print the translations of eight sentences, picked at random from the training
 set:</p>
-<div class="sourceCode" id="cb146"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb146-1"><a href="seq2seq-att.html#cb146-1"></a>n_epochs <span class="op">=</span> <span class="dv">10</span></span>
-<span id="cb146-2"><a href="seq2seq-att.html#cb146-2"></a>clip <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb146-3"><a href="seq2seq-att.html#cb146-3"></a></span>
-<span id="cb146-4"><a href="seq2seq-att.html#cb146-4"></a>example_idx <span class="op">=</span> [<span class="dv">11</span>, <span class="dv">77</span>, <span class="dv">133</span>, <span class="dv">241</span>, <span class="dv">333</span>, <span class="dv">477</span>, <span class="dv">555</span>, <span class="dv">777</span>]</span>
-<span id="cb146-5"><a href="seq2seq-att.html#cb146-5"></a></span>
-<span id="cb146-6"><a href="seq2seq-att.html#cb146-6"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(n_epochs):</span>
-<span id="cb146-7"><a href="seq2seq-att.html#cb146-7"></a>    train_loss <span class="op">=</span> train(model, train_iterator, optimizer, criterion, clip)</span>
-<span id="cb146-8"><a href="seq2seq-att.html#cb146-8"></a>    valid_loss <span class="op">=</span> evaluate(model, valid_iterator, criterion)</span>
-<span id="cb146-9"><a href="seq2seq-att.html#cb146-9"></a>    test_loss <span class="op">=</span> evaluate(model, test_iterator, criterion)</span>
-<span id="cb146-10"><a href="seq2seq-att.html#cb146-10"></a>    <span class="bu">print</span>(<span class="ss">f&#39;Epoch: </span><span class="sc">{</span>epoch<span class="op">+</span><span class="dv">1</span><span class="sc">:02}</span><span class="ss">&#39;</span>)</span>
-<span id="cb146-11"><a href="seq2seq-att.html#cb146-11"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Train Loss: </span><span class="sc">{</span>train_loss<span class="sc">:.3f}</span><span class="ss"> | Train PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(train_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
-<span id="cb146-12"><a href="seq2seq-att.html#cb146-12"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss"> Val. Loss: </span><span class="sc">{</span>valid_loss<span class="sc">:.3f}</span><span class="ss"> |  Val. PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(valid_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
-<span id="cb146-13"><a href="seq2seq-att.html#cb146-13"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Test Loss: </span><span class="sc">{</span>test_loss<span class="sc">:.3f}</span><span class="ss"> | Test PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(test_loss)<span class="sc">:7.3f}</span><span class="ss"> |&#39;</span>)</span>
-<span id="cb146-14"><a href="seq2seq-att.html#cb146-14"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>):</span>
-<span id="cb146-15"><a href="seq2seq-att.html#cb146-15"></a>        example_src <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;src&#39;</span>]</span>
-<span id="cb146-16"><a href="seq2seq-att.html#cb146-16"></a>        example_trg <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;trg&#39;</span>]</span>
-<span id="cb146-17"><a href="seq2seq-att.html#cb146-17"></a>        translation <span class="op">=</span> translate_sentence(example_src, src_spec, trg_spec, model, device)</span>
-<span id="cb146-18"><a href="seq2seq-att.html#cb146-18"></a>        src_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_src)</span>
-<span id="cb146-19"><a href="seq2seq-att.html#cb146-19"></a>        target_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_trg)</span>
-<span id="cb146-20"><a href="seq2seq-att.html#cb146-20"></a>        translated_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> translation)</span>
-<span id="cb146-21"><a href="seq2seq-att.html#cb146-21"></a>        <span class="bu">print</span>(<span class="st">&quot;Source: &quot;</span> <span class="op">+</span> src_sentence)</span>
-<span id="cb146-22"><a href="seq2seq-att.html#cb146-22"></a>        <span class="bu">print</span>(<span class="st">&quot;Target: &quot;</span> <span class="op">+</span> target_sentence)</span>
-<span id="cb146-23"><a href="seq2seq-att.html#cb146-23"></a>        <span class="bu">print</span>(<span class="st">&quot;Predicted: &quot;</span> <span class="op">+</span> translated_sentence <span class="op">+</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb155"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb155-1"><a href="seq2seq-att.html#cb155-1"></a>n_epochs <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb155-2"><a href="seq2seq-att.html#cb155-2"></a>clip <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb155-3"><a href="seq2seq-att.html#cb155-3"></a></span>
+<span id="cb155-4"><a href="seq2seq-att.html#cb155-4"></a>example_idx <span class="op">=</span> [<span class="dv">11</span>, <span class="dv">77</span>, <span class="dv">133</span>, <span class="dv">241</span>, <span class="dv">333</span>, <span class="dv">477</span>, <span class="dv">555</span>, <span class="dv">777</span>]</span>
+<span id="cb155-5"><a href="seq2seq-att.html#cb155-5"></a></span>
+<span id="cb155-6"><a href="seq2seq-att.html#cb155-6"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(n_epochs):</span>
+<span id="cb155-7"><a href="seq2seq-att.html#cb155-7"></a>    train_loss <span class="op">=</span> train(model, train_iterator, optimizer, criterion, clip)</span>
+<span id="cb155-8"><a href="seq2seq-att.html#cb155-8"></a>    valid_loss <span class="op">=</span> evaluate(model, valid_iterator, criterion)</span>
+<span id="cb155-9"><a href="seq2seq-att.html#cb155-9"></a>    test_loss <span class="op">=</span> evaluate(model, test_iterator, criterion)</span>
+<span id="cb155-10"><a href="seq2seq-att.html#cb155-10"></a>    <span class="bu">print</span>(<span class="ss">f&#39;Epoch: </span><span class="sc">{</span>epoch<span class="op">+</span><span class="dv">1</span><span class="sc">:02}</span><span class="ss">&#39;</span>)</span>
+<span id="cb155-11"><a href="seq2seq-att.html#cb155-11"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Train Loss: </span><span class="sc">{</span>train_loss<span class="sc">:.3f}</span><span class="ss"> | Train PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(train_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
+<span id="cb155-12"><a href="seq2seq-att.html#cb155-12"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss"> Val. Loss: </span><span class="sc">{</span>valid_loss<span class="sc">:.3f}</span><span class="ss"> |  Val. PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(valid_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
+<span id="cb155-13"><a href="seq2seq-att.html#cb155-13"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Test Loss: </span><span class="sc">{</span>test_loss<span class="sc">:.3f}</span><span class="ss"> | Test PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(test_loss)<span class="sc">:7.3f}</span><span class="ss"> |&#39;</span>)</span>
+<span id="cb155-14"><a href="seq2seq-att.html#cb155-14"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>):</span>
+<span id="cb155-15"><a href="seq2seq-att.html#cb155-15"></a>        example_src <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;src&#39;</span>]</span>
+<span id="cb155-16"><a href="seq2seq-att.html#cb155-16"></a>        example_trg <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;trg&#39;</span>]</span>
+<span id="cb155-17"><a href="seq2seq-att.html#cb155-17"></a>        translation <span class="op">=</span> translate_sentence(example_src, src_spec, trg_spec, model, device)</span>
+<span id="cb155-18"><a href="seq2seq-att.html#cb155-18"></a>        src_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_src)</span>
+<span id="cb155-19"><a href="seq2seq-att.html#cb155-19"></a>        target_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_trg)</span>
+<span id="cb155-20"><a href="seq2seq-att.html#cb155-20"></a>        translated_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> translation)</span>
+<span id="cb155-21"><a href="seq2seq-att.html#cb155-21"></a>        <span class="bu">print</span>(<span class="st">&quot;Source: &quot;</span> <span class="op">+</span> src_sentence)</span>
+<span id="cb155-22"><a href="seq2seq-att.html#cb155-22"></a>        <span class="bu">print</span>(<span class="st">&quot;Target: &quot;</span> <span class="op">+</span> target_sentence)</span>
+<span id="cb155-23"><a href="seq2seq-att.html#cb155-23"></a>        <span class="bu">print</span>(<span class="st">&quot;Predicted: &quot;</span> <span class="op">+</span> translated_sentence <span class="op">+</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <p>You may be curious to see the output - right?</p>
 </div>
 <div id="results" class="section level2" number="9.5">

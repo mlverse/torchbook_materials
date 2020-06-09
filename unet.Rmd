@@ -59,7 +59,7 @@ Here are three examples of orientations where the masks actually indicate an abn
 montage TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif
 ```
 
-## Preprocessing
+### Preprocessing
 
 ```{python}
 import torch
@@ -99,7 +99,7 @@ repository](https://github.com/mateuszbuda/brain-segmentation-pytorch).
 Both FLAIR images and masks come in `.tif` format. These images have to be preprocessed spatially (cropped, padded and
 resized), as well as normalized. The following functions will be called inside `BrainSegmentationDataset`:
 
-```{r}
+```{python}
 import numpy as np
 from medpy.filter.binary import largest_connected_component
 from skimage.exposure import rescale_intensity
@@ -421,7 +421,7 @@ dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'valid']}
 
 On to the model.
 
-## U-Net model
+### U-Net model
 
 We formulate the model in a generic way: The layers for the *up* and *down* paths are kept in lists. During the downward pass,
 the model saves away the intermediate activations, and during the upward phase, passes them on for concatenation (and thus,
@@ -429,9 +429,9 @@ use in upsampling) as required.
 
 Model depth is configurable (`depth`), as is a starting point for the number of filters (`n_filters`): The first downward
 convolution block will have `2^n_filters` channels, and in every successive convolution block the exponent will be incremented
-by one.
-
-tbd other args
+by one. The number of input channels (in our example: 3) and the number of output classes can be changed, as well. With a
+binary problem, although logically the number of classes is two, there is no need for two output channels; a single output
+channel with sigmoid activation is enough. If you had, say, four different cell types instead, you'd set `n_classes` to four.
 
 ```{python}
 class UNet(nn.Module):
@@ -472,24 +472,254 @@ class UNet(nn.Module):
 
 ```
 
-### heading
+As you'll have seen, this top-level module makes use of two helper modules, `DownBlock` and `UpBlock`. These again assemble
+and call instances of `ConvBlock`, the lowest-level module, that chains convolutional, activation, dropout and batchnorm
+layers. For this specific application, we've found that batchnorm actually resulted in deteriorated performance on the
+validation set, probably due to very small batch size. When working with other datasets and/or larger batches that could be
+very different.
 
-text
+```{python}
+class ConvBlock(nn.Module):
+    def __init__(self, in_size, out_size):
+        super(ConvBlock, self).__init__()
+        block = []
+        block.append(nn.Conv2d(in_size, out_size, kernel_size = 3, padding = 1))
+        block.append(nn.ReLU())
+        #block.append(nn.BatchNorm2d(out_size))
+        block.append(nn.Dropout(0.6))
+        block.append(nn.Conv2d(out_size, out_size, kernel_size = 3, padding = 1))
+        block.append(nn.ReLU())
+        #block.append(nn.BatchNorm2d(out_size))
+        block.append(nn.Dropout(0.6))
+        self.block = nn.Sequential(*block)
+    def forward(self, x):
+        out = self.block(x)
+        return out
+```
 
-| down                      |        | up                              |
-|---------------------------|--------|---------------------------------|
-| channels x width x height |        | channels x width x height       |
-| 3 x 256 x 256 (input)     |        | 1 x 256 x 256 (1 x1 conv)       |
-|                           |        | 64 x 256 x 256 (conv)           |
-|                           |        | 128 x 256 x 256 (concat)        |
-| 64 x 256 x 256 (conv)     | CONCAT | 64 x 256 x 256 (conv + deconv)  |
-| 64 x 128 x 128 (pool)     |        | 256 x 128 x 128 (concat)        |
-| 128 x 128 x 128 (conv)    | CONCAT | 128 x 128 x 128 (conv + deconv) |
-| 128 x 64 x 64 (pool)      |        | 512 x 64 x 64 (concat)          |
-| 256 x 64 x 64 (conv)      | CONCAT | 256 x 64 x 64 (conv + deconv)   |
-| 256 x 32 x 32 (pool)      |        | 1024 x 32 x 32 (concat)         |
-| 512 x 32 x 32 (conv)      | CONCAT | 512 x 32 x 32 (deconv)          |
-| 512 x 16 x 16 (pool)      |        | 1024 x 16 x 16 (conv)           |
+```{python}
+class DownBlock(nn.Module):
+    def __init__(self, in_size, out_size):
+        super(DownBlock, self).__init__()
+        self.conv_block = ConvBlock(in_size, out_size)
+    def forward(self, x):
+        down = self.conv_block(x)
+        return down
+```
 
-Number of channels goes up due to convolution layers; spatial downsizing occurs due to max pooling. (There is no max pooling
-at the "inflection point".)
+```{python}
+class UpBlock(nn.Module):
+    def __init__(self, in_size, out_size):
+        super(UpBlock, self).__init__()
+        self.up = nn.ConvTranspose2d(in_size, out_size, kernel_size = 2, stride = 2)
+        self.conv_block = ConvBlock(in_size, out_size)
+    def forward(self, x, bridge):
+        up = self.up(x)
+        out = torch.cat([up, bridge], 1)
+        out = self.conv_block(out)
+        return out
+```
+
+We instantiate the model with default parameters.
+
+```{python}
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = UNet().to(device)
+```
+
+This results in a U-structure of the following dimensionality:
+
+| down                      |                                                                           | up                              |
+|---------------------------|---------------------------------------------------------------------------|---------------------------------|
+| channels x width x height |                                                                           | channels x width x height       |
+| 3 x 256 x 256 (input)     |                                                                           | 1 x 256 x 256 (1 x1 conv)       |
+|                           |                                                                           | 64 x 256 x 256 (conv)           |
+|                           |                                                                           | 128 x 256 x 256 (concat)        |
+| 64 x 256 x 256 (conv)     | CONCAT                                                                    | 64 x 256 x 256 (conv + deconv)  |
+| 64 x 128 x 128 (pool)     |                                                                           | 256 x 128 x 128 (concat)        |
+| 128 x 128 x 128 (conv)    | CONCAT                                                                    | 128 x 128 x 128 (conv + deconv) |
+| 128 x 64 x 64 (pool)      |                                                                           | 512 x 64 x 64 (concat)          |
+| 256 x 64 x 64 (conv)      | CONCAT                                                                    | 256 x 64 x 64 (conv + deconv)   |
+| 256 x 32 x 32 (pool)      |                                                                           | 1024 x 32 x 32 (concat)         |
+| 512 x 32 x 32 (conv)      | CONCAT                                                                    | 512 x 32 x 32 (deconv)          |
+| 512 x 16 x 16 (pool)      | \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\> | 1024 x 16 x 16 (conv)           |
+
+Note that when on the *down* path, the number of channels goes *up*, this is due to the convolution layers; spatial
+downsizing, however, occurs due to max pooling. This is an implementation feature, not a requirement -- we could replace max
+pooling by using `strides` greater than `1` in the conv layers instead. This is another place where for a concrete
+application, you might want to experiment a bit.
+
+On the *up* path, we conveniently concatenate stored-away activations preceding max pooling layers to upwards-"bubbling"
+activations of same spatial resolution. The concatenated values are then upsized spatially using transposed convolutions,
+while the number of filters is reduced by conv layers. As an alternative to transposed convolution, you might want to try
+`UpSampling` layers.
+
+### Loss
+
+Thinking about loss functions that match the task, the first that probably comes to mind is binary crossentropy,
+`torch.nn.BCELoss`, applied pixel-wise. We'll use it ...
+
+```{python}
+bce_loss = nn.BCELoss()
+```
+
+but we'll augment it by another, called *dice loss* after the [dice
+coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient): [^1]
+
+[^1]: here in set notation
+
+$$
+d = \frac{2 * |X \cap Y|}{|X \cup Y|}
+$$
+
+The dice coefficient is similar in spirit to the [Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index), also known as
+*intersection over union*, but differs in that it scales the numerator by two. Here is an implementation of the derived loss:
+
+```{python}
+
+class DiceLoss(nn.Module):
+    def __init__(self):
+        super(DiceLoss, self).__init__()
+        self.smooth = 1.0
+    def forward(self, y_pred, y_true):
+        assert y_pred.size() == y_true.size()
+        y_pred = y_pred[:, 0].contiguous().view(-1)
+        y_true = y_true[:, 0].contiguous().view(-1)
+        intersection = (y_pred * y_true).sum()
+        dsc = (2. * intersection + self.smooth) / (
+            y_pred.sum() + y_true.sum() + self.smooth
+        )
+        return 1. - dsc
+
+```
+
+Dice loss, defined as one minus the dice coefficient, is said to improve training on imbalanced datasets. Looking closely, we
+see that if a mask is all zero, the only way to not to incur loss is by predicting all zeroes, as well.
+
+For easy experimentation, we combine make it so both losses are combined in a weighted fashion:
+
+```{python}
+dice_loss = DiceLoss()
+
+dice_weight = 0.3
+
+```
+
+### Training
+
+We train for fifty epochs, continously saving the model weights that are best so far.
+
+```{python}
+
+optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum = 0.9)
+
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optimizer,
+    max_lr = 0.1,
+    steps_per_epoch = len(train_loader),
+    epochs = num_epochs
+)
+
+best_model_wts = copy.deepcopy(model.state_dict())
+best_dice_coef = 0.0
+
+num_epochs = 50
+
+for epoch in range(num_epochs):
+    print('Epoch {}/{}'.format(epoch, num_epochs - 1), flush = True)
+    print('-' * 10)
+    for phase in ['train', 'valid']:
+        print("Entering phase: " + phase, flush = True)
+        if phase == 'train':
+            model = model.train() 
+        else:
+            model = model.eval()   
+        running_loss = 0.0
+        running_dice = 0.0
+        running_bce = 0.0
+        for inputs, labels in dataloaders[phase]:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            optimizer.zero_grad()
+            with torch.set_grad_enabled(phase == 'train'):
+                preds = model(inputs)
+                dice_loss = dsc_loss(preds, labels)
+                xent_loss = bce_loss(preds, labels)
+                loss = dice_weight * dice_loss + (1 - dice_weight) * xent_loss
+                if phase == 'train':
+                    loss.backward()
+                    optimizer.step()
+            running_loss += loss.item() * inputs.size(0)
+            running_dice += dice_loss.item() * inputs.size(0)
+            if phase == 'train':
+                scheduler.step()
+        epoch_loss = running_loss / dataset_sizes[phase]
+        epoch_dice = running_dice / dataset_sizes[phase]
+        epoch_bce = running_bce / dataset_sizes[phase]
+        if phase == 'valid' and epoch_dice < best_dice_coef:
+            best_dice = epoch_dice
+            best_model_wts = copy.deepcopy(model.state_dict())
+        print('{} Loss: {:.4f}'.format(phase, epoch_loss), flush = True)
+        print('{} Dice coef: {:.4f}'.format(phase, epoch_dice), flush = True)
+        print('{} BCE: {:.4f}'.format(phase, epoch_bce), flush = True)
+    print()
+
+model.load_state_dict(best_model_wts)
+torch.save(model.state_dict(), "mri.pt")
+```
+
+Here is a excerpt from the training history:
+
+```{}
+Epoch 0/49
+----------
+Entering phase: train
+train Loss: 1.0315
+train Dice coef: 2.3604
+train BCE: 0.4620
+Entering phase: valid
+valid Loss: 1.3413
+valid Dice coef: 3.2042
+valid BCE: 0.5429
+
+Epoch 1/49
+----------
+Entering phase: train
+train Loss: 0.7160
+train Dice coef: 1.5426
+train BCE: 0.3618
+Entering phase: valid
+valid Loss: 1.3800
+valid Dice coef: 3.2879
+valid BCE: 0.5624
+
+...
+
+Epoch 48/49
+----------
+Entering phase: train
+train Loss: 0.2059
+train Dice coef: 0.4564
+train BCE: 0.0985
+Entering phase: valid
+valid Loss: 1.1764
+valid Dice coef: 3.0436
+valid BCE: 0.3762
+
+Epoch 49/49
+----------
+Entering phase: train
+train Loss: 0.2033
+train Dice coef: 0.4519
+train BCE: 0.0968
+Entering phase: valid
+valid Loss: 1.1654
+valid Dice coef: 3.0353
+valid BCE: 0.3641
+
+
+```
+
+### Predictions
+
+TBD when in R.

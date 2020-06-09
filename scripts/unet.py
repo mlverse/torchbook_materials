@@ -253,13 +253,11 @@ class DiceLoss(nn.Module):
         return 1. - dsc
 
 
-dsc_loss = DiceLoss()
+dice_loss = DiceLoss()
 bce_loss = nn.BCELoss()
 dice_weight = 0.3
 
 optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum = 0.9)
-
-num_epochs = 50
 
 scheduler = torch.optim.lr_scheduler.OneCycleLR(
     optimizer,
@@ -270,7 +268,10 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(
 
 best_model_wts = copy.deepcopy(model.state_dict())
 best_dice_coef = 0.0
-    
+
+
+num_epochs = 50
+
 for epoch in range(num_epochs):
     print('Epoch {}/{}'.format(epoch, num_epochs - 1), flush = True)
     print('-' * 10)
@@ -318,51 +319,3 @@ for epoch in range(num_epochs):
 model.load_state_dict(best_model_wts)
 torch.save(model.state_dict(), "mri.pt")
 
-
-#####################################################
-
-# Epoch 0/49
-# ----------
-# Entering phase: train
-# train Loss: 1.0315
-# train Dice coef: 2.3604
-# train BCE: 0.4620
-# Entering phase: valid
-# valid Loss: 1.3413
-# valid Dice coef: 3.2042
-# valid BCE: 0.5429
-# 
-# Epoch 1/49
-# ----------
-# Entering phase: train
-# train Loss: 0.7160
-# train Dice coef: 1.5426
-# train BCE: 0.3618
-# Entering phase: valid
-# valid Loss: 1.3800
-# valid Dice coef: 3.2879
-# valid BCE: 0.5624
-# 
-# ...
-# 
-# Epoch 48/49
-# ----------
-# Entering phase: train
-# train Loss: 0.2059
-# train Dice coef: 0.4564
-# train BCE: 0.0985
-# Entering phase: valid
-# valid Loss: 1.1764
-# valid Dice coef: 3.0436
-# valid BCE: 0.3762
-# 
-# Epoch 49/49
-# ----------
-# Entering phase: train
-# train Loss: 0.2033
-# train Dice coef: 0.4519
-# train BCE: 0.0968
-# Entering phase: valid
-# valid Loss: 1.1654
-# valid Dice coef: 3.0353
-# valid BCE: 0.3641
