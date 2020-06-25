@@ -113,6 +113,8 @@ to fully understand their use in the above example.
 
 ### Creating tensors
 
+\#\#\#TBD\#\#\# named tensors
+
 Tensors can be created by specifying individual values. Here we create two one-dimensional tensors (vectors), of type `float`
 and `bool`, resp.:
 
@@ -224,6 +226,8 @@ shared storage
 
 ### Indexing and slicing tensors
 
+\#\#\#TBD\#\#\# named tensors
+
 Indexing and slicing tensors is 1-based and works like you'd expect from R:
 
 ```{r}
@@ -262,31 +266,33 @@ reshaping operation does or does not copy data.
 #### Zero-copy reshaping
 
 Zero-copy methods are used whenever possible. A special case, often seen in practice, is adding or removing a singleton
-dimension. `torch.unsqueeze()` adds a dimension of size `1` at a place specified by `dim`:
+dimension. `torch::unsqueeze()` adds a dimension of size `1` at a position specified by `dim`:
 
-```{python}
-t1 = torch.randint(low = 3, high = 7, size = (3, 3, 3))
+```{r}
+###TBD### change dim numbering
+t1 <- torch_randint(low = 3, high = 7, size = c(3, 3, 3))
 t1
 
-t2 = t1.unsqueeze(dim = 0)
-t2.size()
+t2 <- t1$unsqueeze(dim = 0)
+t2$size()
 t2
 
-t3 = t1.unsqueeze(dim = 1)
-t3.size()
+t3 = t1$unsqueeze(dim = 1)
+t3$size()
 t3
 ```
 
-Conversely, `torch.squeeze()` removes singleton dimensions:
+Conversely, `torch::squeeze()` removes singleton dimensions:
 
-```{python}
-t4 = t3.squeeze()
-t4.size()
+```{r}
+t4 <- t3$squeeze()
+t4$size()
+t4
 ```
 
 The same could be accomplished with `torch::view()`, but this method is more general, in that it allows you to reshape the
-data to any dimensionality, provided it matches the number of elements in the tensor. Here we have a `3x2` tensor that is
-reshaped to size `2x3`:
+data to any dimension, provided it matches the number of elements in the tensor. Here we have a `3x2` tensor that is reshaped
+to size `2x3`:
 
 ```{r}
 t1 <- torch_tensor(rbind(c(1, 2), c(3, 4), c(5, 6)))
@@ -317,8 +323,10 @@ t4
 
 In contrast to indexing operations, this does not drop dimensions.
 
-Like we said above, `view()` does not make copies, or put differently: The output tensor shares storage with the input tensor.
-To verify:
+Like we said above, operations like `squeeze` or `view()` [^1] does not make copies, or put differently: The output tensor
+shares storage with the input tensor. To verify:
+
+[^1]: As well as a few others (for an overview see <https://pytorch.org/docs/stable/tensor_view.html#tensor-view-doc>).
 
 ```{r}
 ###TBD###
@@ -336,7 +344,7 @@ row we just have to skip a single entry:
 t1$stride()
 ```
 
-For `t2`, of shape 3x2, the distance between column elements is the same, but the distance between rows now is 3:
+For `t2`, of shape 3x2, the distance between column elements is the same, but the distance between rows is now 3:
 
 ```{r}
 t2$stride()
@@ -356,57 +364,69 @@ t2$stride()
 Note how `t2` is "the same" as `t1` (storage-wise), but has `strides` indicating that the physical data should be read
 differently.
 
-These tensors, in torch terminology, are not "contiguous". [^1] One way to reshape them is use `contiguous()` on them before:
+These tensors, in torch terminology, are not "contiguous". [^2] One way to reshape them is to use `contiguous()` on them
+before. This will copy the data to make them contiguous -- so even though the next code listing still uses `view`, a copy is
+taking place.
 
-[^1]: Although it may sound like, "contiguous" does not correspond to what we'd call "contiguous in memory" in casual
+[^2]: Although it may sound like, "contiguous" does not correspond to what we'd call "contiguous in memory" in casual
     language.
 
-```{python, error = TRUE}
-t1 = torch.tensor([[1, 2], [3, 4], [5, 6]])
-t2 = t1.t()
+#### Reshape with copy
 
-t2.is_contiguous()
-t2.view(6)
+In the following snippet, the first try of reshaping by means of `view()` fails, because the tensor we're trying to reshape
+already carries metadata signifying that the underlying data should not be read in physical order. The call to `contiguous`
+creates a new tensor, which we can then [virtually] reshape using `view()`.[^3]
 
-t3 = t2.contiguous()
-t3.stride()
-t3.view(6)
+[^3]: For correctness' sake, `contiguous()` will only make a copy if the tensor it is called on is *not contiguous already.*
+
+```{r, error = TRUE}
+t1 <- torch_tensor(rbind(c(1, 2), c(3, 4), c(5, 6)))
+
+t2 <- t1$t()
+t2$is_contiguous()
+t2$view(6)
+
+t3 <- t2$contiguous()
+t3
+t3$view(6)
 ```
 
 Alternatively, we can use `reshape()`. `reshape()` defaults to `view()`-like behavior if possible; otherwise it will create a
 physical copy.
 
-```{python}
-t2.storage().data_ptr()
+```{r}
+###TBD###
+t2$storage()$data_ptr()
 
-t4 = t2.reshape(6)
-t4.storage().data_ptr()
+t4 <- t2$reshape(6)
+t4
+t4$storage()$data_ptr()
 ```
 
 ### Operations on tensors
 
 Tensor methods normally return references to new objects. Here, `t1` is not modified:
 
-```{python}
-t1 = torch.tensor([[1, 2], [3, 4], [5, 6]])
-t2 = t1.clone()
-t1.add(t2)
+```{r}
+t1 <- torch_tensor(rbind(c(1, 2), c(3, 4), c(5, 6)))
+###TBD###
+t2 <- t1$copy()
 
+t1$add(t2)
 t1
 ```
 
 Often, there are variants for mutating operations; these are discernible by a trailing underscore:
 
-```{python}
-t1.add_(t2)
-
+```{r}
+t1$add_(t2)
 t1
 ```
 
 Alternatively, you can of course assign the new object to a new reference variable:
 
-```{python}
-t3 = t1.add(t1)
+```{r}
+t3 <- t1$add(t1)
 t3
 ```
 
@@ -418,45 +438,51 @@ We often have to perform operations on tensors with shapes that don't match exac
 
 Unsurprisingly, we can add a scalar to a tensor:
 
-```{python}
-t = torch.randn([3,5])
+```{r}
+t <- torch_randn(c(3,5))
 t + 22
 ```
 
 The same will work if we add tensor of size 1:
 
-```{python}
-t = torch.randn([3,5])
-t + torch.tensor([22])
+```{r}
+t <- torch.randn(c(3,5))
+t + torch_tensor(c(22))
 ```
 
 Adding tensors of different sizes normally won't work:
 
-```{python, error = TRUE}
-t1 = torch.randn([3,5])
-t2 = torch.randn([5,5])
-t1.add(t2)
+```{r, error = TRUE}
+t <- torch_randn(c(3,5))
+t2 <- torch_randn(c(5,5))
+t1$add(t2)
 ```
 
-However, under certain conditions, one or both tensors may be virtually expanded to have both tensors match up. This behavior
-is called *broadcasting*, and is identical to that of Python's NumPy.
+However, under certain conditions, one or both tensors may be virtually expanded so both tensors line up. This behavior is
+called *broadcasting*, and is identical to that of Python's NumPy.
 
-The rules are
+The rules are:
 
-1.  We align array shapes, *starting from the right*. E.g.:
+1.  We align array shapes, *starting from the right*.
 
+    Say we have two tensors, one of size `8 x 1 x 6 x 1`, the other of size `` `7 x 1 x 5` ``.
+
+    Here they are, right-aligned:
+
+```{=html}
 <!-- -->
-
+```
        # t1, shape:     8  1  6  1
        # t2, shape:        7  1  5
 
 2.  Starting to look from the right, the sizes along aligned axes either have to match exactly, or one of them has to be 1: In
-    which case the latter is broadcast to the one not equal to 1.
+    which case the latter is *broadcast* to the one not equal to 1.
 
     In the above example, this is the case for the second-from-last dimension. This now gives
 
+```{=html}
 <!-- -->
-
+```
        # t1, shape:     8  1  6  1
        # t2, shape:        7  6  5
 
@@ -465,13 +491,11 @@ The rules are
 3.  If on the left, one of the arrays has an additional axis (or more than one), the other is virtually expanded to have a 1
     in that place, in which case broadcasting will happen as stated in (2).
 
+    This is the case with `t1`'s leftmost dimension. First, there's a virtual expansion
+
+```{=html}
 <!-- -->
-
-       # t1, shape:     8  1  6  1
-       # t2, shape:        7  1  5
-
-This is the case with `t1`s leftmost dimension. First, there's a virtual expansion
-
+```
        # t1, shape:     8  1  6  1
        # t2, shape:     1  7  1  5
 
@@ -480,70 +504,72 @@ and then, broadcasting happens:
        # t1, shape:     8  1  6  1
        # t2, shape:     8  7  1  5
 
-According to the rules, our above example
+According to these rules, our above example
 
-```{python, error = TRUE}
-t1 = torch.randn([3,5])
-t2 = torch.randn([5,5])
-t1.add(t2)
+```{r, error = TRUE}
+t <- torch_randn(c(3,5))
+t2 <- torch_randn(c(5,5))
+t$add(t2)
 ```
 
-could be modified in various ways that *would* allow for adding two tensors:
+could be modified in various ways that would allow for adding two tensors:
 
-```{python}
-t1 = torch.randn([3,5])
-t2 = torch.randn([1,5])
-t1.add(t2)
+```{r}
+t <- torch_randn(c(3,5))
+t2 <- torch_randn(c(1,5))
+t$add(t2)
 ```
 
-```{python}
-t1 = torch.randn([3,5])
-t2 = torch.randn([5])
-t1.add(t2)
+```{r}
+t <- torch_randn(c(3,5))
+t2 <- torch_randn(c(5))
+t$add(t2)
 ```
 
-```{python}
-t1 = torch.randn([1,5])
-t2 = torch.randn([3,1])
-t1.add(t2)
+```{r}
+t <- torch_randn(c(1,5))
+t2 <- torch_randn(c(3,1))
+t$add(t2)
 ```
 
 As a nice final example, through broadcasting, an outer product can be computed like so:
 
-```{python}
-t1 = torch.tensor([0.0, 10.0, 20.0, 30.0])
-t1.shape
+```{r}
+t1 <- torch_tensor(c(0, 10, 20, 30))
+t1$size()
 
-t2 = torch.tensor([1.0, 2.0, 3.0])
-t2.shape
+t2 <- torch_tensor(c(1, 2, 3))
+t2$size()
 
-t1.view(4,1) * t2
+t1$view(c(4,1)) * t2
 ```
 
 ## Running on GPU
 
 To check if your GPU(s) is/are visible to torch, run
 
-```{python}
-torch.cuda.is_available()
-torch.cuda.device_count()
+```{r}
+cuda_is_available()
+cuda_device_count()
 ```
 
 Above, we already saw that tensors can be created *on* a device, like so
 
-```{python}
-device = torch.device("cuda")
-t = torch.ones((2, 2), device = device) 
+```{r}
+device <- torch_device("cuda")
+t <- torch_ones(c(2, 2), device = device) 
 ```
 
 Tensors previously created on the CPU can be moved to GPU, and vice versa:
 
-```{python}
+```{r}
+###TBD###
 t = t.cuda()
 t
 ```
 
-```{python}
+```{r}
+###TBD###
 t = t.cpu()
 t
 ```
@@ -551,7 +577,8 @@ t
 Naturally, we don't have to specify a device for every single tensor. To perform a whole computation on the GPU, put
 everything in a *with* block. This will use the first GPU, as determined by *cuda*:
 
-```{python}
+```{r}
+###TBD###
 with torch.cuda.device(0):
     t1 = torch.ones((2,2))
     t2 = torch.randn((2,4))
@@ -560,7 +587,8 @@ with torch.cuda.device(0):
 
 Still less granular, we can set a default device to use for all tensors created:
 
-```{python}
+```{r}
+###TBD###
 torch.set_default_tensor_type("torch.cuda.FloatTensor")
 t = torch.tensor(25)
 t
@@ -569,12 +597,14 @@ t
 Torch offers detailed information on GPU memory usage, e.g.
 
 ```{python}
+###TBD###
 torch.cuda.memory_summary()
 ```
 
 To quickly determine memory allocated, run
 
 ```{python}
+###TBD###
 torch.cuda.memory_allocated()
 ```
 
@@ -582,12 +612,14 @@ This is memory actually occupied by tensors having valid references. This is not
 as torch caches memory. To see the amount reserved by the caching allocator, see
 
 ```{python}
+###TBD###
 torch.cuda.memory_reserved()
 ```
 
 To actually restore unused memory to Cuda, issue
 
 ```{python}
+###TBD###
 torch.cuda.empty_cache()
 ```
 
@@ -595,6 +627,7 @@ Here is a quick experiment illustrating the process, also referring memory usage
 a fresh session.
 
 ```{python}
+###TBD###
 
 # nvidia-smi before: 559 MiB
 

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>8 Brain Image Segmentation with U-Net | Applied deep learning with torch from R</title>
   <meta name="description" content="tbd" />
-  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.19 and GitBook 2.6.7" />
 
   <meta property="og:title" content="8 Brain Image Segmentation with U-Net | Applied deep learning with torch from R" />
   <meta property="og:type" content="book" />
@@ -32,7 +32,7 @@
   
 <link rel="prev" href="image-classification.html"/>
 <link rel="next" href="NLP-intro.html"/>
-<script src="libs/header-attrs-2.1/header-attrs.js"></script>
+<script src="libs/header-attrs-2.3/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -50,6 +50,7 @@
 
 
 
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 
 
 <style type="text/css">
@@ -160,13 +161,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="3.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#more-on-tensors"><i class="fa fa-check"></i><b>3.2</b> More on tensors</a>
 <ul>
 <li class="chapter" data-level="3.2.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#creating-tensors"><i class="fa fa-check"></i><b>3.2.1</b> Creating tensors</a></li>
-<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-from-and-to-r"><i class="fa fa-check"></i><b>3.2.2</b> Conversion from and to R</a></li>
+<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-between-torch-tensors-and-r-values"><i class="fa fa-check"></i><b>3.2.2</b> Conversion between <code>torch</code> tensors and R values</a></li>
 <li class="chapter" data-level="3.2.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#indexing-and-slicing-tensors"><i class="fa fa-check"></i><b>3.2.3</b> Indexing and slicing tensors</a></li>
 <li class="chapter" data-level="3.2.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#reshaping-tensors"><i class="fa fa-check"></i><b>3.2.4</b> Reshaping tensors</a></li>
 <li class="chapter" data-level="3.2.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.2.5</b> Operations on tensors</a></li>
 </ul></li>
 <li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
-<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#appendix-python-code-1"><i class="fa fa-check"></i><b>3.4.1</b> Appendix: Python code</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
 <ul>
@@ -336,29 +340,29 @@ sections have been taken at multiple positions (the number of sections per patie
 lesions, so the masks will be coloured black everywhere.</p>
 <p>Here are three examples of orientations where the masks actually indicate an abnormality:</p>
 <p><img src="images/scans.png" title="Examples of FLAIR images and corresponding masks" /></p>
-<div class="sourceCode" id="cb109"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb109-1"><a href="unet.html#cb109-1"></a><span class="ex">montage</span> TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif</span></code></pre></div>
+<div class="sourceCode" id="cb114"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb114-1"><a href="unet.html#cb114-1"></a><span class="ex">montage</span> TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif</span></code></pre></div>
 <div id="preprocessing" class="section level3" number="8.3.1">
 <h3><span class="header-section-number">8.3.1</span> Preprocessing</h3>
-<div class="sourceCode" id="cb110"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb110-1"><a href="unet.html#cb110-1"></a><span class="im">import</span> torch</span>
-<span id="cb110-2"><a href="unet.html#cb110-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
-<span id="cb110-3"><a href="unet.html#cb110-3"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
-<span id="cb110-4"><a href="unet.html#cb110-4"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> Dataset</span>
-<span id="cb110-5"><a href="unet.html#cb110-5"></a></span>
-<span id="cb110-6"><a href="unet.html#cb110-6"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb110-7"><a href="unet.html#cb110-7"></a><span class="im">import</span> os</span>
-<span id="cb110-8"><a href="unet.html#cb110-8"></a><span class="im">import</span> copy</span>
-<span id="cb110-9"><a href="unet.html#cb110-9"></a><span class="im">import</span> random</span>
-<span id="cb110-10"><a href="unet.html#cb110-10"></a><span class="im">import</span> torchvision</span>
-<span id="cb110-11"><a href="unet.html#cb110-11"></a><span class="im">from</span> torchvision <span class="im">import</span> datasets, models, transforms</span>
-<span id="cb110-12"><a href="unet.html#cb110-12"></a></span>
-<span id="cb110-13"><a href="unet.html#cb110-13"></a><span class="im">from</span> skimage.io <span class="im">import</span> imread</span></code></pre></div>
+<div class="sourceCode" id="cb115"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb115-1"><a href="unet.html#cb115-1"></a><span class="im">import</span> torch</span>
+<span id="cb115-2"><a href="unet.html#cb115-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb115-3"><a href="unet.html#cb115-3"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
+<span id="cb115-4"><a href="unet.html#cb115-4"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> Dataset</span>
+<span id="cb115-5"><a href="unet.html#cb115-5"></a></span>
+<span id="cb115-6"><a href="unet.html#cb115-6"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb115-7"><a href="unet.html#cb115-7"></a><span class="im">import</span> os</span>
+<span id="cb115-8"><a href="unet.html#cb115-8"></a><span class="im">import</span> copy</span>
+<span id="cb115-9"><a href="unet.html#cb115-9"></a><span class="im">import</span> random</span>
+<span id="cb115-10"><a href="unet.html#cb115-10"></a><span class="im">import</span> torchvision</span>
+<span id="cb115-11"><a href="unet.html#cb115-11"></a><span class="im">from</span> torchvision <span class="im">import</span> datasets, models, transforms</span>
+<span id="cb115-12"><a href="unet.html#cb115-12"></a></span>
+<span id="cb115-13"><a href="unet.html#cb115-13"></a><span class="im">from</span> skimage.io <span class="im">import</span> imread</span></code></pre></div>
 <p>The data comes organized into folders containing FLAIR images and masks for a single patient. We randomly partition these into
 a training and a validation set, keeping the latter very small as overall, this dataset is not very big. (You might want to
 experiment with different splits or better even, use a cross-validation approach. We don’t do that here as anyway, this
 apllication example is pretty extensive already.) “Randomly” here meant we picked (at random) two patients from each
 institution, as indicated by the pair of letters second in the folder names (tbd: check this!).</p>
-<div class="sourceCode" id="cb111"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb111-1"><a href="unet.html#cb111-1"></a>train_dir <span class="op">=</span> <span class="st">&quot;data/kaggle_3m_train&quot;</span></span>
-<span id="cb111-2"><a href="unet.html#cb111-2"></a>valid_dir <span class="op">=</span> <span class="st">&quot;data/kaggle_3m_valid&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb116"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb116-1"><a href="unet.html#cb116-1"></a>train_dir <span class="op">=</span> <span class="st">&quot;data/kaggle_3m_train&quot;</span></span>
+<span id="cb116-2"><a href="unet.html#cb116-2"></a>valid_dir <span class="op">=</span> <span class="st">&quot;data/kaggle_3m_valid&quot;</span></span></code></pre></div>
 <p>Preprocessing will be encapsulated in a <code>dataset</code> , that is, a structure that <code>torch</code> knows how to handle. Before we look at
 that structure, let’s quickly look at helper functions and components it will make use of. As indicated above, these, as well
 as <code>BrainSegmentationDataset</code> itself, are direct ports of the Python preprocessing logic in <a href="https://github.com/mateuszbuda/brain-segmentation-pytorch">Mateusz Buda’s GitHub
@@ -367,175 +371,175 @@ repository</a>.</p>
 <h4><span class="header-section-number">8.3.1.1</span> Image preprocessing and transforms</h4>
 <p>Both FLAIR images and masks come in <code>.tif</code> format. These images have to be preprocessed spatially (cropped, padded and
 resized), as well as normalized. The following functions will be called inside <code>BrainSegmentationDataset</code>:</p>
-<div class="sourceCode" id="cb112"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb112-1"><a href="unet.html#cb112-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb112-2"><a href="unet.html#cb112-2"></a><span class="im">from</span> medpy.<span class="bu">filter</span>.binary <span class="im">import</span> largest_connected_component</span>
-<span id="cb112-3"><a href="unet.html#cb112-3"></a><span class="im">from</span> skimage.exposure <span class="im">import</span> rescale_intensity</span>
-<span id="cb112-4"><a href="unet.html#cb112-4"></a><span class="im">from</span> skimage.transform <span class="im">import</span> resize</span>
-<span id="cb112-5"><a href="unet.html#cb112-5"></a></span>
-<span id="cb112-6"><a href="unet.html#cb112-6"></a><span class="kw">def</span> crop_sample(x):</span>
-<span id="cb112-7"><a href="unet.html#cb112-7"></a>    volume, mask <span class="op">=</span> x</span>
-<span id="cb112-8"><a href="unet.html#cb112-8"></a>    volume[volume <span class="op">&lt;</span> np.<span class="bu">max</span>(volume) <span class="op">*</span> <span class="fl">0.1</span>] <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb112-9"><a href="unet.html#cb112-9"></a>    z_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb112-10"><a href="unet.html#cb112-10"></a>    z_nonzero <span class="op">=</span> np.nonzero(z_projection)</span>
-<span id="cb112-11"><a href="unet.html#cb112-11"></a>    z_min <span class="op">=</span> np.<span class="bu">min</span>(z_nonzero)</span>
-<span id="cb112-12"><a href="unet.html#cb112-12"></a>    z_max <span class="op">=</span> np.<span class="bu">max</span>(z_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
-<span id="cb112-13"><a href="unet.html#cb112-13"></a>    y_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb112-14"><a href="unet.html#cb112-14"></a>    y_nonzero <span class="op">=</span> np.nonzero(y_projection)</span>
-<span id="cb112-15"><a href="unet.html#cb112-15"></a>    y_min <span class="op">=</span> np.<span class="bu">min</span>(y_nonzero)</span>
-<span id="cb112-16"><a href="unet.html#cb112-16"></a>    y_max <span class="op">=</span> np.<span class="bu">max</span>(y_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
-<span id="cb112-17"><a href="unet.html#cb112-17"></a>    x_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb112-18"><a href="unet.html#cb112-18"></a>    x_nonzero <span class="op">=</span> np.nonzero(x_projection)</span>
-<span id="cb112-19"><a href="unet.html#cb112-19"></a>    x_min <span class="op">=</span> np.<span class="bu">min</span>(x_nonzero)</span>
-<span id="cb112-20"><a href="unet.html#cb112-20"></a>    x_max <span class="op">=</span> np.<span class="bu">max</span>(x_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
-<span id="cb112-21"><a href="unet.html#cb112-21"></a>    <span class="cf">return</span> (</span>
-<span id="cb112-22"><a href="unet.html#cb112-22"></a>        volume[z_min:z_max, y_min:y_max, x_min:x_max],</span>
-<span id="cb112-23"><a href="unet.html#cb112-23"></a>        mask[z_min:z_max, y_min:y_max, x_min:x_max],</span>
-<span id="cb112-24"><a href="unet.html#cb112-24"></a>    )</span>
-<span id="cb112-25"><a href="unet.html#cb112-25"></a></span>
-<span id="cb112-26"><a href="unet.html#cb112-26"></a></span>
-<span id="cb112-27"><a href="unet.html#cb112-27"></a><span class="kw">def</span> pad_sample(x):</span>
-<span id="cb112-28"><a href="unet.html#cb112-28"></a>    volume, mask <span class="op">=</span> x</span>
-<span id="cb112-29"><a href="unet.html#cb112-29"></a>    a <span class="op">=</span> volume.shape[<span class="dv">1</span>]</span>
-<span id="cb112-30"><a href="unet.html#cb112-30"></a>    b <span class="op">=</span> volume.shape[<span class="dv">2</span>]</span>
-<span id="cb112-31"><a href="unet.html#cb112-31"></a>    <span class="cf">if</span> a <span class="op">==</span> b:</span>
-<span id="cb112-32"><a href="unet.html#cb112-32"></a>        <span class="cf">return</span> volume, mask</span>
-<span id="cb112-33"><a href="unet.html#cb112-33"></a>    diff <span class="op">=</span> (<span class="bu">max</span>(a, b) <span class="op">-</span> <span class="bu">min</span>(a, b)) <span class="op">/</span> <span class="fl">2.0</span></span>
-<span id="cb112-34"><a href="unet.html#cb112-34"></a>    <span class="cf">if</span> a <span class="op">&gt;</span> b:</span>
-<span id="cb112-35"><a href="unet.html#cb112-35"></a>        padding <span class="op">=</span> ((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="dv">0</span>, <span class="dv">0</span>), (<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))))</span>
-<span id="cb112-36"><a href="unet.html#cb112-36"></a>    <span class="cf">else</span>:</span>
-<span id="cb112-37"><a href="unet.html#cb112-37"></a>        padding <span class="op">=</span> ((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))), (<span class="dv">0</span>, <span class="dv">0</span>))</span>
-<span id="cb112-38"><a href="unet.html#cb112-38"></a>    mask <span class="op">=</span> np.pad(mask, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb112-39"><a href="unet.html#cb112-39"></a>    padding <span class="op">=</span> padding <span class="op">+</span> ((<span class="dv">0</span>, <span class="dv">0</span>),)</span>
-<span id="cb112-40"><a href="unet.html#cb112-40"></a>    volume <span class="op">=</span> np.pad(volume, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb112-41"><a href="unet.html#cb112-41"></a>    <span class="cf">return</span> volume, mask</span>
-<span id="cb112-42"><a href="unet.html#cb112-42"></a></span>
-<span id="cb112-43"><a href="unet.html#cb112-43"></a></span>
-<span id="cb112-44"><a href="unet.html#cb112-44"></a><span class="kw">def</span> resize_sample(x, size<span class="op">=</span><span class="dv">256</span>):</span>
-<span id="cb112-45"><a href="unet.html#cb112-45"></a>    volume, mask <span class="op">=</span> x</span>
-<span id="cb112-46"><a href="unet.html#cb112-46"></a>    v_shape <span class="op">=</span> volume.shape</span>
-<span id="cb112-47"><a href="unet.html#cb112-47"></a>    out_shape <span class="op">=</span> (v_shape[<span class="dv">0</span>], size, size)</span>
-<span id="cb112-48"><a href="unet.html#cb112-48"></a>    mask <span class="op">=</span> resize(</span>
-<span id="cb112-49"><a href="unet.html#cb112-49"></a>        mask,</span>
-<span id="cb112-50"><a href="unet.html#cb112-50"></a>        output_shape<span class="op">=</span>out_shape,</span>
-<span id="cb112-51"><a href="unet.html#cb112-51"></a>        order<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb112-52"><a href="unet.html#cb112-52"></a>        mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
-<span id="cb112-53"><a href="unet.html#cb112-53"></a>        cval<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb112-54"><a href="unet.html#cb112-54"></a>        anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb112-55"><a href="unet.html#cb112-55"></a>    )</span>
-<span id="cb112-56"><a href="unet.html#cb112-56"></a>    out_shape <span class="op">=</span> out_shape <span class="op">+</span> (v_shape[<span class="dv">3</span>],)</span>
-<span id="cb112-57"><a href="unet.html#cb112-57"></a>    volume <span class="op">=</span> resize(</span>
-<span id="cb112-58"><a href="unet.html#cb112-58"></a>        volume,</span>
-<span id="cb112-59"><a href="unet.html#cb112-59"></a>        output_shape<span class="op">=</span>out_shape,</span>
-<span id="cb112-60"><a href="unet.html#cb112-60"></a>        order<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb112-61"><a href="unet.html#cb112-61"></a>        mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
-<span id="cb112-62"><a href="unet.html#cb112-62"></a>        cval<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb112-63"><a href="unet.html#cb112-63"></a>        anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb112-64"><a href="unet.html#cb112-64"></a>    )</span>
-<span id="cb112-65"><a href="unet.html#cb112-65"></a>    <span class="cf">return</span> volume, mask</span>
-<span id="cb112-66"><a href="unet.html#cb112-66"></a></span>
-<span id="cb112-67"><a href="unet.html#cb112-67"></a></span>
-<span id="cb112-68"><a href="unet.html#cb112-68"></a><span class="kw">def</span> normalize_volume(volume):</span>
-<span id="cb112-69"><a href="unet.html#cb112-69"></a>    p10 <span class="op">=</span> np.percentile(volume, <span class="dv">10</span>)</span>
-<span id="cb112-70"><a href="unet.html#cb112-70"></a>    p99 <span class="op">=</span> np.percentile(volume, <span class="dv">99</span>)</span>
-<span id="cb112-71"><a href="unet.html#cb112-71"></a>    volume <span class="op">=</span> rescale_intensity(volume, in_range<span class="op">=</span>(p10, p99))</span>
-<span id="cb112-72"><a href="unet.html#cb112-72"></a>    m <span class="op">=</span> np.mean(volume, axis<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb112-73"><a href="unet.html#cb112-73"></a>    s <span class="op">=</span> np.std(volume, axis<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb112-74"><a href="unet.html#cb112-74"></a>    volume <span class="op">=</span> (volume <span class="op">-</span> m) <span class="op">/</span> s</span>
-<span id="cb112-75"><a href="unet.html#cb112-75"></a>    <span class="cf">return</span> volume</span></code></pre></div>
+<div class="sourceCode" id="cb117"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb117-1"><a href="unet.html#cb117-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb117-2"><a href="unet.html#cb117-2"></a><span class="im">from</span> medpy.<span class="bu">filter</span>.binary <span class="im">import</span> largest_connected_component</span>
+<span id="cb117-3"><a href="unet.html#cb117-3"></a><span class="im">from</span> skimage.exposure <span class="im">import</span> rescale_intensity</span>
+<span id="cb117-4"><a href="unet.html#cb117-4"></a><span class="im">from</span> skimage.transform <span class="im">import</span> resize</span>
+<span id="cb117-5"><a href="unet.html#cb117-5"></a></span>
+<span id="cb117-6"><a href="unet.html#cb117-6"></a><span class="kw">def</span> crop_sample(x):</span>
+<span id="cb117-7"><a href="unet.html#cb117-7"></a>    volume, mask <span class="op">=</span> x</span>
+<span id="cb117-8"><a href="unet.html#cb117-8"></a>    volume[volume <span class="op">&lt;</span> np.<span class="bu">max</span>(volume) <span class="op">*</span> <span class="fl">0.1</span>] <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb117-9"><a href="unet.html#cb117-9"></a>    z_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb117-10"><a href="unet.html#cb117-10"></a>    z_nonzero <span class="op">=</span> np.nonzero(z_projection)</span>
+<span id="cb117-11"><a href="unet.html#cb117-11"></a>    z_min <span class="op">=</span> np.<span class="bu">min</span>(z_nonzero)</span>
+<span id="cb117-12"><a href="unet.html#cb117-12"></a>    z_max <span class="op">=</span> np.<span class="bu">max</span>(z_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb117-13"><a href="unet.html#cb117-13"></a>    y_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=-</span><span class="dv">1</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb117-14"><a href="unet.html#cb117-14"></a>    y_nonzero <span class="op">=</span> np.nonzero(y_projection)</span>
+<span id="cb117-15"><a href="unet.html#cb117-15"></a>    y_min <span class="op">=</span> np.<span class="bu">min</span>(y_nonzero)</span>
+<span id="cb117-16"><a href="unet.html#cb117-16"></a>    y_max <span class="op">=</span> np.<span class="bu">max</span>(y_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb117-17"><a href="unet.html#cb117-17"></a>    x_projection <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">max</span>(np.<span class="bu">max</span>(volume, axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=</span><span class="dv">0</span>), axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb117-18"><a href="unet.html#cb117-18"></a>    x_nonzero <span class="op">=</span> np.nonzero(x_projection)</span>
+<span id="cb117-19"><a href="unet.html#cb117-19"></a>    x_min <span class="op">=</span> np.<span class="bu">min</span>(x_nonzero)</span>
+<span id="cb117-20"><a href="unet.html#cb117-20"></a>    x_max <span class="op">=</span> np.<span class="bu">max</span>(x_nonzero) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb117-21"><a href="unet.html#cb117-21"></a>    <span class="cf">return</span> (</span>
+<span id="cb117-22"><a href="unet.html#cb117-22"></a>        volume[z_min:z_max, y_min:y_max, x_min:x_max],</span>
+<span id="cb117-23"><a href="unet.html#cb117-23"></a>        mask[z_min:z_max, y_min:y_max, x_min:x_max],</span>
+<span id="cb117-24"><a href="unet.html#cb117-24"></a>    )</span>
+<span id="cb117-25"><a href="unet.html#cb117-25"></a></span>
+<span id="cb117-26"><a href="unet.html#cb117-26"></a></span>
+<span id="cb117-27"><a href="unet.html#cb117-27"></a><span class="kw">def</span> pad_sample(x):</span>
+<span id="cb117-28"><a href="unet.html#cb117-28"></a>    volume, mask <span class="op">=</span> x</span>
+<span id="cb117-29"><a href="unet.html#cb117-29"></a>    a <span class="op">=</span> volume.shape[<span class="dv">1</span>]</span>
+<span id="cb117-30"><a href="unet.html#cb117-30"></a>    b <span class="op">=</span> volume.shape[<span class="dv">2</span>]</span>
+<span id="cb117-31"><a href="unet.html#cb117-31"></a>    <span class="cf">if</span> a <span class="op">==</span> b:</span>
+<span id="cb117-32"><a href="unet.html#cb117-32"></a>        <span class="cf">return</span> volume, mask</span>
+<span id="cb117-33"><a href="unet.html#cb117-33"></a>    diff <span class="op">=</span> (<span class="bu">max</span>(a, b) <span class="op">-</span> <span class="bu">min</span>(a, b)) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb117-34"><a href="unet.html#cb117-34"></a>    <span class="cf">if</span> a <span class="op">&gt;</span> b:</span>
+<span id="cb117-35"><a href="unet.html#cb117-35"></a>        padding <span class="op">=</span> ((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="dv">0</span>, <span class="dv">0</span>), (<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))))</span>
+<span id="cb117-36"><a href="unet.html#cb117-36"></a>    <span class="cf">else</span>:</span>
+<span id="cb117-37"><a href="unet.html#cb117-37"></a>        padding <span class="op">=</span> ((<span class="dv">0</span>, <span class="dv">0</span>), (<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))), (<span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb117-38"><a href="unet.html#cb117-38"></a>    mask <span class="op">=</span> np.pad(mask, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb117-39"><a href="unet.html#cb117-39"></a>    padding <span class="op">=</span> padding <span class="op">+</span> ((<span class="dv">0</span>, <span class="dv">0</span>),)</span>
+<span id="cb117-40"><a href="unet.html#cb117-40"></a>    volume <span class="op">=</span> np.pad(volume, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb117-41"><a href="unet.html#cb117-41"></a>    <span class="cf">return</span> volume, mask</span>
+<span id="cb117-42"><a href="unet.html#cb117-42"></a></span>
+<span id="cb117-43"><a href="unet.html#cb117-43"></a></span>
+<span id="cb117-44"><a href="unet.html#cb117-44"></a><span class="kw">def</span> resize_sample(x, size<span class="op">=</span><span class="dv">256</span>):</span>
+<span id="cb117-45"><a href="unet.html#cb117-45"></a>    volume, mask <span class="op">=</span> x</span>
+<span id="cb117-46"><a href="unet.html#cb117-46"></a>    v_shape <span class="op">=</span> volume.shape</span>
+<span id="cb117-47"><a href="unet.html#cb117-47"></a>    out_shape <span class="op">=</span> (v_shape[<span class="dv">0</span>], size, size)</span>
+<span id="cb117-48"><a href="unet.html#cb117-48"></a>    mask <span class="op">=</span> resize(</span>
+<span id="cb117-49"><a href="unet.html#cb117-49"></a>        mask,</span>
+<span id="cb117-50"><a href="unet.html#cb117-50"></a>        output_shape<span class="op">=</span>out_shape,</span>
+<span id="cb117-51"><a href="unet.html#cb117-51"></a>        order<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb117-52"><a href="unet.html#cb117-52"></a>        mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
+<span id="cb117-53"><a href="unet.html#cb117-53"></a>        cval<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb117-54"><a href="unet.html#cb117-54"></a>        anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb117-55"><a href="unet.html#cb117-55"></a>    )</span>
+<span id="cb117-56"><a href="unet.html#cb117-56"></a>    out_shape <span class="op">=</span> out_shape <span class="op">+</span> (v_shape[<span class="dv">3</span>],)</span>
+<span id="cb117-57"><a href="unet.html#cb117-57"></a>    volume <span class="op">=</span> resize(</span>
+<span id="cb117-58"><a href="unet.html#cb117-58"></a>        volume,</span>
+<span id="cb117-59"><a href="unet.html#cb117-59"></a>        output_shape<span class="op">=</span>out_shape,</span>
+<span id="cb117-60"><a href="unet.html#cb117-60"></a>        order<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb117-61"><a href="unet.html#cb117-61"></a>        mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
+<span id="cb117-62"><a href="unet.html#cb117-62"></a>        cval<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb117-63"><a href="unet.html#cb117-63"></a>        anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb117-64"><a href="unet.html#cb117-64"></a>    )</span>
+<span id="cb117-65"><a href="unet.html#cb117-65"></a>    <span class="cf">return</span> volume, mask</span>
+<span id="cb117-66"><a href="unet.html#cb117-66"></a></span>
+<span id="cb117-67"><a href="unet.html#cb117-67"></a></span>
+<span id="cb117-68"><a href="unet.html#cb117-68"></a><span class="kw">def</span> normalize_volume(volume):</span>
+<span id="cb117-69"><a href="unet.html#cb117-69"></a>    p10 <span class="op">=</span> np.percentile(volume, <span class="dv">10</span>)</span>
+<span id="cb117-70"><a href="unet.html#cb117-70"></a>    p99 <span class="op">=</span> np.percentile(volume, <span class="dv">99</span>)</span>
+<span id="cb117-71"><a href="unet.html#cb117-71"></a>    volume <span class="op">=</span> rescale_intensity(volume, in_range<span class="op">=</span>(p10, p99))</span>
+<span id="cb117-72"><a href="unet.html#cb117-72"></a>    m <span class="op">=</span> np.mean(volume, axis<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb117-73"><a href="unet.html#cb117-73"></a>    s <span class="op">=</span> np.std(volume, axis<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb117-74"><a href="unet.html#cb117-74"></a>    volume <span class="op">=</span> (volume <span class="op">-</span> m) <span class="op">/</span> s</span>
+<span id="cb117-75"><a href="unet.html#cb117-75"></a>    <span class="cf">return</span> volume</span></code></pre></div>
 <p>On the training set, we’ll also want to use data augmentation. Here are the relative <code>Transform</code>s:</p>
-<div class="sourceCode" id="cb113"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb113-1"><a href="unet.html#cb113-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb113-2"><a href="unet.html#cb113-2"></a><span class="im">from</span> skimage.transform <span class="im">import</span> rescale, rotate</span>
-<span id="cb113-3"><a href="unet.html#cb113-3"></a><span class="im">from</span> torchvision.transforms <span class="im">import</span> Compose</span>
-<span id="cb113-4"><a href="unet.html#cb113-4"></a></span>
-<span id="cb113-5"><a href="unet.html#cb113-5"></a></span>
-<span id="cb113-6"><a href="unet.html#cb113-6"></a><span class="kw">def</span> transforms(scale<span class="op">=</span><span class="va">None</span>, angle<span class="op">=</span><span class="va">None</span>, flip_prob<span class="op">=</span><span class="va">None</span>):</span>
-<span id="cb113-7"><a href="unet.html#cb113-7"></a>    transform_list <span class="op">=</span> []</span>
-<span id="cb113-8"><a href="unet.html#cb113-8"></a></span>
-<span id="cb113-9"><a href="unet.html#cb113-9"></a>    <span class="cf">if</span> scale <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb113-10"><a href="unet.html#cb113-10"></a>        transform_list.append(Scale(scale))</span>
-<span id="cb113-11"><a href="unet.html#cb113-11"></a>    <span class="cf">if</span> angle <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb113-12"><a href="unet.html#cb113-12"></a>        transform_list.append(Rotate(angle))</span>
-<span id="cb113-13"><a href="unet.html#cb113-13"></a>    <span class="cf">if</span> flip_prob <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb113-14"><a href="unet.html#cb113-14"></a>        transform_list.append(HorizontalFlip(flip_prob))</span>
-<span id="cb113-15"><a href="unet.html#cb113-15"></a></span>
-<span id="cb113-16"><a href="unet.html#cb113-16"></a>    <span class="cf">return</span> Compose(transform_list)</span>
-<span id="cb113-17"><a href="unet.html#cb113-17"></a></span>
-<span id="cb113-18"><a href="unet.html#cb113-18"></a></span>
-<span id="cb113-19"><a href="unet.html#cb113-19"></a><span class="kw">class</span> Scale(<span class="bu">object</span>):</span>
-<span id="cb113-20"><a href="unet.html#cb113-20"></a></span>
-<span id="cb113-21"><a href="unet.html#cb113-21"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, scale):</span>
-<span id="cb113-22"><a href="unet.html#cb113-22"></a>        <span class="va">self</span>.scale <span class="op">=</span> scale</span>
-<span id="cb113-23"><a href="unet.html#cb113-23"></a></span>
-<span id="cb113-24"><a href="unet.html#cb113-24"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, sample):</span>
-<span id="cb113-25"><a href="unet.html#cb113-25"></a>        image, mask <span class="op">=</span> sample</span>
-<span id="cb113-26"><a href="unet.html#cb113-26"></a></span>
-<span id="cb113-27"><a href="unet.html#cb113-27"></a>        img_size <span class="op">=</span> image.shape[<span class="dv">0</span>]</span>
-<span id="cb113-28"><a href="unet.html#cb113-28"></a></span>
-<span id="cb113-29"><a href="unet.html#cb113-29"></a>        scale <span class="op">=</span> np.random.uniform(low<span class="op">=</span><span class="fl">1.0</span> <span class="op">-</span> <span class="va">self</span>.scale, high<span class="op">=</span><span class="fl">1.0</span> <span class="op">+</span> <span class="va">self</span>.scale)</span>
-<span id="cb113-30"><a href="unet.html#cb113-30"></a></span>
-<span id="cb113-31"><a href="unet.html#cb113-31"></a>        image <span class="op">=</span> rescale(</span>
-<span id="cb113-32"><a href="unet.html#cb113-32"></a>            image,</span>
-<span id="cb113-33"><a href="unet.html#cb113-33"></a>            (scale, scale),</span>
-<span id="cb113-34"><a href="unet.html#cb113-34"></a>            multichannel<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb113-35"><a href="unet.html#cb113-35"></a>            preserve_range<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb113-36"><a href="unet.html#cb113-36"></a>            mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
-<span id="cb113-37"><a href="unet.html#cb113-37"></a>            anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb113-38"><a href="unet.html#cb113-38"></a>        )</span>
-<span id="cb113-39"><a href="unet.html#cb113-39"></a>        mask <span class="op">=</span> rescale(</span>
-<span id="cb113-40"><a href="unet.html#cb113-40"></a>            mask,</span>
-<span id="cb113-41"><a href="unet.html#cb113-41"></a>            (scale, scale),</span>
-<span id="cb113-42"><a href="unet.html#cb113-42"></a>            order<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb113-43"><a href="unet.html#cb113-43"></a>            multichannel<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb113-44"><a href="unet.html#cb113-44"></a>            preserve_range<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb113-45"><a href="unet.html#cb113-45"></a>            mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
-<span id="cb113-46"><a href="unet.html#cb113-46"></a>            anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb113-47"><a href="unet.html#cb113-47"></a>        )</span>
-<span id="cb113-48"><a href="unet.html#cb113-48"></a></span>
-<span id="cb113-49"><a href="unet.html#cb113-49"></a>        <span class="cf">if</span> scale <span class="op">&lt;</span> <span class="fl">1.0</span>:</span>
-<span id="cb113-50"><a href="unet.html#cb113-50"></a>            diff <span class="op">=</span> (img_size <span class="op">-</span> image.shape[<span class="dv">0</span>]) <span class="op">/</span> <span class="fl">2.0</span></span>
-<span id="cb113-51"><a href="unet.html#cb113-51"></a>            padding <span class="op">=</span> ((<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))),) <span class="op">*</span> <span class="dv">2</span> <span class="op">+</span> ((<span class="dv">0</span>, <span class="dv">0</span>),)</span>
-<span id="cb113-52"><a href="unet.html#cb113-52"></a>            image <span class="op">=</span> np.pad(image, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb113-53"><a href="unet.html#cb113-53"></a>            mask <span class="op">=</span> np.pad(mask, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb113-54"><a href="unet.html#cb113-54"></a>        <span class="cf">else</span>:</span>
-<span id="cb113-55"><a href="unet.html#cb113-55"></a>            x_min <span class="op">=</span> (image.shape[<span class="dv">0</span>] <span class="op">-</span> img_size) <span class="op">//</span> <span class="dv">2</span></span>
-<span id="cb113-56"><a href="unet.html#cb113-56"></a>            x_max <span class="op">=</span> x_min <span class="op">+</span> img_size</span>
-<span id="cb113-57"><a href="unet.html#cb113-57"></a>            image <span class="op">=</span> image[x_min:x_max, x_min:x_max, ...]</span>
-<span id="cb113-58"><a href="unet.html#cb113-58"></a>            mask <span class="op">=</span> mask[x_min:x_max, x_min:x_max, ...]</span>
-<span id="cb113-59"><a href="unet.html#cb113-59"></a></span>
-<span id="cb113-60"><a href="unet.html#cb113-60"></a>        <span class="cf">return</span> image, mask</span>
-<span id="cb113-61"><a href="unet.html#cb113-61"></a></span>
-<span id="cb113-62"><a href="unet.html#cb113-62"></a></span>
-<span id="cb113-63"><a href="unet.html#cb113-63"></a><span class="kw">class</span> Rotate(<span class="bu">object</span>):</span>
-<span id="cb113-64"><a href="unet.html#cb113-64"></a></span>
-<span id="cb113-65"><a href="unet.html#cb113-65"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, angle):</span>
-<span id="cb113-66"><a href="unet.html#cb113-66"></a>        <span class="va">self</span>.angle <span class="op">=</span> angle</span>
-<span id="cb113-67"><a href="unet.html#cb113-67"></a></span>
-<span id="cb113-68"><a href="unet.html#cb113-68"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, sample):</span>
-<span id="cb113-69"><a href="unet.html#cb113-69"></a>        image, mask <span class="op">=</span> sample</span>
-<span id="cb113-70"><a href="unet.html#cb113-70"></a></span>
-<span id="cb113-71"><a href="unet.html#cb113-71"></a>        angle <span class="op">=</span> np.random.uniform(low<span class="op">=-</span><span class="va">self</span>.angle, high<span class="op">=</span><span class="va">self</span>.angle)</span>
-<span id="cb113-72"><a href="unet.html#cb113-72"></a>        image <span class="op">=</span> rotate(image, angle, resize<span class="op">=</span><span class="va">False</span>, preserve_range<span class="op">=</span><span class="va">True</span>, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>)</span>
-<span id="cb113-73"><a href="unet.html#cb113-73"></a>        mask <span class="op">=</span> rotate(</span>
-<span id="cb113-74"><a href="unet.html#cb113-74"></a>            mask, angle, resize<span class="op">=</span><span class="va">False</span>, order<span class="op">=</span><span class="dv">0</span>, preserve_range<span class="op">=</span><span class="va">True</span>, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span></span>
-<span id="cb113-75"><a href="unet.html#cb113-75"></a>        )</span>
-<span id="cb113-76"><a href="unet.html#cb113-76"></a>        <span class="cf">return</span> image, mask</span>
-<span id="cb113-77"><a href="unet.html#cb113-77"></a></span>
-<span id="cb113-78"><a href="unet.html#cb113-78"></a></span>
-<span id="cb113-79"><a href="unet.html#cb113-79"></a><span class="kw">class</span> HorizontalFlip(<span class="bu">object</span>):</span>
-<span id="cb113-80"><a href="unet.html#cb113-80"></a></span>
-<span id="cb113-81"><a href="unet.html#cb113-81"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, flip_prob):</span>
-<span id="cb113-82"><a href="unet.html#cb113-82"></a>        <span class="va">self</span>.flip_prob <span class="op">=</span> flip_prob</span>
-<span id="cb113-83"><a href="unet.html#cb113-83"></a></span>
-<span id="cb113-84"><a href="unet.html#cb113-84"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, sample):</span>
-<span id="cb113-85"><a href="unet.html#cb113-85"></a>        image, mask <span class="op">=</span> sample</span>
-<span id="cb113-86"><a href="unet.html#cb113-86"></a></span>
-<span id="cb113-87"><a href="unet.html#cb113-87"></a>        <span class="cf">if</span> np.random.rand() <span class="op">&gt;</span> <span class="va">self</span>.flip_prob:</span>
-<span id="cb113-88"><a href="unet.html#cb113-88"></a>            <span class="cf">return</span> image, mask</span>
-<span id="cb113-89"><a href="unet.html#cb113-89"></a></span>
-<span id="cb113-90"><a href="unet.html#cb113-90"></a>        image <span class="op">=</span> np.fliplr(image).copy()</span>
-<span id="cb113-91"><a href="unet.html#cb113-91"></a>        mask <span class="op">=</span> np.fliplr(mask).copy()</span>
-<span id="cb113-92"><a href="unet.html#cb113-92"></a></span>
-<span id="cb113-93"><a href="unet.html#cb113-93"></a>        <span class="cf">return</span> image, mask</span></code></pre></div>
+<div class="sourceCode" id="cb118"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb118-1"><a href="unet.html#cb118-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb118-2"><a href="unet.html#cb118-2"></a><span class="im">from</span> skimage.transform <span class="im">import</span> rescale, rotate</span>
+<span id="cb118-3"><a href="unet.html#cb118-3"></a><span class="im">from</span> torchvision.transforms <span class="im">import</span> Compose</span>
+<span id="cb118-4"><a href="unet.html#cb118-4"></a></span>
+<span id="cb118-5"><a href="unet.html#cb118-5"></a></span>
+<span id="cb118-6"><a href="unet.html#cb118-6"></a><span class="kw">def</span> transforms(scale<span class="op">=</span><span class="va">None</span>, angle<span class="op">=</span><span class="va">None</span>, flip_prob<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb118-7"><a href="unet.html#cb118-7"></a>    transform_list <span class="op">=</span> []</span>
+<span id="cb118-8"><a href="unet.html#cb118-8"></a></span>
+<span id="cb118-9"><a href="unet.html#cb118-9"></a>    <span class="cf">if</span> scale <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb118-10"><a href="unet.html#cb118-10"></a>        transform_list.append(Scale(scale))</span>
+<span id="cb118-11"><a href="unet.html#cb118-11"></a>    <span class="cf">if</span> angle <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb118-12"><a href="unet.html#cb118-12"></a>        transform_list.append(Rotate(angle))</span>
+<span id="cb118-13"><a href="unet.html#cb118-13"></a>    <span class="cf">if</span> flip_prob <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb118-14"><a href="unet.html#cb118-14"></a>        transform_list.append(HorizontalFlip(flip_prob))</span>
+<span id="cb118-15"><a href="unet.html#cb118-15"></a></span>
+<span id="cb118-16"><a href="unet.html#cb118-16"></a>    <span class="cf">return</span> Compose(transform_list)</span>
+<span id="cb118-17"><a href="unet.html#cb118-17"></a></span>
+<span id="cb118-18"><a href="unet.html#cb118-18"></a></span>
+<span id="cb118-19"><a href="unet.html#cb118-19"></a><span class="kw">class</span> Scale(<span class="bu">object</span>):</span>
+<span id="cb118-20"><a href="unet.html#cb118-20"></a></span>
+<span id="cb118-21"><a href="unet.html#cb118-21"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, scale):</span>
+<span id="cb118-22"><a href="unet.html#cb118-22"></a>        <span class="va">self</span>.scale <span class="op">=</span> scale</span>
+<span id="cb118-23"><a href="unet.html#cb118-23"></a></span>
+<span id="cb118-24"><a href="unet.html#cb118-24"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, sample):</span>
+<span id="cb118-25"><a href="unet.html#cb118-25"></a>        image, mask <span class="op">=</span> sample</span>
+<span id="cb118-26"><a href="unet.html#cb118-26"></a></span>
+<span id="cb118-27"><a href="unet.html#cb118-27"></a>        img_size <span class="op">=</span> image.shape[<span class="dv">0</span>]</span>
+<span id="cb118-28"><a href="unet.html#cb118-28"></a></span>
+<span id="cb118-29"><a href="unet.html#cb118-29"></a>        scale <span class="op">=</span> np.random.uniform(low<span class="op">=</span><span class="fl">1.0</span> <span class="op">-</span> <span class="va">self</span>.scale, high<span class="op">=</span><span class="fl">1.0</span> <span class="op">+</span> <span class="va">self</span>.scale)</span>
+<span id="cb118-30"><a href="unet.html#cb118-30"></a></span>
+<span id="cb118-31"><a href="unet.html#cb118-31"></a>        image <span class="op">=</span> rescale(</span>
+<span id="cb118-32"><a href="unet.html#cb118-32"></a>            image,</span>
+<span id="cb118-33"><a href="unet.html#cb118-33"></a>            (scale, scale),</span>
+<span id="cb118-34"><a href="unet.html#cb118-34"></a>            multichannel<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb118-35"><a href="unet.html#cb118-35"></a>            preserve_range<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb118-36"><a href="unet.html#cb118-36"></a>            mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
+<span id="cb118-37"><a href="unet.html#cb118-37"></a>            anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb118-38"><a href="unet.html#cb118-38"></a>        )</span>
+<span id="cb118-39"><a href="unet.html#cb118-39"></a>        mask <span class="op">=</span> rescale(</span>
+<span id="cb118-40"><a href="unet.html#cb118-40"></a>            mask,</span>
+<span id="cb118-41"><a href="unet.html#cb118-41"></a>            (scale, scale),</span>
+<span id="cb118-42"><a href="unet.html#cb118-42"></a>            order<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb118-43"><a href="unet.html#cb118-43"></a>            multichannel<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb118-44"><a href="unet.html#cb118-44"></a>            preserve_range<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb118-45"><a href="unet.html#cb118-45"></a>            mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>,</span>
+<span id="cb118-46"><a href="unet.html#cb118-46"></a>            anti_aliasing<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb118-47"><a href="unet.html#cb118-47"></a>        )</span>
+<span id="cb118-48"><a href="unet.html#cb118-48"></a></span>
+<span id="cb118-49"><a href="unet.html#cb118-49"></a>        <span class="cf">if</span> scale <span class="op">&lt;</span> <span class="fl">1.0</span>:</span>
+<span id="cb118-50"><a href="unet.html#cb118-50"></a>            diff <span class="op">=</span> (img_size <span class="op">-</span> image.shape[<span class="dv">0</span>]) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb118-51"><a href="unet.html#cb118-51"></a>            padding <span class="op">=</span> ((<span class="bu">int</span>(np.floor(diff)), <span class="bu">int</span>(np.ceil(diff))),) <span class="op">*</span> <span class="dv">2</span> <span class="op">+</span> ((<span class="dv">0</span>, <span class="dv">0</span>),)</span>
+<span id="cb118-52"><a href="unet.html#cb118-52"></a>            image <span class="op">=</span> np.pad(image, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb118-53"><a href="unet.html#cb118-53"></a>            mask <span class="op">=</span> np.pad(mask, padding, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>, constant_values<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb118-54"><a href="unet.html#cb118-54"></a>        <span class="cf">else</span>:</span>
+<span id="cb118-55"><a href="unet.html#cb118-55"></a>            x_min <span class="op">=</span> (image.shape[<span class="dv">0</span>] <span class="op">-</span> img_size) <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb118-56"><a href="unet.html#cb118-56"></a>            x_max <span class="op">=</span> x_min <span class="op">+</span> img_size</span>
+<span id="cb118-57"><a href="unet.html#cb118-57"></a>            image <span class="op">=</span> image[x_min:x_max, x_min:x_max, ...]</span>
+<span id="cb118-58"><a href="unet.html#cb118-58"></a>            mask <span class="op">=</span> mask[x_min:x_max, x_min:x_max, ...]</span>
+<span id="cb118-59"><a href="unet.html#cb118-59"></a></span>
+<span id="cb118-60"><a href="unet.html#cb118-60"></a>        <span class="cf">return</span> image, mask</span>
+<span id="cb118-61"><a href="unet.html#cb118-61"></a></span>
+<span id="cb118-62"><a href="unet.html#cb118-62"></a></span>
+<span id="cb118-63"><a href="unet.html#cb118-63"></a><span class="kw">class</span> Rotate(<span class="bu">object</span>):</span>
+<span id="cb118-64"><a href="unet.html#cb118-64"></a></span>
+<span id="cb118-65"><a href="unet.html#cb118-65"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, angle):</span>
+<span id="cb118-66"><a href="unet.html#cb118-66"></a>        <span class="va">self</span>.angle <span class="op">=</span> angle</span>
+<span id="cb118-67"><a href="unet.html#cb118-67"></a></span>
+<span id="cb118-68"><a href="unet.html#cb118-68"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, sample):</span>
+<span id="cb118-69"><a href="unet.html#cb118-69"></a>        image, mask <span class="op">=</span> sample</span>
+<span id="cb118-70"><a href="unet.html#cb118-70"></a></span>
+<span id="cb118-71"><a href="unet.html#cb118-71"></a>        angle <span class="op">=</span> np.random.uniform(low<span class="op">=-</span><span class="va">self</span>.angle, high<span class="op">=</span><span class="va">self</span>.angle)</span>
+<span id="cb118-72"><a href="unet.html#cb118-72"></a>        image <span class="op">=</span> rotate(image, angle, resize<span class="op">=</span><span class="va">False</span>, preserve_range<span class="op">=</span><span class="va">True</span>, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span>)</span>
+<span id="cb118-73"><a href="unet.html#cb118-73"></a>        mask <span class="op">=</span> rotate(</span>
+<span id="cb118-74"><a href="unet.html#cb118-74"></a>            mask, angle, resize<span class="op">=</span><span class="va">False</span>, order<span class="op">=</span><span class="dv">0</span>, preserve_range<span class="op">=</span><span class="va">True</span>, mode<span class="op">=</span><span class="st">&quot;constant&quot;</span></span>
+<span id="cb118-75"><a href="unet.html#cb118-75"></a>        )</span>
+<span id="cb118-76"><a href="unet.html#cb118-76"></a>        <span class="cf">return</span> image, mask</span>
+<span id="cb118-77"><a href="unet.html#cb118-77"></a></span>
+<span id="cb118-78"><a href="unet.html#cb118-78"></a></span>
+<span id="cb118-79"><a href="unet.html#cb118-79"></a><span class="kw">class</span> HorizontalFlip(<span class="bu">object</span>):</span>
+<span id="cb118-80"><a href="unet.html#cb118-80"></a></span>
+<span id="cb118-81"><a href="unet.html#cb118-81"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, flip_prob):</span>
+<span id="cb118-82"><a href="unet.html#cb118-82"></a>        <span class="va">self</span>.flip_prob <span class="op">=</span> flip_prob</span>
+<span id="cb118-83"><a href="unet.html#cb118-83"></a></span>
+<span id="cb118-84"><a href="unet.html#cb118-84"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, sample):</span>
+<span id="cb118-85"><a href="unet.html#cb118-85"></a>        image, mask <span class="op">=</span> sample</span>
+<span id="cb118-86"><a href="unet.html#cb118-86"></a></span>
+<span id="cb118-87"><a href="unet.html#cb118-87"></a>        <span class="cf">if</span> np.random.rand() <span class="op">&gt;</span> <span class="va">self</span>.flip_prob:</span>
+<span id="cb118-88"><a href="unet.html#cb118-88"></a>            <span class="cf">return</span> image, mask</span>
+<span id="cb118-89"><a href="unet.html#cb118-89"></a></span>
+<span id="cb118-90"><a href="unet.html#cb118-90"></a>        image <span class="op">=</span> np.fliplr(image).copy()</span>
+<span id="cb118-91"><a href="unet.html#cb118-91"></a>        mask <span class="op">=</span> np.fliplr(mask).copy()</span>
+<span id="cb118-92"><a href="unet.html#cb118-92"></a></span>
+<span id="cb118-93"><a href="unet.html#cb118-93"></a>        <span class="cf">return</span> image, mask</span></code></pre></div>
 </div>
 <div id="brainsegmentationdataset" class="section level4" number="8.3.1.2">
 <h4><span class="header-section-number">8.3.1.2</span> BrainSegmentationDataset</h4>
@@ -544,132 +548,132 @@ returns batches of tensors as requested. Through the <code>init</code> method’
 <em>weighted sampling</em> should be applied to counter class imbalance: If set to true, FLAIR-mask pairs will be sampled in
 proportion to lesion size. From our experiments, training on this dataset is sped up by using weighted sampling, but final
 training performance is not much affected, and neither is performance on the validation set.</p>
-<div class="sourceCode" id="cb114"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb114-1"><a href="unet.html#cb114-1"></a><span class="kw">class</span> BrainSegmentationDataset(Dataset):</span>
-<span id="cb114-2"><a href="unet.html#cb114-2"></a>    <span class="co">&quot;&quot;&quot;Brain MRI dataset for FLAIR abnormality segmentation&quot;&quot;&quot;</span></span>
-<span id="cb114-3"><a href="unet.html#cb114-3"></a>    in_channels <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb114-4"><a href="unet.html#cb114-4"></a>    out_channels <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb114-5"><a href="unet.html#cb114-5"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
-<span id="cb114-6"><a href="unet.html#cb114-6"></a>        <span class="va">self</span>,</span>
-<span id="cb114-7"><a href="unet.html#cb114-7"></a>        images_dir,</span>
-<span id="cb114-8"><a href="unet.html#cb114-8"></a>        transform <span class="op">=</span> <span class="va">None</span>,</span>
-<span id="cb114-9"><a href="unet.html#cb114-9"></a>        image_size <span class="op">=</span> <span class="dv">256</span>,</span>
-<span id="cb114-10"><a href="unet.html#cb114-10"></a>        random_sampling <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb114-11"><a href="unet.html#cb114-11"></a>    ):</span>
-<span id="cb114-12"><a href="unet.html#cb114-12"></a>        volumes <span class="op">=</span> {}</span>
-<span id="cb114-13"><a href="unet.html#cb114-13"></a>        masks <span class="op">=</span> {}</span>
-<span id="cb114-14"><a href="unet.html#cb114-14"></a>        <span class="bu">print</span>(<span class="st">&quot;reading images...&quot;</span>)</span>
-<span id="cb114-15"><a href="unet.html#cb114-15"></a>        <span class="cf">for</span> (dirpath, dirnames, filenames) <span class="kw">in</span> os.walk(images_dir):</span>
-<span id="cb114-16"><a href="unet.html#cb114-16"></a>            image_slices <span class="op">=</span> []</span>
-<span id="cb114-17"><a href="unet.html#cb114-17"></a>            mask_slices <span class="op">=</span> []</span>
-<span id="cb114-18"><a href="unet.html#cb114-18"></a>            <span class="cf">for</span> filename <span class="kw">in</span> <span class="bu">sorted</span>(</span>
-<span id="cb114-19"><a href="unet.html#cb114-19"></a>                <span class="bu">filter</span>(<span class="kw">lambda</span> f: <span class="st">&quot;.tif&quot;</span> <span class="kw">in</span> f, filenames),</span>
-<span id="cb114-20"><a href="unet.html#cb114-20"></a>                key<span class="op">=</span><span class="kw">lambda</span> x: <span class="bu">int</span>(x.split(<span class="st">&quot;.&quot;</span>)[<span class="op">-</span><span class="dv">2</span>].split(<span class="st">&quot;_&quot;</span>)[<span class="dv">4</span>]),</span>
-<span id="cb114-21"><a href="unet.html#cb114-21"></a>            ):</span>
-<span id="cb114-22"><a href="unet.html#cb114-22"></a>                filepath <span class="op">=</span> os.path.join(dirpath, filename)</span>
-<span id="cb114-23"><a href="unet.html#cb114-23"></a>                <span class="cf">if</span> <span class="st">&quot;mask&quot;</span> <span class="kw">in</span> filename:</span>
-<span id="cb114-24"><a href="unet.html#cb114-24"></a>                    mask_slices.append(imread(filepath, as_gray<span class="op">=</span><span class="va">True</span>))</span>
-<span id="cb114-25"><a href="unet.html#cb114-25"></a>                <span class="cf">else</span>:</span>
-<span id="cb114-26"><a href="unet.html#cb114-26"></a>                    image_slices.append(imread(filepath))</span>
-<span id="cb114-27"><a href="unet.html#cb114-27"></a>            <span class="cf">if</span> <span class="bu">len</span>(image_slices) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
-<span id="cb114-28"><a href="unet.html#cb114-28"></a>                patient_id <span class="op">=</span> dirpath.split(<span class="st">&quot;/&quot;</span>)[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb114-29"><a href="unet.html#cb114-29"></a>                volumes[patient_id] <span class="op">=</span> np.array(image_slices[<span class="dv">1</span>:<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb114-30"><a href="unet.html#cb114-30"></a>                masks[patient_id] <span class="op">=</span> np.array(mask_slices[<span class="dv">1</span>:<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb114-31"><a href="unet.html#cb114-31"></a>        <span class="va">self</span>.patients <span class="op">=</span> <span class="bu">sorted</span>(volumes)</span>
-<span id="cb114-32"><a href="unet.html#cb114-32"></a>        <span class="bu">print</span>(<span class="st">&quot;preprocessing volumes...&quot;</span>)</span>
-<span id="cb114-33"><a href="unet.html#cb114-33"></a>        <span class="co"># create list of tuples (volume, mask)</span></span>
-<span id="cb114-34"><a href="unet.html#cb114-34"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [(volumes[k], masks[k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="va">self</span>.patients]</span>
-<span id="cb114-35"><a href="unet.html#cb114-35"></a>        <span class="bu">print</span>(<span class="st">&quot;cropping volumes...&quot;</span>)</span>
-<span id="cb114-36"><a href="unet.html#cb114-36"></a>        <span class="co"># crop to smallest enclosing volume</span></span>
-<span id="cb114-37"><a href="unet.html#cb114-37"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [crop_sample(v) <span class="cf">for</span> v <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-38"><a href="unet.html#cb114-38"></a>        <span class="bu">print</span>(<span class="st">&quot;padding volumes...&quot;</span>)</span>
-<span id="cb114-39"><a href="unet.html#cb114-39"></a>        <span class="co"># pad to square</span></span>
-<span id="cb114-40"><a href="unet.html#cb114-40"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [pad_sample(v) <span class="cf">for</span> v <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-41"><a href="unet.html#cb114-41"></a>        <span class="bu">print</span>(<span class="st">&quot;resizing volumes...&quot;</span>)</span>
-<span id="cb114-42"><a href="unet.html#cb114-42"></a>        <span class="co"># resize</span></span>
-<span id="cb114-43"><a href="unet.html#cb114-43"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [resize_sample(v, size<span class="op">=</span>image_size) <span class="cf">for</span> v <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-44"><a href="unet.html#cb114-44"></a>        <span class="bu">print</span>(<span class="st">&quot;normalizing volumes...&quot;</span>)</span>
-<span id="cb114-45"><a href="unet.html#cb114-45"></a>        <span class="co"># normalize channel-wise</span></span>
-<span id="cb114-46"><a href="unet.html#cb114-46"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [(normalize_volume(v), m) <span class="cf">for</span> v, m <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-47"><a href="unet.html#cb114-47"></a>        <span class="co"># probabilities for sampling slices based on masks</span></span>
-<span id="cb114-48"><a href="unet.html#cb114-48"></a>        <span class="va">self</span>.slice_weights <span class="op">=</span> [m.<span class="bu">sum</span>(axis<span class="op">=-</span><span class="dv">1</span>).<span class="bu">sum</span>(axis<span class="op">=-</span><span class="dv">1</span>) <span class="cf">for</span> v, m <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-49"><a href="unet.html#cb114-49"></a>        <span class="va">self</span>.slice_weights <span class="op">=</span> [</span>
-<span id="cb114-50"><a href="unet.html#cb114-50"></a>            (s <span class="op">+</span> (s.<span class="bu">sum</span>() <span class="op">*</span> <span class="fl">0.1</span> <span class="op">/</span> <span class="bu">len</span>(s))) <span class="op">/</span> (s.<span class="bu">sum</span>() <span class="op">*</span> <span class="fl">1.1</span>) <span class="cf">for</span> s <span class="kw">in</span> <span class="va">self</span>.slice_weights</span>
-<span id="cb114-51"><a href="unet.html#cb114-51"></a>        ]</span>
-<span id="cb114-52"><a href="unet.html#cb114-52"></a>        <span class="co"># add channel dimension to masks</span></span>
-<span id="cb114-53"><a href="unet.html#cb114-53"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [(v, m[..., np.newaxis]) <span class="cf">for</span> (v, m) <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-54"><a href="unet.html#cb114-54"></a>        <span class="bu">print</span>(<span class="st">&quot;done creating dataset&quot;</span>)</span>
-<span id="cb114-55"><a href="unet.html#cb114-55"></a>        <span class="co"># create global index for patient and slice (idx -&gt; (p_idx, s_idx))</span></span>
-<span id="cb114-56"><a href="unet.html#cb114-56"></a>        num_slices <span class="op">=</span> [v.shape[<span class="dv">0</span>] <span class="cf">for</span> v, m <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
-<span id="cb114-57"><a href="unet.html#cb114-57"></a>        <span class="va">self</span>.patient_slice_index <span class="op">=</span> <span class="bu">list</span>(</span>
-<span id="cb114-58"><a href="unet.html#cb114-58"></a>            <span class="bu">zip</span>(</span>
-<span id="cb114-59"><a href="unet.html#cb114-59"></a>                <span class="bu">sum</span>([[i] <span class="op">*</span> num_slices[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(num_slices))], []),</span>
-<span id="cb114-60"><a href="unet.html#cb114-60"></a>                <span class="bu">sum</span>([<span class="bu">list</span>(<span class="bu">range</span>(x)) <span class="cf">for</span> x <span class="kw">in</span> num_slices], []),</span>
-<span id="cb114-61"><a href="unet.html#cb114-61"></a>            )</span>
-<span id="cb114-62"><a href="unet.html#cb114-62"></a>        )</span>
-<span id="cb114-63"><a href="unet.html#cb114-63"></a>        <span class="va">self</span>.random_sampling <span class="op">=</span> random_sampling</span>
-<span id="cb114-64"><a href="unet.html#cb114-64"></a>        <span class="va">self</span>.transform <span class="op">=</span> transform</span>
-<span id="cb114-65"><a href="unet.html#cb114-65"></a>    <span class="kw">def</span> <span class="fu">__len__</span>(<span class="va">self</span>):</span>
-<span id="cb114-66"><a href="unet.html#cb114-66"></a>        <span class="cf">return</span> <span class="bu">len</span>(<span class="va">self</span>.patient_slice_index)</span>
-<span id="cb114-67"><a href="unet.html#cb114-67"></a>    <span class="kw">def</span> <span class="fu">__getitem__</span>(<span class="va">self</span>, idx):</span>
-<span id="cb114-68"><a href="unet.html#cb114-68"></a>        patient <span class="op">=</span> <span class="va">self</span>.patient_slice_index[idx][<span class="dv">0</span>]</span>
-<span id="cb114-69"><a href="unet.html#cb114-69"></a>        slice_n <span class="op">=</span> <span class="va">self</span>.patient_slice_index[idx][<span class="dv">1</span>]</span>
-<span id="cb114-70"><a href="unet.html#cb114-70"></a>        <span class="cf">if</span> <span class="va">self</span>.random_sampling:</span>
-<span id="cb114-71"><a href="unet.html#cb114-71"></a>            patient <span class="op">=</span> np.random.randint(<span class="bu">len</span>(<span class="va">self</span>.volumes))</span>
-<span id="cb114-72"><a href="unet.html#cb114-72"></a>            slice_n <span class="op">=</span> np.random.choice(</span>
-<span id="cb114-73"><a href="unet.html#cb114-73"></a>                <span class="bu">range</span>(<span class="va">self</span>.volumes[patient][<span class="dv">0</span>].shape[<span class="dv">0</span>]), p<span class="op">=</span><span class="va">self</span>.slice_weights[patient]</span>
-<span id="cb114-74"><a href="unet.html#cb114-74"></a>            )</span>
-<span id="cb114-75"><a href="unet.html#cb114-75"></a>        v, m <span class="op">=</span> <span class="va">self</span>.volumes[patient]</span>
-<span id="cb114-76"><a href="unet.html#cb114-76"></a>        image <span class="op">=</span> v[slice_n]</span>
-<span id="cb114-77"><a href="unet.html#cb114-77"></a>        mask <span class="op">=</span> m[slice_n]</span>
-<span id="cb114-78"><a href="unet.html#cb114-78"></a>        <span class="cf">if</span> <span class="va">self</span>.transform <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb114-79"><a href="unet.html#cb114-79"></a>            image, mask <span class="op">=</span> <span class="va">self</span>.transform((image, mask))</span>
-<span id="cb114-80"><a href="unet.html#cb114-80"></a>        <span class="co"># fix dimensions (C, H, W)</span></span>
-<span id="cb114-81"><a href="unet.html#cb114-81"></a>        image <span class="op">=</span> image.transpose(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb114-82"><a href="unet.html#cb114-82"></a>        mask <span class="op">=</span> mask.transpose(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb114-83"><a href="unet.html#cb114-83"></a>        image_tensor <span class="op">=</span> torch.from_numpy(image.astype(np.float32))</span>
-<span id="cb114-84"><a href="unet.html#cb114-84"></a>        mask_tensor <span class="op">=</span> torch.from_numpy(mask.astype(np.float32))</span>
-<span id="cb114-85"><a href="unet.html#cb114-85"></a>        <span class="co"># return tensors</span></span>
-<span id="cb114-86"><a href="unet.html#cb114-86"></a>        <span class="cf">return</span> image_tensor, mask_tensor</span></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb119-1"><a href="unet.html#cb119-1"></a><span class="kw">class</span> BrainSegmentationDataset(Dataset):</span>
+<span id="cb119-2"><a href="unet.html#cb119-2"></a>    <span class="co">&quot;&quot;&quot;Brain MRI dataset for FLAIR abnormality segmentation&quot;&quot;&quot;</span></span>
+<span id="cb119-3"><a href="unet.html#cb119-3"></a>    in_channels <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb119-4"><a href="unet.html#cb119-4"></a>    out_channels <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb119-5"><a href="unet.html#cb119-5"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
+<span id="cb119-6"><a href="unet.html#cb119-6"></a>        <span class="va">self</span>,</span>
+<span id="cb119-7"><a href="unet.html#cb119-7"></a>        images_dir,</span>
+<span id="cb119-8"><a href="unet.html#cb119-8"></a>        transform <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb119-9"><a href="unet.html#cb119-9"></a>        image_size <span class="op">=</span> <span class="dv">256</span>,</span>
+<span id="cb119-10"><a href="unet.html#cb119-10"></a>        random_sampling <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb119-11"><a href="unet.html#cb119-11"></a>    ):</span>
+<span id="cb119-12"><a href="unet.html#cb119-12"></a>        volumes <span class="op">=</span> {}</span>
+<span id="cb119-13"><a href="unet.html#cb119-13"></a>        masks <span class="op">=</span> {}</span>
+<span id="cb119-14"><a href="unet.html#cb119-14"></a>        <span class="bu">print</span>(<span class="st">&quot;reading images...&quot;</span>)</span>
+<span id="cb119-15"><a href="unet.html#cb119-15"></a>        <span class="cf">for</span> (dirpath, dirnames, filenames) <span class="kw">in</span> os.walk(images_dir):</span>
+<span id="cb119-16"><a href="unet.html#cb119-16"></a>            image_slices <span class="op">=</span> []</span>
+<span id="cb119-17"><a href="unet.html#cb119-17"></a>            mask_slices <span class="op">=</span> []</span>
+<span id="cb119-18"><a href="unet.html#cb119-18"></a>            <span class="cf">for</span> filename <span class="kw">in</span> <span class="bu">sorted</span>(</span>
+<span id="cb119-19"><a href="unet.html#cb119-19"></a>                <span class="bu">filter</span>(<span class="kw">lambda</span> f: <span class="st">&quot;.tif&quot;</span> <span class="kw">in</span> f, filenames),</span>
+<span id="cb119-20"><a href="unet.html#cb119-20"></a>                key<span class="op">=</span><span class="kw">lambda</span> x: <span class="bu">int</span>(x.split(<span class="st">&quot;.&quot;</span>)[<span class="op">-</span><span class="dv">2</span>].split(<span class="st">&quot;_&quot;</span>)[<span class="dv">4</span>]),</span>
+<span id="cb119-21"><a href="unet.html#cb119-21"></a>            ):</span>
+<span id="cb119-22"><a href="unet.html#cb119-22"></a>                filepath <span class="op">=</span> os.path.join(dirpath, filename)</span>
+<span id="cb119-23"><a href="unet.html#cb119-23"></a>                <span class="cf">if</span> <span class="st">&quot;mask&quot;</span> <span class="kw">in</span> filename:</span>
+<span id="cb119-24"><a href="unet.html#cb119-24"></a>                    mask_slices.append(imread(filepath, as_gray<span class="op">=</span><span class="va">True</span>))</span>
+<span id="cb119-25"><a href="unet.html#cb119-25"></a>                <span class="cf">else</span>:</span>
+<span id="cb119-26"><a href="unet.html#cb119-26"></a>                    image_slices.append(imread(filepath))</span>
+<span id="cb119-27"><a href="unet.html#cb119-27"></a>            <span class="cf">if</span> <span class="bu">len</span>(image_slices) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb119-28"><a href="unet.html#cb119-28"></a>                patient_id <span class="op">=</span> dirpath.split(<span class="st">&quot;/&quot;</span>)[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb119-29"><a href="unet.html#cb119-29"></a>                volumes[patient_id] <span class="op">=</span> np.array(image_slices[<span class="dv">1</span>:<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb119-30"><a href="unet.html#cb119-30"></a>                masks[patient_id] <span class="op">=</span> np.array(mask_slices[<span class="dv">1</span>:<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb119-31"><a href="unet.html#cb119-31"></a>        <span class="va">self</span>.patients <span class="op">=</span> <span class="bu">sorted</span>(volumes)</span>
+<span id="cb119-32"><a href="unet.html#cb119-32"></a>        <span class="bu">print</span>(<span class="st">&quot;preprocessing volumes...&quot;</span>)</span>
+<span id="cb119-33"><a href="unet.html#cb119-33"></a>        <span class="co"># create list of tuples (volume, mask)</span></span>
+<span id="cb119-34"><a href="unet.html#cb119-34"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [(volumes[k], masks[k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="va">self</span>.patients]</span>
+<span id="cb119-35"><a href="unet.html#cb119-35"></a>        <span class="bu">print</span>(<span class="st">&quot;cropping volumes...&quot;</span>)</span>
+<span id="cb119-36"><a href="unet.html#cb119-36"></a>        <span class="co"># crop to smallest enclosing volume</span></span>
+<span id="cb119-37"><a href="unet.html#cb119-37"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [crop_sample(v) <span class="cf">for</span> v <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-38"><a href="unet.html#cb119-38"></a>        <span class="bu">print</span>(<span class="st">&quot;padding volumes...&quot;</span>)</span>
+<span id="cb119-39"><a href="unet.html#cb119-39"></a>        <span class="co"># pad to square</span></span>
+<span id="cb119-40"><a href="unet.html#cb119-40"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [pad_sample(v) <span class="cf">for</span> v <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-41"><a href="unet.html#cb119-41"></a>        <span class="bu">print</span>(<span class="st">&quot;resizing volumes...&quot;</span>)</span>
+<span id="cb119-42"><a href="unet.html#cb119-42"></a>        <span class="co"># resize</span></span>
+<span id="cb119-43"><a href="unet.html#cb119-43"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [resize_sample(v, size<span class="op">=</span>image_size) <span class="cf">for</span> v <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-44"><a href="unet.html#cb119-44"></a>        <span class="bu">print</span>(<span class="st">&quot;normalizing volumes...&quot;</span>)</span>
+<span id="cb119-45"><a href="unet.html#cb119-45"></a>        <span class="co"># normalize channel-wise</span></span>
+<span id="cb119-46"><a href="unet.html#cb119-46"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [(normalize_volume(v), m) <span class="cf">for</span> v, m <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-47"><a href="unet.html#cb119-47"></a>        <span class="co"># probabilities for sampling slices based on masks</span></span>
+<span id="cb119-48"><a href="unet.html#cb119-48"></a>        <span class="va">self</span>.slice_weights <span class="op">=</span> [m.<span class="bu">sum</span>(axis<span class="op">=-</span><span class="dv">1</span>).<span class="bu">sum</span>(axis<span class="op">=-</span><span class="dv">1</span>) <span class="cf">for</span> v, m <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-49"><a href="unet.html#cb119-49"></a>        <span class="va">self</span>.slice_weights <span class="op">=</span> [</span>
+<span id="cb119-50"><a href="unet.html#cb119-50"></a>            (s <span class="op">+</span> (s.<span class="bu">sum</span>() <span class="op">*</span> <span class="fl">0.1</span> <span class="op">/</span> <span class="bu">len</span>(s))) <span class="op">/</span> (s.<span class="bu">sum</span>() <span class="op">*</span> <span class="fl">1.1</span>) <span class="cf">for</span> s <span class="kw">in</span> <span class="va">self</span>.slice_weights</span>
+<span id="cb119-51"><a href="unet.html#cb119-51"></a>        ]</span>
+<span id="cb119-52"><a href="unet.html#cb119-52"></a>        <span class="co"># add channel dimension to masks</span></span>
+<span id="cb119-53"><a href="unet.html#cb119-53"></a>        <span class="va">self</span>.volumes <span class="op">=</span> [(v, m[..., np.newaxis]) <span class="cf">for</span> (v, m) <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-54"><a href="unet.html#cb119-54"></a>        <span class="bu">print</span>(<span class="st">&quot;done creating dataset&quot;</span>)</span>
+<span id="cb119-55"><a href="unet.html#cb119-55"></a>        <span class="co"># create global index for patient and slice (idx -&gt; (p_idx, s_idx))</span></span>
+<span id="cb119-56"><a href="unet.html#cb119-56"></a>        num_slices <span class="op">=</span> [v.shape[<span class="dv">0</span>] <span class="cf">for</span> v, m <span class="kw">in</span> <span class="va">self</span>.volumes]</span>
+<span id="cb119-57"><a href="unet.html#cb119-57"></a>        <span class="va">self</span>.patient_slice_index <span class="op">=</span> <span class="bu">list</span>(</span>
+<span id="cb119-58"><a href="unet.html#cb119-58"></a>            <span class="bu">zip</span>(</span>
+<span id="cb119-59"><a href="unet.html#cb119-59"></a>                <span class="bu">sum</span>([[i] <span class="op">*</span> num_slices[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(num_slices))], []),</span>
+<span id="cb119-60"><a href="unet.html#cb119-60"></a>                <span class="bu">sum</span>([<span class="bu">list</span>(<span class="bu">range</span>(x)) <span class="cf">for</span> x <span class="kw">in</span> num_slices], []),</span>
+<span id="cb119-61"><a href="unet.html#cb119-61"></a>            )</span>
+<span id="cb119-62"><a href="unet.html#cb119-62"></a>        )</span>
+<span id="cb119-63"><a href="unet.html#cb119-63"></a>        <span class="va">self</span>.random_sampling <span class="op">=</span> random_sampling</span>
+<span id="cb119-64"><a href="unet.html#cb119-64"></a>        <span class="va">self</span>.transform <span class="op">=</span> transform</span>
+<span id="cb119-65"><a href="unet.html#cb119-65"></a>    <span class="kw">def</span> <span class="fu">__len__</span>(<span class="va">self</span>):</span>
+<span id="cb119-66"><a href="unet.html#cb119-66"></a>        <span class="cf">return</span> <span class="bu">len</span>(<span class="va">self</span>.patient_slice_index)</span>
+<span id="cb119-67"><a href="unet.html#cb119-67"></a>    <span class="kw">def</span> <span class="fu">__getitem__</span>(<span class="va">self</span>, idx):</span>
+<span id="cb119-68"><a href="unet.html#cb119-68"></a>        patient <span class="op">=</span> <span class="va">self</span>.patient_slice_index[idx][<span class="dv">0</span>]</span>
+<span id="cb119-69"><a href="unet.html#cb119-69"></a>        slice_n <span class="op">=</span> <span class="va">self</span>.patient_slice_index[idx][<span class="dv">1</span>]</span>
+<span id="cb119-70"><a href="unet.html#cb119-70"></a>        <span class="cf">if</span> <span class="va">self</span>.random_sampling:</span>
+<span id="cb119-71"><a href="unet.html#cb119-71"></a>            patient <span class="op">=</span> np.random.randint(<span class="bu">len</span>(<span class="va">self</span>.volumes))</span>
+<span id="cb119-72"><a href="unet.html#cb119-72"></a>            slice_n <span class="op">=</span> np.random.choice(</span>
+<span id="cb119-73"><a href="unet.html#cb119-73"></a>                <span class="bu">range</span>(<span class="va">self</span>.volumes[patient][<span class="dv">0</span>].shape[<span class="dv">0</span>]), p<span class="op">=</span><span class="va">self</span>.slice_weights[patient]</span>
+<span id="cb119-74"><a href="unet.html#cb119-74"></a>            )</span>
+<span id="cb119-75"><a href="unet.html#cb119-75"></a>        v, m <span class="op">=</span> <span class="va">self</span>.volumes[patient]</span>
+<span id="cb119-76"><a href="unet.html#cb119-76"></a>        image <span class="op">=</span> v[slice_n]</span>
+<span id="cb119-77"><a href="unet.html#cb119-77"></a>        mask <span class="op">=</span> m[slice_n]</span>
+<span id="cb119-78"><a href="unet.html#cb119-78"></a>        <span class="cf">if</span> <span class="va">self</span>.transform <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb119-79"><a href="unet.html#cb119-79"></a>            image, mask <span class="op">=</span> <span class="va">self</span>.transform((image, mask))</span>
+<span id="cb119-80"><a href="unet.html#cb119-80"></a>        <span class="co"># fix dimensions (C, H, W)</span></span>
+<span id="cb119-81"><a href="unet.html#cb119-81"></a>        image <span class="op">=</span> image.transpose(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb119-82"><a href="unet.html#cb119-82"></a>        mask <span class="op">=</span> mask.transpose(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb119-83"><a href="unet.html#cb119-83"></a>        image_tensor <span class="op">=</span> torch.from_numpy(image.astype(np.float32))</span>
+<span id="cb119-84"><a href="unet.html#cb119-84"></a>        mask_tensor <span class="op">=</span> torch.from_numpy(mask.astype(np.float32))</span>
+<span id="cb119-85"><a href="unet.html#cb119-85"></a>        <span class="co"># return tensors</span></span>
+<span id="cb119-86"><a href="unet.html#cb119-86"></a>        <span class="cf">return</span> image_tensor, mask_tensor</span></code></pre></div>
 </div>
 <div id="loading-the-data" class="section level4" number="8.3.1.3">
 <h4><span class="header-section-number">8.3.1.3</span> Loading the data</h4>
 <p>We use data augmentation and shuffling on the training set, and none of those on the validation set:</p>
-<div class="sourceCode" id="cb115"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb115-1"><a href="unet.html#cb115-1"></a>image_size <span class="op">=</span> <span class="dv">256</span></span>
-<span id="cb115-2"><a href="unet.html#cb115-2"></a>aug_scale <span class="op">=</span> <span class="fl">0.05</span></span>
-<span id="cb115-3"><a href="unet.html#cb115-3"></a>aug_angle <span class="op">=</span> <span class="dv">15</span></span>
-<span id="cb115-4"><a href="unet.html#cb115-4"></a>flip_prob <span class="op">=</span> <span class="fl">0.5</span></span>
-<span id="cb115-5"><a href="unet.html#cb115-5"></a></span>
-<span id="cb115-6"><a href="unet.html#cb115-6"></a>train_ds <span class="op">=</span> BrainSegmentationDataset(</span>
-<span id="cb115-7"><a href="unet.html#cb115-7"></a>        images_dir <span class="op">=</span> train_dir,</span>
-<span id="cb115-8"><a href="unet.html#cb115-8"></a>        image_size <span class="op">=</span> image_size,</span>
-<span id="cb115-9"><a href="unet.html#cb115-9"></a>        transform <span class="op">=</span> transforms(scale <span class="op">=</span> aug_scale, angle <span class="op">=</span> aug_angle, flip_prob<span class="op">=</span><span class="fl">0.5</span>),</span>
-<span id="cb115-10"><a href="unet.html#cb115-10"></a>        random_sampling <span class="op">=</span> <span class="va">True</span></span>
-<span id="cb115-11"><a href="unet.html#cb115-11"></a>)</span>
-<span id="cb115-12"><a href="unet.html#cb115-12"></a></span>
-<span id="cb115-13"><a href="unet.html#cb115-13"></a>valid_ds <span class="op">=</span> BrainSegmentationDataset(</span>
-<span id="cb115-14"><a href="unet.html#cb115-14"></a>        images_dir <span class="op">=</span> valid_dir,</span>
-<span id="cb115-15"><a href="unet.html#cb115-15"></a>        image_size <span class="op">=</span> image_size,</span>
-<span id="cb115-16"><a href="unet.html#cb115-16"></a>        random_sampling<span class="op">=</span><span class="va">False</span></span>
-<span id="cb115-17"><a href="unet.html#cb115-17"></a>)</span>
-<span id="cb115-18"><a href="unet.html#cb115-18"></a></span>
-<span id="cb115-19"><a href="unet.html#cb115-19"></a>batch_size <span class="op">=</span> <span class="dv">4</span></span>
-<span id="cb115-20"><a href="unet.html#cb115-20"></a></span>
-<span id="cb115-21"><a href="unet.html#cb115-21"></a>train_loader <span class="op">=</span> torch.utils.data.DataLoader(</span>
-<span id="cb115-22"><a href="unet.html#cb115-22"></a>        train_ds,</span>
-<span id="cb115-23"><a href="unet.html#cb115-23"></a>        batch_size <span class="op">=</span> batch_size,</span>
-<span id="cb115-24"><a href="unet.html#cb115-24"></a>        shuffle <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb115-25"><a href="unet.html#cb115-25"></a>        drop_last <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb115-26"><a href="unet.html#cb115-26"></a>        num_workers <span class="op">=</span> <span class="dv">8</span></span>
-<span id="cb115-27"><a href="unet.html#cb115-27"></a>)</span>
-<span id="cb115-28"><a href="unet.html#cb115-28"></a></span>
-<span id="cb115-29"><a href="unet.html#cb115-29"></a>valid_loader <span class="op">=</span> torch.utils.data.DataLoader(</span>
-<span id="cb115-30"><a href="unet.html#cb115-30"></a>        valid_ds,</span>
-<span id="cb115-31"><a href="unet.html#cb115-31"></a>        batch_size <span class="op">=</span> batch_size,</span>
-<span id="cb115-32"><a href="unet.html#cb115-32"></a>        drop_last <span class="op">=</span> <span class="va">False</span>,</span>
-<span id="cb115-33"><a href="unet.html#cb115-33"></a>)</span>
-<span id="cb115-34"><a href="unet.html#cb115-34"></a></span>
-<span id="cb115-35"><a href="unet.html#cb115-35"></a>dataloaders <span class="op">=</span> {<span class="st">&quot;train&quot;</span>: train_loader, <span class="st">&quot;valid&quot;</span>: valid_loader}</span>
-<span id="cb115-36"><a href="unet.html#cb115-36"></a>dataset_sizes <span class="op">=</span> {x: <span class="bu">len</span>(dataloaders[x]) <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>]}</span></code></pre></div>
+<div class="sourceCode" id="cb120"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb120-1"><a href="unet.html#cb120-1"></a>image_size <span class="op">=</span> <span class="dv">256</span></span>
+<span id="cb120-2"><a href="unet.html#cb120-2"></a>aug_scale <span class="op">=</span> <span class="fl">0.05</span></span>
+<span id="cb120-3"><a href="unet.html#cb120-3"></a>aug_angle <span class="op">=</span> <span class="dv">15</span></span>
+<span id="cb120-4"><a href="unet.html#cb120-4"></a>flip_prob <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb120-5"><a href="unet.html#cb120-5"></a></span>
+<span id="cb120-6"><a href="unet.html#cb120-6"></a>train_ds <span class="op">=</span> BrainSegmentationDataset(</span>
+<span id="cb120-7"><a href="unet.html#cb120-7"></a>        images_dir <span class="op">=</span> train_dir,</span>
+<span id="cb120-8"><a href="unet.html#cb120-8"></a>        image_size <span class="op">=</span> image_size,</span>
+<span id="cb120-9"><a href="unet.html#cb120-9"></a>        transform <span class="op">=</span> transforms(scale <span class="op">=</span> aug_scale, angle <span class="op">=</span> aug_angle, flip_prob<span class="op">=</span><span class="fl">0.5</span>),</span>
+<span id="cb120-10"><a href="unet.html#cb120-10"></a>        random_sampling <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb120-11"><a href="unet.html#cb120-11"></a>)</span>
+<span id="cb120-12"><a href="unet.html#cb120-12"></a></span>
+<span id="cb120-13"><a href="unet.html#cb120-13"></a>valid_ds <span class="op">=</span> BrainSegmentationDataset(</span>
+<span id="cb120-14"><a href="unet.html#cb120-14"></a>        images_dir <span class="op">=</span> valid_dir,</span>
+<span id="cb120-15"><a href="unet.html#cb120-15"></a>        image_size <span class="op">=</span> image_size,</span>
+<span id="cb120-16"><a href="unet.html#cb120-16"></a>        random_sampling<span class="op">=</span><span class="va">False</span></span>
+<span id="cb120-17"><a href="unet.html#cb120-17"></a>)</span>
+<span id="cb120-18"><a href="unet.html#cb120-18"></a></span>
+<span id="cb120-19"><a href="unet.html#cb120-19"></a>batch_size <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb120-20"><a href="unet.html#cb120-20"></a></span>
+<span id="cb120-21"><a href="unet.html#cb120-21"></a>train_loader <span class="op">=</span> torch.utils.data.DataLoader(</span>
+<span id="cb120-22"><a href="unet.html#cb120-22"></a>        train_ds,</span>
+<span id="cb120-23"><a href="unet.html#cb120-23"></a>        batch_size <span class="op">=</span> batch_size,</span>
+<span id="cb120-24"><a href="unet.html#cb120-24"></a>        shuffle <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb120-25"><a href="unet.html#cb120-25"></a>        drop_last <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb120-26"><a href="unet.html#cb120-26"></a>        num_workers <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb120-27"><a href="unet.html#cb120-27"></a>)</span>
+<span id="cb120-28"><a href="unet.html#cb120-28"></a></span>
+<span id="cb120-29"><a href="unet.html#cb120-29"></a>valid_loader <span class="op">=</span> torch.utils.data.DataLoader(</span>
+<span id="cb120-30"><a href="unet.html#cb120-30"></a>        valid_ds,</span>
+<span id="cb120-31"><a href="unet.html#cb120-31"></a>        batch_size <span class="op">=</span> batch_size,</span>
+<span id="cb120-32"><a href="unet.html#cb120-32"></a>        drop_last <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="cb120-33"><a href="unet.html#cb120-33"></a>)</span>
+<span id="cb120-34"><a href="unet.html#cb120-34"></a></span>
+<span id="cb120-35"><a href="unet.html#cb120-35"></a>dataloaders <span class="op">=</span> {<span class="st">&quot;train&quot;</span>: train_loader, <span class="st">&quot;valid&quot;</span>: valid_loader}</span>
+<span id="cb120-36"><a href="unet.html#cb120-36"></a>dataset_sizes <span class="op">=</span> {x: <span class="bu">len</span>(dataloaders[x]) <span class="cf">for</span> x <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>]}</span></code></pre></div>
 <p>On to the model.</p>
 </div>
 </div>
@@ -683,82 +687,82 @@ convolution block will have <code>2^n_filters</code> channels, and in every succ
 by one. The number of input channels (in our example: 3) and the number of output classes can be changed, as well. With a
 binary problem, although logically the number of classes is two, there is no need for two output channels; a single output
 channel with sigmoid activation is enough. If you had, say, four different cell types instead, you’d set <code>n_classes</code> to four.</p>
-<div class="sourceCode" id="cb116"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb116-1"><a href="unet.html#cb116-1"></a><span class="kw">class</span> UNet(nn.Module):</span>
-<span id="cb116-2"><a href="unet.html#cb116-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
-<span id="cb116-3"><a href="unet.html#cb116-3"></a>        <span class="va">self</span>,</span>
-<span id="cb116-4"><a href="unet.html#cb116-4"></a>        channels_in <span class="op">=</span> <span class="dv">3</span>,</span>
-<span id="cb116-5"><a href="unet.html#cb116-5"></a>        n_classes <span class="op">=</span> <span class="dv">1</span>,</span>
-<span id="cb116-6"><a href="unet.html#cb116-6"></a>        depth <span class="op">=</span> <span class="dv">5</span>,</span>
-<span id="cb116-7"><a href="unet.html#cb116-7"></a>        n_filters <span class="op">=</span> <span class="dv">6</span>, </span>
-<span id="cb116-8"><a href="unet.html#cb116-8"></a>    ):</span>
-<span id="cb116-9"><a href="unet.html#cb116-9"></a>        <span class="bu">super</span>(UNet, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb116-10"><a href="unet.html#cb116-10"></a>        <span class="va">self</span>.depth <span class="op">=</span> depth</span>
-<span id="cb116-11"><a href="unet.html#cb116-11"></a>        prev_channels <span class="op">=</span> channels_in</span>
-<span id="cb116-12"><a href="unet.html#cb116-12"></a>        <span class="va">self</span>.down_path <span class="op">=</span> nn.ModuleList()</span>
-<span id="cb116-13"><a href="unet.html#cb116-13"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(depth):</span>
-<span id="cb116-14"><a href="unet.html#cb116-14"></a>            <span class="va">self</span>.down_path.append(</span>
-<span id="cb116-15"><a href="unet.html#cb116-15"></a>                DownBlock(prev_channels, <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i))</span>
-<span id="cb116-16"><a href="unet.html#cb116-16"></a>            )</span>
-<span id="cb116-17"><a href="unet.html#cb116-17"></a>            prev_channels <span class="op">=</span> <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i)</span>
-<span id="cb116-18"><a href="unet.html#cb116-18"></a>        <span class="va">self</span>.up_path <span class="op">=</span> nn.ModuleList()</span>
-<span id="cb116-19"><a href="unet.html#cb116-19"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">reversed</span>(<span class="bu">range</span>(depth <span class="op">-</span> <span class="dv">1</span>)):</span>
-<span id="cb116-20"><a href="unet.html#cb116-20"></a>            <span class="va">self</span>.up_path.append(</span>
-<span id="cb116-21"><a href="unet.html#cb116-21"></a>                UpBlock(prev_channels, <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i))</span>
-<span id="cb116-22"><a href="unet.html#cb116-22"></a>            )</span>
-<span id="cb116-23"><a href="unet.html#cb116-23"></a>            prev_channels <span class="op">=</span> <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i)</span>
-<span id="cb116-24"><a href="unet.html#cb116-24"></a>        <span class="va">self</span>.last <span class="op">=</span> nn.Conv2d(prev_channels, n_classes, kernel_size <span class="op">=</span> <span class="dv">1</span>)</span>
-<span id="cb116-25"><a href="unet.html#cb116-25"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
-<span id="cb116-26"><a href="unet.html#cb116-26"></a>        blocks <span class="op">=</span> []</span>
-<span id="cb116-27"><a href="unet.html#cb116-27"></a>        <span class="cf">for</span> i, down <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.down_path):</span>
-<span id="cb116-28"><a href="unet.html#cb116-28"></a>            x <span class="op">=</span> down(x)</span>
-<span id="cb116-29"><a href="unet.html#cb116-29"></a>            <span class="cf">if</span> i <span class="op">!=</span> <span class="bu">len</span>(<span class="va">self</span>.down_path) <span class="op">-</span> <span class="dv">1</span>:</span>
-<span id="cb116-30"><a href="unet.html#cb116-30"></a>                blocks.append(x)</span>
-<span id="cb116-31"><a href="unet.html#cb116-31"></a>                x <span class="op">=</span> F.max_pool2d(x, <span class="dv">2</span>)</span>
-<span id="cb116-32"><a href="unet.html#cb116-32"></a>        <span class="cf">for</span> i, up <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.up_path):</span>
-<span id="cb116-33"><a href="unet.html#cb116-33"></a>            x <span class="op">=</span> up(x, blocks[<span class="op">-</span>i <span class="op">-</span> <span class="dv">1</span>])</span>
-<span id="cb116-34"><a href="unet.html#cb116-34"></a>        <span class="cf">return</span> torch.sigmoid(<span class="va">self</span>.last(x))</span>
-<span id="cb116-35"><a href="unet.html#cb116-35"></a>{r}</span></code></pre></div>
+<div class="sourceCode" id="cb121"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb121-1"><a href="unet.html#cb121-1"></a><span class="kw">class</span> UNet(nn.Module):</span>
+<span id="cb121-2"><a href="unet.html#cb121-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
+<span id="cb121-3"><a href="unet.html#cb121-3"></a>        <span class="va">self</span>,</span>
+<span id="cb121-4"><a href="unet.html#cb121-4"></a>        channels_in <span class="op">=</span> <span class="dv">3</span>,</span>
+<span id="cb121-5"><a href="unet.html#cb121-5"></a>        n_classes <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb121-6"><a href="unet.html#cb121-6"></a>        depth <span class="op">=</span> <span class="dv">5</span>,</span>
+<span id="cb121-7"><a href="unet.html#cb121-7"></a>        n_filters <span class="op">=</span> <span class="dv">6</span>, </span>
+<span id="cb121-8"><a href="unet.html#cb121-8"></a>    ):</span>
+<span id="cb121-9"><a href="unet.html#cb121-9"></a>        <span class="bu">super</span>(UNet, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb121-10"><a href="unet.html#cb121-10"></a>        <span class="va">self</span>.depth <span class="op">=</span> depth</span>
+<span id="cb121-11"><a href="unet.html#cb121-11"></a>        prev_channels <span class="op">=</span> channels_in</span>
+<span id="cb121-12"><a href="unet.html#cb121-12"></a>        <span class="va">self</span>.down_path <span class="op">=</span> nn.ModuleList()</span>
+<span id="cb121-13"><a href="unet.html#cb121-13"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(depth):</span>
+<span id="cb121-14"><a href="unet.html#cb121-14"></a>            <span class="va">self</span>.down_path.append(</span>
+<span id="cb121-15"><a href="unet.html#cb121-15"></a>                DownBlock(prev_channels, <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i))</span>
+<span id="cb121-16"><a href="unet.html#cb121-16"></a>            )</span>
+<span id="cb121-17"><a href="unet.html#cb121-17"></a>            prev_channels <span class="op">=</span> <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i)</span>
+<span id="cb121-18"><a href="unet.html#cb121-18"></a>        <span class="va">self</span>.up_path <span class="op">=</span> nn.ModuleList()</span>
+<span id="cb121-19"><a href="unet.html#cb121-19"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">reversed</span>(<span class="bu">range</span>(depth <span class="op">-</span> <span class="dv">1</span>)):</span>
+<span id="cb121-20"><a href="unet.html#cb121-20"></a>            <span class="va">self</span>.up_path.append(</span>
+<span id="cb121-21"><a href="unet.html#cb121-21"></a>                UpBlock(prev_channels, <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i))</span>
+<span id="cb121-22"><a href="unet.html#cb121-22"></a>            )</span>
+<span id="cb121-23"><a href="unet.html#cb121-23"></a>            prev_channels <span class="op">=</span> <span class="dv">2</span> <span class="op">**</span> (n_filters <span class="op">+</span> i)</span>
+<span id="cb121-24"><a href="unet.html#cb121-24"></a>        <span class="va">self</span>.last <span class="op">=</span> nn.Conv2d(prev_channels, n_classes, kernel_size <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb121-25"><a href="unet.html#cb121-25"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb121-26"><a href="unet.html#cb121-26"></a>        blocks <span class="op">=</span> []</span>
+<span id="cb121-27"><a href="unet.html#cb121-27"></a>        <span class="cf">for</span> i, down <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.down_path):</span>
+<span id="cb121-28"><a href="unet.html#cb121-28"></a>            x <span class="op">=</span> down(x)</span>
+<span id="cb121-29"><a href="unet.html#cb121-29"></a>            <span class="cf">if</span> i <span class="op">!=</span> <span class="bu">len</span>(<span class="va">self</span>.down_path) <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb121-30"><a href="unet.html#cb121-30"></a>                blocks.append(x)</span>
+<span id="cb121-31"><a href="unet.html#cb121-31"></a>                x <span class="op">=</span> F.max_pool2d(x, <span class="dv">2</span>)</span>
+<span id="cb121-32"><a href="unet.html#cb121-32"></a>        <span class="cf">for</span> i, up <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.up_path):</span>
+<span id="cb121-33"><a href="unet.html#cb121-33"></a>            x <span class="op">=</span> up(x, blocks[<span class="op">-</span>i <span class="op">-</span> <span class="dv">1</span>])</span>
+<span id="cb121-34"><a href="unet.html#cb121-34"></a>        <span class="cf">return</span> torch.sigmoid(<span class="va">self</span>.last(x))</span>
+<span id="cb121-35"><a href="unet.html#cb121-35"></a>{r}</span></code></pre></div>
 <p>As you’ll have seen, this top-level module makes use of two helper modules, <code>DownBlock</code> and <code>UpBlock</code>. These again assemble
 and call instances of <code>ConvBlock</code>, the lowest-level module, that chains convolutional, activation, dropout and batchnorm
 layers. For this specific application, we’ve found that batchnorm actually resulted in deteriorated performance on the
 validation set, probably due to very small batch size. When working with other datasets and/or larger batches that could be
 very different.</p>
-<div class="sourceCode" id="cb117"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb117-1"><a href="unet.html#cb117-1"></a><span class="kw">class</span> ConvBlock(nn.Module):</span>
-<span id="cb117-2"><a href="unet.html#cb117-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
-<span id="cb117-3"><a href="unet.html#cb117-3"></a>        <span class="bu">super</span>(ConvBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb117-4"><a href="unet.html#cb117-4"></a>        block <span class="op">=</span> []</span>
-<span id="cb117-5"><a href="unet.html#cb117-5"></a>        block.append(nn.Conv2d(in_size, out_size, kernel_size <span class="op">=</span> <span class="dv">3</span>, padding <span class="op">=</span> <span class="dv">1</span>))</span>
-<span id="cb117-6"><a href="unet.html#cb117-6"></a>        block.append(nn.ReLU())</span>
-<span id="cb117-7"><a href="unet.html#cb117-7"></a>        <span class="co">#block.append(nn.BatchNorm2d(out_size))</span></span>
-<span id="cb117-8"><a href="unet.html#cb117-8"></a>        block.append(nn.Dropout(<span class="fl">0.6</span>))</span>
-<span id="cb117-9"><a href="unet.html#cb117-9"></a>        block.append(nn.Conv2d(out_size, out_size, kernel_size <span class="op">=</span> <span class="dv">3</span>, padding <span class="op">=</span> <span class="dv">1</span>))</span>
-<span id="cb117-10"><a href="unet.html#cb117-10"></a>        block.append(nn.ReLU())</span>
-<span id="cb117-11"><a href="unet.html#cb117-11"></a>        <span class="co">#block.append(nn.BatchNorm2d(out_size))</span></span>
-<span id="cb117-12"><a href="unet.html#cb117-12"></a>        block.append(nn.Dropout(<span class="fl">0.6</span>))</span>
-<span id="cb117-13"><a href="unet.html#cb117-13"></a>        <span class="va">self</span>.block <span class="op">=</span> nn.Sequential(<span class="op">*</span>block)</span>
-<span id="cb117-14"><a href="unet.html#cb117-14"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
-<span id="cb117-15"><a href="unet.html#cb117-15"></a>        out <span class="op">=</span> <span class="va">self</span>.block(x)</span>
-<span id="cb117-16"><a href="unet.html#cb117-16"></a>        <span class="cf">return</span> out</span></code></pre></div>
-<div class="sourceCode" id="cb118"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb118-1"><a href="unet.html#cb118-1"></a><span class="kw">class</span> DownBlock(nn.Module):</span>
-<span id="cb118-2"><a href="unet.html#cb118-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
-<span id="cb118-3"><a href="unet.html#cb118-3"></a>        <span class="bu">super</span>(DownBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb118-4"><a href="unet.html#cb118-4"></a>        <span class="va">self</span>.conv_block <span class="op">=</span> ConvBlock(in_size, out_size)</span>
-<span id="cb118-5"><a href="unet.html#cb118-5"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
-<span id="cb118-6"><a href="unet.html#cb118-6"></a>        down <span class="op">=</span> <span class="va">self</span>.conv_block(x)</span>
-<span id="cb118-7"><a href="unet.html#cb118-7"></a>        <span class="cf">return</span> down</span></code></pre></div>
-<div class="sourceCode" id="cb119"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb119-1"><a href="unet.html#cb119-1"></a><span class="kw">class</span> UpBlock(nn.Module):</span>
-<span id="cb119-2"><a href="unet.html#cb119-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
-<span id="cb119-3"><a href="unet.html#cb119-3"></a>        <span class="bu">super</span>(UpBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb119-4"><a href="unet.html#cb119-4"></a>        <span class="va">self</span>.up <span class="op">=</span> nn.ConvTranspose2d(in_size, out_size, kernel_size <span class="op">=</span> <span class="dv">2</span>, stride <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb119-5"><a href="unet.html#cb119-5"></a>        <span class="va">self</span>.conv_block <span class="op">=</span> ConvBlock(in_size, out_size)</span>
-<span id="cb119-6"><a href="unet.html#cb119-6"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, bridge):</span>
-<span id="cb119-7"><a href="unet.html#cb119-7"></a>        up <span class="op">=</span> <span class="va">self</span>.up(x)</span>
-<span id="cb119-8"><a href="unet.html#cb119-8"></a>        out <span class="op">=</span> torch.cat([up, bridge], <span class="dv">1</span>)</span>
-<span id="cb119-9"><a href="unet.html#cb119-9"></a>        out <span class="op">=</span> <span class="va">self</span>.conv_block(out)</span>
-<span id="cb119-10"><a href="unet.html#cb119-10"></a>        <span class="cf">return</span> out</span></code></pre></div>
+<div class="sourceCode" id="cb122"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb122-1"><a href="unet.html#cb122-1"></a><span class="kw">class</span> ConvBlock(nn.Module):</span>
+<span id="cb122-2"><a href="unet.html#cb122-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
+<span id="cb122-3"><a href="unet.html#cb122-3"></a>        <span class="bu">super</span>(ConvBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb122-4"><a href="unet.html#cb122-4"></a>        block <span class="op">=</span> []</span>
+<span id="cb122-5"><a href="unet.html#cb122-5"></a>        block.append(nn.Conv2d(in_size, out_size, kernel_size <span class="op">=</span> <span class="dv">3</span>, padding <span class="op">=</span> <span class="dv">1</span>))</span>
+<span id="cb122-6"><a href="unet.html#cb122-6"></a>        block.append(nn.ReLU())</span>
+<span id="cb122-7"><a href="unet.html#cb122-7"></a>        <span class="co">#block.append(nn.BatchNorm2d(out_size))</span></span>
+<span id="cb122-8"><a href="unet.html#cb122-8"></a>        block.append(nn.Dropout(<span class="fl">0.6</span>))</span>
+<span id="cb122-9"><a href="unet.html#cb122-9"></a>        block.append(nn.Conv2d(out_size, out_size, kernel_size <span class="op">=</span> <span class="dv">3</span>, padding <span class="op">=</span> <span class="dv">1</span>))</span>
+<span id="cb122-10"><a href="unet.html#cb122-10"></a>        block.append(nn.ReLU())</span>
+<span id="cb122-11"><a href="unet.html#cb122-11"></a>        <span class="co">#block.append(nn.BatchNorm2d(out_size))</span></span>
+<span id="cb122-12"><a href="unet.html#cb122-12"></a>        block.append(nn.Dropout(<span class="fl">0.6</span>))</span>
+<span id="cb122-13"><a href="unet.html#cb122-13"></a>        <span class="va">self</span>.block <span class="op">=</span> nn.Sequential(<span class="op">*</span>block)</span>
+<span id="cb122-14"><a href="unet.html#cb122-14"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb122-15"><a href="unet.html#cb122-15"></a>        out <span class="op">=</span> <span class="va">self</span>.block(x)</span>
+<span id="cb122-16"><a href="unet.html#cb122-16"></a>        <span class="cf">return</span> out</span></code></pre></div>
+<div class="sourceCode" id="cb123"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb123-1"><a href="unet.html#cb123-1"></a><span class="kw">class</span> DownBlock(nn.Module):</span>
+<span id="cb123-2"><a href="unet.html#cb123-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
+<span id="cb123-3"><a href="unet.html#cb123-3"></a>        <span class="bu">super</span>(DownBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb123-4"><a href="unet.html#cb123-4"></a>        <span class="va">self</span>.conv_block <span class="op">=</span> ConvBlock(in_size, out_size)</span>
+<span id="cb123-5"><a href="unet.html#cb123-5"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb123-6"><a href="unet.html#cb123-6"></a>        down <span class="op">=</span> <span class="va">self</span>.conv_block(x)</span>
+<span id="cb123-7"><a href="unet.html#cb123-7"></a>        <span class="cf">return</span> down</span></code></pre></div>
+<div class="sourceCode" id="cb124"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb124-1"><a href="unet.html#cb124-1"></a><span class="kw">class</span> UpBlock(nn.Module):</span>
+<span id="cb124-2"><a href="unet.html#cb124-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, in_size, out_size):</span>
+<span id="cb124-3"><a href="unet.html#cb124-3"></a>        <span class="bu">super</span>(UpBlock, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb124-4"><a href="unet.html#cb124-4"></a>        <span class="va">self</span>.up <span class="op">=</span> nn.ConvTranspose2d(in_size, out_size, kernel_size <span class="op">=</span> <span class="dv">2</span>, stride <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb124-5"><a href="unet.html#cb124-5"></a>        <span class="va">self</span>.conv_block <span class="op">=</span> ConvBlock(in_size, out_size)</span>
+<span id="cb124-6"><a href="unet.html#cb124-6"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, bridge):</span>
+<span id="cb124-7"><a href="unet.html#cb124-7"></a>        up <span class="op">=</span> <span class="va">self</span>.up(x)</span>
+<span id="cb124-8"><a href="unet.html#cb124-8"></a>        out <span class="op">=</span> torch.cat([up, bridge], <span class="dv">1</span>)</span>
+<span id="cb124-9"><a href="unet.html#cb124-9"></a>        out <span class="op">=</span> <span class="va">self</span>.conv_block(out)</span>
+<span id="cb124-10"><a href="unet.html#cb124-10"></a>        <span class="cf">return</span> out</span></code></pre></div>
 <p>We instantiate the model with default parameters.</p>
-<div class="sourceCode" id="cb120"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb120-1"><a href="unet.html#cb120-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
-<span id="cb120-2"><a href="unet.html#cb120-2"></a>model <span class="op">=</span> UNet().to(device)</span></code></pre></div>
+<div class="sourceCode" id="cb125"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb125-1"><a href="unet.html#cb125-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
+<span id="cb125-2"><a href="unet.html#cb125-2"></a>model <span class="op">=</span> UNet().to(device)</span></code></pre></div>
 <p>This results in a U-structure of the following dimensionality:</p>
 <table>
 <colgroup>
@@ -849,92 +853,92 @@ while the number of filters is reduced by conv layers. As an alternative to tran
 <h3><span class="header-section-number">8.3.3</span> Loss</h3>
 <p>Thinking about loss functions that match the task, the first that probably comes to mind is binary crossentropy,
 <code>torch.nn.BCELoss</code>, applied pixel-wise. We’ll use it …</p>
-<div class="sourceCode" id="cb121"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb121-1"><a href="unet.html#cb121-1"></a>bce_loss <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb126-1"><a href="unet.html#cb126-1"></a>bce_loss <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
 <p>but we’ll augment it by another, called <em>dice loss</em> after the <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient">dice
-coefficient</a>:<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+coefficient</a>:<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a></p>
 <p><span class="math display">\[
 d = \frac{2 * |X \cap Y|}{|X \cup Y|}
 \]</span></p>
 <p>The dice coefficient is similar in spirit to the <a href="https://en.wikipedia.org/wiki/Jaccard_index">Jaccard index</a>, also known as
 <em>intersection over union</em>, but differs in that it scales the numerator by two. Here is an implementation of the derived loss:</p>
-<div class="sourceCode" id="cb122"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb122-1"><a href="unet.html#cb122-1"></a><span class="kw">class</span> DiceLoss(nn.Module):</span>
-<span id="cb122-2"><a href="unet.html#cb122-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
-<span id="cb122-3"><a href="unet.html#cb122-3"></a>        <span class="bu">super</span>(DiceLoss, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb122-4"><a href="unet.html#cb122-4"></a>        <span class="va">self</span>.smooth <span class="op">=</span> <span class="fl">1.0</span></span>
-<span id="cb122-5"><a href="unet.html#cb122-5"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, y_pred, y_true):</span>
-<span id="cb122-6"><a href="unet.html#cb122-6"></a>        <span class="cf">assert</span> y_pred.size() <span class="op">==</span> y_true.size()</span>
-<span id="cb122-7"><a href="unet.html#cb122-7"></a>        y_pred <span class="op">=</span> y_pred[:, <span class="dv">0</span>].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb122-8"><a href="unet.html#cb122-8"></a>        y_true <span class="op">=</span> y_true[:, <span class="dv">0</span>].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb122-9"><a href="unet.html#cb122-9"></a>        intersection <span class="op">=</span> (y_pred <span class="op">*</span> y_true).<span class="bu">sum</span>()</span>
-<span id="cb122-10"><a href="unet.html#cb122-10"></a>        dsc <span class="op">=</span> (<span class="fl">2.</span> <span class="op">*</span> intersection <span class="op">+</span> <span class="va">self</span>.smooth) <span class="op">/</span> (</span>
-<span id="cb122-11"><a href="unet.html#cb122-11"></a>            y_pred.<span class="bu">sum</span>() <span class="op">+</span> y_true.<span class="bu">sum</span>() <span class="op">+</span> <span class="va">self</span>.smooth</span>
-<span id="cb122-12"><a href="unet.html#cb122-12"></a>        )</span>
-<span id="cb122-13"><a href="unet.html#cb122-13"></a>        <span class="cf">return</span> <span class="fl">1.</span> <span class="op">-</span> dsc</span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb127-1"><a href="unet.html#cb127-1"></a><span class="kw">class</span> DiceLoss(nn.Module):</span>
+<span id="cb127-2"><a href="unet.html#cb127-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb127-3"><a href="unet.html#cb127-3"></a>        <span class="bu">super</span>(DiceLoss, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb127-4"><a href="unet.html#cb127-4"></a>        <span class="va">self</span>.smooth <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb127-5"><a href="unet.html#cb127-5"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, y_pred, y_true):</span>
+<span id="cb127-6"><a href="unet.html#cb127-6"></a>        <span class="cf">assert</span> y_pred.size() <span class="op">==</span> y_true.size()</span>
+<span id="cb127-7"><a href="unet.html#cb127-7"></a>        y_pred <span class="op">=</span> y_pred[:, <span class="dv">0</span>].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb127-8"><a href="unet.html#cb127-8"></a>        y_true <span class="op">=</span> y_true[:, <span class="dv">0</span>].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb127-9"><a href="unet.html#cb127-9"></a>        intersection <span class="op">=</span> (y_pred <span class="op">*</span> y_true).<span class="bu">sum</span>()</span>
+<span id="cb127-10"><a href="unet.html#cb127-10"></a>        dsc <span class="op">=</span> (<span class="fl">2.</span> <span class="op">*</span> intersection <span class="op">+</span> <span class="va">self</span>.smooth) <span class="op">/</span> (</span>
+<span id="cb127-11"><a href="unet.html#cb127-11"></a>            y_pred.<span class="bu">sum</span>() <span class="op">+</span> y_true.<span class="bu">sum</span>() <span class="op">+</span> <span class="va">self</span>.smooth</span>
+<span id="cb127-12"><a href="unet.html#cb127-12"></a>        )</span>
+<span id="cb127-13"><a href="unet.html#cb127-13"></a>        <span class="cf">return</span> <span class="fl">1.</span> <span class="op">-</span> dsc</span></code></pre></div>
 <p>Dice loss, defined as one minus the dice coefficient, is said to improve training on imbalanced datasets. Looking closely, we
 see that if a mask is all zero, the only way to not to incur loss is by predicting all zeroes, as well.</p>
 <p>For easy experimentation, we combine make it so both losses are combined in a weighted fashion:</p>
-<div class="sourceCode" id="cb123"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb123-1"><a href="unet.html#cb123-1"></a>dice_loss <span class="op">=</span> DiceLoss()</span>
-<span id="cb123-2"><a href="unet.html#cb123-2"></a></span>
-<span id="cb123-3"><a href="unet.html#cb123-3"></a>dice_weight <span class="op">=</span> <span class="fl">0.3</span></span></code></pre></div>
+<div class="sourceCode" id="cb128"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb128-1"><a href="unet.html#cb128-1"></a>dice_loss <span class="op">=</span> DiceLoss()</span>
+<span id="cb128-2"><a href="unet.html#cb128-2"></a></span>
+<span id="cb128-3"><a href="unet.html#cb128-3"></a>dice_weight <span class="op">=</span> <span class="fl">0.3</span></span></code></pre></div>
 </div>
 <div id="training-1" class="section level3" number="8.3.4">
 <h3><span class="header-section-number">8.3.4</span> Training</h3>
 <p>We train for fifty epochs, continously saving the model weights that are best so far.</p>
-<div class="sourceCode" id="cb124"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb124-1"><a href="unet.html#cb124-1"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.1</span>, momentum <span class="op">=</span> <span class="fl">0.9</span>)</span>
-<span id="cb124-2"><a href="unet.html#cb124-2"></a></span>
-<span id="cb124-3"><a href="unet.html#cb124-3"></a>scheduler <span class="op">=</span> torch.optim.lr_scheduler.OneCycleLR(</span>
-<span id="cb124-4"><a href="unet.html#cb124-4"></a>    optimizer,</span>
-<span id="cb124-5"><a href="unet.html#cb124-5"></a>    max_lr <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span id="cb124-6"><a href="unet.html#cb124-6"></a>    steps_per_epoch <span class="op">=</span> <span class="bu">len</span>(train_loader),</span>
-<span id="cb124-7"><a href="unet.html#cb124-7"></a>    epochs <span class="op">=</span> num_epochs</span>
-<span id="cb124-8"><a href="unet.html#cb124-8"></a>)</span>
-<span id="cb124-9"><a href="unet.html#cb124-9"></a></span>
-<span id="cb124-10"><a href="unet.html#cb124-10"></a>best_model_wts <span class="op">=</span> copy.deepcopy(model.state_dict())</span>
-<span id="cb124-11"><a href="unet.html#cb124-11"></a>best_dice_coef <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb124-12"><a href="unet.html#cb124-12"></a></span>
-<span id="cb124-13"><a href="unet.html#cb124-13"></a>num_epochs <span class="op">=</span> <span class="dv">50</span></span>
-<span id="cb124-14"><a href="unet.html#cb124-14"></a></span>
-<span id="cb124-15"><a href="unet.html#cb124-15"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
-<span id="cb124-16"><a href="unet.html#cb124-16"></a>    <span class="bu">print</span>(<span class="st">&#39;Epoch </span><span class="sc">{}</span><span class="st">/</span><span class="sc">{}</span><span class="st">&#39;</span>.<span class="bu">format</span>(epoch, num_epochs <span class="op">-</span> <span class="dv">1</span>), flush <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb124-17"><a href="unet.html#cb124-17"></a>    <span class="bu">print</span>(<span class="st">&#39;-&#39;</span> <span class="op">*</span> <span class="dv">10</span>)</span>
-<span id="cb124-18"><a href="unet.html#cb124-18"></a>    <span class="cf">for</span> phase <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>]:</span>
-<span id="cb124-19"><a href="unet.html#cb124-19"></a>        <span class="bu">print</span>(<span class="st">&quot;Entering phase: &quot;</span> <span class="op">+</span> phase, flush <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb124-20"><a href="unet.html#cb124-20"></a>        <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
-<span id="cb124-21"><a href="unet.html#cb124-21"></a>            model <span class="op">=</span> model.train() </span>
-<span id="cb124-22"><a href="unet.html#cb124-22"></a>        <span class="cf">else</span>:</span>
-<span id="cb124-23"><a href="unet.html#cb124-23"></a>            model <span class="op">=</span> model.<span class="bu">eval</span>()   </span>
-<span id="cb124-24"><a href="unet.html#cb124-24"></a>        running_loss <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb124-25"><a href="unet.html#cb124-25"></a>        running_dice <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb124-26"><a href="unet.html#cb124-26"></a>        running_bce <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb124-27"><a href="unet.html#cb124-27"></a>        <span class="cf">for</span> inputs, labels <span class="kw">in</span> dataloaders[phase]:</span>
-<span id="cb124-28"><a href="unet.html#cb124-28"></a>            inputs <span class="op">=</span> inputs.to(device)</span>
-<span id="cb124-29"><a href="unet.html#cb124-29"></a>            labels <span class="op">=</span> labels.to(device)</span>
-<span id="cb124-30"><a href="unet.html#cb124-30"></a>            optimizer.zero_grad()</span>
-<span id="cb124-31"><a href="unet.html#cb124-31"></a>            <span class="cf">with</span> torch.set_grad_enabled(phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>):</span>
-<span id="cb124-32"><a href="unet.html#cb124-32"></a>                preds <span class="op">=</span> model(inputs)</span>
-<span id="cb124-33"><a href="unet.html#cb124-33"></a>                dice_loss <span class="op">=</span> dsc_loss(preds, labels)</span>
-<span id="cb124-34"><a href="unet.html#cb124-34"></a>                xent_loss <span class="op">=</span> bce_loss(preds, labels)</span>
-<span id="cb124-35"><a href="unet.html#cb124-35"></a>                loss <span class="op">=</span> dice_weight <span class="op">*</span> dice_loss <span class="op">+</span> (<span class="dv">1</span> <span class="op">-</span> dice_weight) <span class="op">*</span> xent_loss</span>
-<span id="cb124-36"><a href="unet.html#cb124-36"></a>                <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
-<span id="cb124-37"><a href="unet.html#cb124-37"></a>                    loss.backward()</span>
-<span id="cb124-38"><a href="unet.html#cb124-38"></a>                    optimizer.step()</span>
-<span id="cb124-39"><a href="unet.html#cb124-39"></a>            running_loss <span class="op">+=</span> loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
-<span id="cb124-40"><a href="unet.html#cb124-40"></a>            running_dice <span class="op">+=</span> dice_loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
-<span id="cb124-41"><a href="unet.html#cb124-41"></a>            <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
-<span id="cb124-42"><a href="unet.html#cb124-42"></a>                scheduler.step()</span>
-<span id="cb124-43"><a href="unet.html#cb124-43"></a>        epoch_loss <span class="op">=</span> running_loss <span class="op">/</span> dataset_sizes[phase]</span>
-<span id="cb124-44"><a href="unet.html#cb124-44"></a>        epoch_dice <span class="op">=</span> running_dice <span class="op">/</span> dataset_sizes[phase]</span>
-<span id="cb124-45"><a href="unet.html#cb124-45"></a>        epoch_bce <span class="op">=</span> running_bce <span class="op">/</span> dataset_sizes[phase]</span>
-<span id="cb124-46"><a href="unet.html#cb124-46"></a>        <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;valid&#39;</span> <span class="kw">and</span> epoch_dice <span class="op">&lt;</span> best_dice_coef:</span>
-<span id="cb124-47"><a href="unet.html#cb124-47"></a>            best_dice <span class="op">=</span> epoch_dice</span>
-<span id="cb124-48"><a href="unet.html#cb124-48"></a>            best_model_wts <span class="op">=</span> copy.deepcopy(model.state_dict())</span>
-<span id="cb124-49"><a href="unet.html#cb124-49"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Loss: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_loss), flush <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb124-50"><a href="unet.html#cb124-50"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Dice coef: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_dice), flush <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb124-51"><a href="unet.html#cb124-51"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> BCE: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_bce), flush <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb124-52"><a href="unet.html#cb124-52"></a>    <span class="bu">print</span>()</span>
-<span id="cb124-53"><a href="unet.html#cb124-53"></a></span>
-<span id="cb124-54"><a href="unet.html#cb124-54"></a>model.load_state_dict(best_model_wts)</span>
-<span id="cb124-55"><a href="unet.html#cb124-55"></a>torch.save(model.state_dict(), <span class="st">&quot;mri.pt&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb129"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb129-1"><a href="unet.html#cb129-1"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.1</span>, momentum <span class="op">=</span> <span class="fl">0.9</span>)</span>
+<span id="cb129-2"><a href="unet.html#cb129-2"></a></span>
+<span id="cb129-3"><a href="unet.html#cb129-3"></a>scheduler <span class="op">=</span> torch.optim.lr_scheduler.OneCycleLR(</span>
+<span id="cb129-4"><a href="unet.html#cb129-4"></a>    optimizer,</span>
+<span id="cb129-5"><a href="unet.html#cb129-5"></a>    max_lr <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span id="cb129-6"><a href="unet.html#cb129-6"></a>    steps_per_epoch <span class="op">=</span> <span class="bu">len</span>(train_loader),</span>
+<span id="cb129-7"><a href="unet.html#cb129-7"></a>    epochs <span class="op">=</span> num_epochs</span>
+<span id="cb129-8"><a href="unet.html#cb129-8"></a>)</span>
+<span id="cb129-9"><a href="unet.html#cb129-9"></a></span>
+<span id="cb129-10"><a href="unet.html#cb129-10"></a>best_model_wts <span class="op">=</span> copy.deepcopy(model.state_dict())</span>
+<span id="cb129-11"><a href="unet.html#cb129-11"></a>best_dice_coef <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb129-12"><a href="unet.html#cb129-12"></a></span>
+<span id="cb129-13"><a href="unet.html#cb129-13"></a>num_epochs <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb129-14"><a href="unet.html#cb129-14"></a></span>
+<span id="cb129-15"><a href="unet.html#cb129-15"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
+<span id="cb129-16"><a href="unet.html#cb129-16"></a>    <span class="bu">print</span>(<span class="st">&#39;Epoch </span><span class="sc">{}</span><span class="st">/</span><span class="sc">{}</span><span class="st">&#39;</span>.<span class="bu">format</span>(epoch, num_epochs <span class="op">-</span> <span class="dv">1</span>), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb129-17"><a href="unet.html#cb129-17"></a>    <span class="bu">print</span>(<span class="st">&#39;-&#39;</span> <span class="op">*</span> <span class="dv">10</span>)</span>
+<span id="cb129-18"><a href="unet.html#cb129-18"></a>    <span class="cf">for</span> phase <span class="kw">in</span> [<span class="st">&#39;train&#39;</span>, <span class="st">&#39;valid&#39;</span>]:</span>
+<span id="cb129-19"><a href="unet.html#cb129-19"></a>        <span class="bu">print</span>(<span class="st">&quot;Entering phase: &quot;</span> <span class="op">+</span> phase, flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb129-20"><a href="unet.html#cb129-20"></a>        <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb129-21"><a href="unet.html#cb129-21"></a>            model <span class="op">=</span> model.train() </span>
+<span id="cb129-22"><a href="unet.html#cb129-22"></a>        <span class="cf">else</span>:</span>
+<span id="cb129-23"><a href="unet.html#cb129-23"></a>            model <span class="op">=</span> model.<span class="bu">eval</span>()   </span>
+<span id="cb129-24"><a href="unet.html#cb129-24"></a>        running_loss <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb129-25"><a href="unet.html#cb129-25"></a>        running_dice <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb129-26"><a href="unet.html#cb129-26"></a>        running_bce <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb129-27"><a href="unet.html#cb129-27"></a>        <span class="cf">for</span> inputs, labels <span class="kw">in</span> dataloaders[phase]:</span>
+<span id="cb129-28"><a href="unet.html#cb129-28"></a>            inputs <span class="op">=</span> inputs.to(device)</span>
+<span id="cb129-29"><a href="unet.html#cb129-29"></a>            labels <span class="op">=</span> labels.to(device)</span>
+<span id="cb129-30"><a href="unet.html#cb129-30"></a>            optimizer.zero_grad()</span>
+<span id="cb129-31"><a href="unet.html#cb129-31"></a>            <span class="cf">with</span> torch.set_grad_enabled(phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>):</span>
+<span id="cb129-32"><a href="unet.html#cb129-32"></a>                preds <span class="op">=</span> model(inputs)</span>
+<span id="cb129-33"><a href="unet.html#cb129-33"></a>                dice_loss <span class="op">=</span> dsc_loss(preds, labels)</span>
+<span id="cb129-34"><a href="unet.html#cb129-34"></a>                xent_loss <span class="op">=</span> bce_loss(preds, labels)</span>
+<span id="cb129-35"><a href="unet.html#cb129-35"></a>                loss <span class="op">=</span> dice_weight <span class="op">*</span> dice_loss <span class="op">+</span> (<span class="dv">1</span> <span class="op">-</span> dice_weight) <span class="op">*</span> xent_loss</span>
+<span id="cb129-36"><a href="unet.html#cb129-36"></a>                <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb129-37"><a href="unet.html#cb129-37"></a>                    loss.backward()</span>
+<span id="cb129-38"><a href="unet.html#cb129-38"></a>                    optimizer.step()</span>
+<span id="cb129-39"><a href="unet.html#cb129-39"></a>            running_loss <span class="op">+=</span> loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
+<span id="cb129-40"><a href="unet.html#cb129-40"></a>            running_dice <span class="op">+=</span> dice_loss.item() <span class="op">*</span> inputs.size(<span class="dv">0</span>)</span>
+<span id="cb129-41"><a href="unet.html#cb129-41"></a>            <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;train&#39;</span>:</span>
+<span id="cb129-42"><a href="unet.html#cb129-42"></a>                scheduler.step()</span>
+<span id="cb129-43"><a href="unet.html#cb129-43"></a>        epoch_loss <span class="op">=</span> running_loss <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb129-44"><a href="unet.html#cb129-44"></a>        epoch_dice <span class="op">=</span> running_dice <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb129-45"><a href="unet.html#cb129-45"></a>        epoch_bce <span class="op">=</span> running_bce <span class="op">/</span> dataset_sizes[phase]</span>
+<span id="cb129-46"><a href="unet.html#cb129-46"></a>        <span class="cf">if</span> phase <span class="op">==</span> <span class="st">&#39;valid&#39;</span> <span class="kw">and</span> epoch_dice <span class="op">&lt;</span> best_dice_coef:</span>
+<span id="cb129-47"><a href="unet.html#cb129-47"></a>            best_dice <span class="op">=</span> epoch_dice</span>
+<span id="cb129-48"><a href="unet.html#cb129-48"></a>            best_model_wts <span class="op">=</span> copy.deepcopy(model.state_dict())</span>
+<span id="cb129-49"><a href="unet.html#cb129-49"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Loss: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_loss), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb129-50"><a href="unet.html#cb129-50"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> Dice coef: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_dice), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb129-51"><a href="unet.html#cb129-51"></a>        <span class="bu">print</span>(<span class="st">&#39;</span><span class="sc">{}</span><span class="st"> BCE: </span><span class="sc">{:.4f}</span><span class="st">&#39;</span>.<span class="bu">format</span>(phase, epoch_bce), flush <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb129-52"><a href="unet.html#cb129-52"></a>    <span class="bu">print</span>()</span>
+<span id="cb129-53"><a href="unet.html#cb129-53"></a></span>
+<span id="cb129-54"><a href="unet.html#cb129-54"></a>model.load_state_dict(best_model_wts)</span>
+<span id="cb129-55"><a href="unet.html#cb129-55"></a>torch.save(model.state_dict(), <span class="st">&quot;mri.pt&quot;</span>)</span></code></pre></div>
 <p>Here is a excerpt from the training history:</p>
 <pre><code>Epoch 0/49
 ----------
@@ -1002,6 +1006,13 @@ valid BCE: 0.3641
 <div id="ref-RonnebergerFB15">
 <p>Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. 2015. “U-Net: Convolutional Networks for Biomedical Image Segmentation.” <em>CoRR</em> abs/1505.04597. <a href="http://arxiv.org/abs/1505.04597">http://arxiv.org/abs/1505.04597</a>.</p>
 </div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="8">
+<li id="fn8"><p>Here “pointwise” implies that the weights are the same for every input fed into the layer. These feedforward neural
+networks would therefore be analogous to convolutional layers with kernel siez 1.<a href="unet.html#fnref8" class="footnote-back">↩︎</a></p></li>
+</ol>
 </div>
             </section>
 

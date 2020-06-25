@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Introduction | Applied deep learning with torch from R</title>
   <meta name="description" content="tbd" />
-  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.19 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Introduction | Applied deep learning with torch from R" />
   <meta property="og:type" content="book" />
@@ -32,7 +32,7 @@
   
 <link rel="prev" href="simple-net-optim.html"/>
 <link rel="next" href="image-classification.html"/>
-<script src="libs/header-attrs-2.1/header-attrs.js"></script>
+<script src="libs/header-attrs-2.3/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -50,6 +50,7 @@
 
 
 
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 
 
 <style type="text/css">
@@ -160,13 +161,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="3.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#more-on-tensors"><i class="fa fa-check"></i><b>3.2</b> More on tensors</a>
 <ul>
 <li class="chapter" data-level="3.2.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#creating-tensors"><i class="fa fa-check"></i><b>3.2.1</b> Creating tensors</a></li>
-<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-from-and-to-r"><i class="fa fa-check"></i><b>3.2.2</b> Conversion from and to R</a></li>
+<li class="chapter" data-level="3.2.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-between-torch-tensors-and-r-values"><i class="fa fa-check"></i><b>3.2.2</b> Conversion between <code>torch</code> tensors and R values</a></li>
 <li class="chapter" data-level="3.2.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#indexing-and-slicing-tensors"><i class="fa fa-check"></i><b>3.2.3</b> Indexing and slicing tensors</a></li>
 <li class="chapter" data-level="3.2.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#reshaping-tensors"><i class="fa fa-check"></i><b>3.2.4</b> Reshaping tensors</a></li>
 <li class="chapter" data-level="3.2.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.2.5</b> Operations on tensors</a></li>
 </ul></li>
 <li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
-<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#appendix-python-code-1"><i class="fa fa-check"></i><b>3.4.1</b> Appendix: Python code</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
 <ul>
@@ -304,7 +308,7 @@ Segmentation takes place whenever an image is not labeled as a whole, but split 
 criterion. For example, satellite images could be divided into different types of land cover such as river, forest,
 residential, and more.</p>
 <p>[…]</p>
-<p>A word about what is <em>not</em> here. For ethical reasons<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>, we do not cover either of face recognition nor object detection.
+<p>A word about what is <em>not</em> here. For ethical reasons<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a>, we do not cover either of face recognition nor object detection.
 While this may be immediately evident in the former case, the latter may have you ask: How is object detection worse than
 segmentation? Granted, algorithms per se aren’t “more or less ethical” (assuming well-meaning designers, of course), but in
 practice, at least as of this writing, segmentation is primarily used in science and healthcare, while object detection is
@@ -313,6 +317,13 @@ small step, but it’s a step all the same, a faint echo at least of what Joe Re
 object detection models, did when he stepped out of computer vision research:</p>
 <p><img src="images/pjreddie.png" title="Joe Redmon, informing the world that he left computer vision research for ethical reasons." /></p>
 
+</div>
+<div class="footnotes">
+<hr />
+<ol start="7">
+<li id="fn7"><p>Here “pointwise” implies that the weights are the same for every input fed into the layer. These feedforward neural
+networks would therefore be analogous to convolutional layers with kernel siez 1.<a href="image-recognition-intro.html#fnref7" class="footnote-back">↩︎</a></p></li>
+</ol>
 </div>
             </section>
 
