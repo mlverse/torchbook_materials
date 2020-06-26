@@ -153,7 +153,7 @@ for (t in 1:200) {
   y_pred <- x$mm(w1)$add(b1)$clamp(min = 0)$mm(w2)$add(b2)
   
   ### -------- compute loss -------- 
-  loss <- (y_pred - y)$pow(2).sum()
+  loss <- (y_pred - y)$pow(2)$sum()
   if (t %% 10 == 0)
     cat("Epoch: ", t, "   Loss: ", loss$item(), "\n")
   
@@ -166,10 +166,10 @@ for (t in 1:200) {
   
   # Wrap in with_no_grad() because this is a part we DON'T want to record for automatic gradient computation
    with_no_grad({
-     w1 <- w1 - learning_rate * w1$grad
-     w2 <- w2 - learning_rate * w2$grad
-     b1 <- b1 - learning_rate * b1$grad
-     b2 <- b2 - learning_rate * b2$grad     
+     w1 <- w1$sub_(learning_rate * w1$grad)
+     w2 <- w2$sub_(learning_rate * w2$grad)
+     b1 <- b1$sub_(learning_rate * b1$grad)
+     b2 <- b2$sub_(learning_rate * b2$grad)  
      
      # Zero the gradients after every pass, because they'd accumulate otherwise
      w1$grad$zero_()
