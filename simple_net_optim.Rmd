@@ -1,13 +1,17 @@
-
 # Using torch optimizers {#simple_net_optim}
 
-So far, we have been updating model parameters ourselves, following a simple algorithm: The calculated gradients told us which direction, on the loss curve, was "downward"; the learning rate told us how big a step to take in that direction. This is a straightforward implementation of _gradient descent_.
+So far, we have been updating model parameters ourselves, following a simple algorithm: The calculated gradients told us which
+direction, on the loss curve, was "downward"; the learning rate told us how big a step to take in that direction. This is a
+straightforward implementation of *gradient descent*.
 
-However, more sophisticated optimization algorithms exist, and many of these are provided by torch: for example, [Rmsprop](), [Adam](), or [Adadelta](). In this chapter, we'll see how to replace our manual updates using `SGD`, torch's stochastic gradient descent optimizer.
+However, more sophisticated optimization algorithms exist, and many of these are provided by torch: for example, [Rmsprop](),
+[Adam](), or [Adadelta](). In this chapter, we'll see how to replace our manual updates using `SGD`, torch's stochastic
+gradient descent optimizer.
 
 ## Torch optimizers
 
-For demonstration, here is a very simple network, consisting of just a single linear layer, and a single data point to call the model on.
+For demonstration, here is a very simple network, consisting of just a single linear layer, and a single data point to call
+the model on.
 
 ```{python}
 import torch
@@ -31,7 +35,8 @@ At any time, we can inspect those parameters:
 opt.param_groups[0]["params"]
 ```
 
-Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the parameters, as we can see both from the model _and_ the optimizer objects:
+Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the
+parameters, as we can see both from the model *and* the optimizer objects:
 
 ```{python}
 out = model(data)
@@ -48,8 +53,9 @@ opt.param_groups[0]["params"]
 [(p[0], p[1]) for p in model.named_parameters()]
 ```
 
-If we perform optimization in a loop, as we'd usually do with neural networks, we need to make sure we call `optimizer.zero_grad()` on every step, as otherwise gradients would be accumulated.
-We'll see this in our final version of the network.
+If we perform optimization in a loop, as we'd usually do with neural networks, we need to make sure we call
+`optimizer.zero_grad()` on every step, as otherwise gradients would be accumulated. We'll see this in our final version of the
+network.
 
 ## Simple net with `torch.optim`
 
@@ -115,4 +121,5 @@ for t in range(200):
 
 ```
 
-At this point, we're fully completed the transformation; the network has been fully torchified. In the next section, we'll see classical applications of deep learning for supervised and unsupervised learning.
+At this point, we're fully completed the transformation; the network has been fully torchified. In the next section, we'll see
+classical applications of deep learning for supervised and unsupervised learning.

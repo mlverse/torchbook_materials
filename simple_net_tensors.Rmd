@@ -182,7 +182,7 @@ t$device()
 But we could also define a tensor to live on, for example, the GPU:
 
 ```{r}
-t <- torch_tensor(2, device = torch_device("cuda"))
+t <- torch_tensor(2, device = "cuda")
 t$device()
 ```
 

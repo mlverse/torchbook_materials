@@ -442,7 +442,7 @@ get values arranged in row-major order.</p>
 <p>Torch tensors live on a <em>device</em>. By default, this will be the CPU:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="simple-net-tensors.html#cb16-1"></a>t<span class="op">$</span><span class="kw">device</span>()</span></code></pre></div>
 <p>But we could also define a tensor to live on, for example, the GPU:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="simple-net-tensors.html#cb17-1"></a>t &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="dv">2</span>, <span class="dt">device =</span> <span class="kw">torch_device</span>(<span class="st">&quot;cuda&quot;</span>))</span>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="simple-net-tensors.html#cb17-1"></a>t &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="dv">2</span>, <span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>)</span>
 <span id="cb17-2"><a href="simple-net-tensors.html#cb17-2"></a>t<span class="op">$</span><span class="kw">device</span>()</span></code></pre></div>
 <p>We’ll talk more about devices below.</p>
 <p>There is another very important parameter to the tensor creation functions: <code>requires_grad</code>. This one we’ll discuss in the

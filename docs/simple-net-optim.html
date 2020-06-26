@@ -294,11 +294,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="simple_net_optim" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> Using torch optimizers</h1>
-<p>So far, we have been updating model parameters ourselves, following a simple algorithm: The calculated gradients told us which direction, on the loss curve, was “downward”; the learning rate told us how big a step to take in that direction. This is a straightforward implementation of <em>gradient descent</em>.</p>
-<p>However, more sophisticated optimization algorithms exist, and many of these are provided by torch: for example, <a href="">Rmsprop</a>, <a href="">Adam</a>, or <a href="">Adadelta</a>. In this chapter, we’ll see how to replace our manual updates using <code>SGD</code>, torch’s stochastic gradient descent optimizer.</p>
+<p>So far, we have been updating model parameters ourselves, following a simple algorithm: The calculated gradients told us which
+direction, on the loss curve, was “downward”; the learning rate told us how big a step to take in that direction. This is a
+straightforward implementation of <em>gradient descent</em>.</p>
+<p>However, more sophisticated optimization algorithms exist, and many of these are provided by torch: for example, <a href="">Rmsprop</a>,
+<a href="">Adam</a>, or <a href="">Adadelta</a>. In this chapter, we’ll see how to replace our manual updates using <code>SGD</code>, torch’s stochastic
+gradient descent optimizer.</p>
 <div id="torch-optimizers" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> Torch optimizers</h2>
-<p>For demonstration, here is a very simple network, consisting of just a single linear layer, and a single data point to call the model on.</p>
+<p>For demonstration, here is a very simple network, consisting of just a single linear layer, and a single data point to call
+the model on.</p>
 <div class="sourceCode" id="cb87"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb87-1"><a href="simple-net-optim.html#cb87-1"></a><span class="im">import</span> torch</span>
 <span id="cb87-2"><a href="simple-net-optim.html#cb87-2"></a>model <span class="op">=</span> torch.nn.Linear(<span class="dv">3</span>, <span class="dv">1</span>)</span>
 <span id="cb87-3"><a href="simple-net-optim.html#cb87-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span>
@@ -309,7 +314,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb88-2"><a href="simple-net-optim.html#cb88-2"></a>opt</span></code></pre></div>
 <p>At any time, we can inspect those parameters:</p>
 <div class="sourceCode" id="cb89"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb89-1"><a href="simple-net-optim.html#cb89-1"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
-<p>Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the parameters, as we can see both from the model <em>and</em> the optimizer objects:</p>
+<p>Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the
+parameters, as we can see both from the model <em>and</em> the optimizer objects:</p>
 <div class="sourceCode" id="cb90"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb90-1"><a href="simple-net-optim.html#cb90-1"></a>out <span class="op">=</span> model(data)</span>
 <span id="cb90-2"><a href="simple-net-optim.html#cb90-2"></a>out.backward()</span>
 <span id="cb90-3"><a href="simple-net-optim.html#cb90-3"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span>
@@ -318,8 +324,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb91"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb91-1"><a href="simple-net-optim.html#cb91-1"></a>opt.step()</span>
 <span id="cb91-2"><a href="simple-net-optim.html#cb91-2"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span>
 <span id="cb91-3"><a href="simple-net-optim.html#cb91-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
-<p>If we perform optimization in a loop, as we’d usually do with neural networks, we need to make sure we call <code>optimizer.zero_grad()</code> on every step, as otherwise gradients would be accumulated.
-We’ll see this in our final version of the network.</p>
+<p>If we perform optimization in a loop, as we’d usually do with neural networks, we need to make sure we call
+<code>optimizer.zero_grad()</code> on every step, as otherwise gradients would be accumulated. We’ll see this in our final version of the
+network.</p>
 </div>
 <div id="simple-net-with-torch.optim" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Simple net with <code>torch.optim</code></h2>
@@ -379,7 +386,8 @@ We’ll see this in our final version of the network.</p>
 <span id="cb92-54"><a href="simple-net-optim.html#cb92-54"></a>    </span>
 <span id="cb92-55"><a href="simple-net-optim.html#cb92-55"></a>     <span class="co"># use the ptimizer to update model parameters</span></span>
 <span id="cb92-56"><a href="simple-net-optim.html#cb92-56"></a>    optimizer.step()</span></code></pre></div>
-<p>At this point, we’re fully completed the transformation; the network has been fully torchified. In the next section, we’ll see classical applications of deep learning for supervised and unsupervised learning.</p>
+<p>At this point, we’re fully completed the transformation; the network has been fully torchified. In the next section, we’ll see
+classical applications of deep learning for supervised and unsupervised learning.</p>
 
 </div>
 </div>
