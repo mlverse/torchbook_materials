@@ -294,17 +294,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="simple_net_autograd" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> Using autograd</h1>
-<p>So far, all we’ve been using from torch is <em>tensors</em>, but we’ve been performing all calculations ourselves – the computing the predictions, the loss, the gradients (and thus, the necessary updates to the weights), and the new weight values. In this chapter, we’ll make a significant change: Namely, we spare ourselves the cumbersome calculation of gradients, and have torch do it for us.</p>
+<p>So far, all we’ve been using from <code>torch</code> is <em>tensors</em>. Predictions, loss, gradients, desired weight updates, new weights –
+all these things we’ve been computing ourselves. In this chapter, we’ll make a significant change: Namely, we spare ourselves
+the cumbersome calculation of gradients, and have <code>torch</code> do it for us.</p>
 <p>Before we see that in action, let’s get some more background.</p>
 <div id="automatic-differentiation-with-autograd" class="section level2" number="4.1">
 <h2><span class="header-section-number">4.1</span> Automatic differentiation with autograd</h2>
-<p>Torch uses a module called <em>autograd</em> to record operations performed on tensors, and store what has to be done to obtain the respective gradients. These actions are stored as functions, and those functions are applied in order when the gradient of the output (normally, the loss) with respect to those tensors is calculated: starting from the output node and <em>propagating</em> gradients <em>back</em> through the network. This is a form of <em>reverse mode automatic differentiation</em>.</p>
-<p>As users, we can see a bit of this implementation. As a prerequisite for this “recording” to happen, tensors have to be created with <code>requires_grad = True</code>.
-E.g.</p>
+<p>Torch uses a module called <em>autograd</em> to record operations performed on tensors, and store what has to be done to obtain the
+respective gradients. These actions are stored as functions, and those functions are applied in order when the gradient of the
+output (normally, the loss) with respect to those tensors is calculated: starting from the output node and <em>propagating</em>
+gradients <em>back</em> through the network. This is a form of <em>reverse mode automatic differentiation</em>.</p>
+<p>As users, we can see a bit of this implementation. As a prerequisite for this “recording” to happen, tensors have to be
+created with <code>requires_grad = True</code>. E.g.</p>
 <div class="sourceCode" id="cb61"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb61-1"><a href="simple-net-autograd.html#cb61-1"></a><span class="im">import</span> torch</span>
 <span id="cb61-2"><a href="simple-net-autograd.html#cb61-2"></a>x <span class="op">=</span> torch.ones(<span class="dv">2</span>, <span class="dv">2</span>, requires_grad <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div>
-<p>To be clear, this is a tensor <em>with respect to which</em> gradients have to be calculated – normally, a tensor representing a weight or a bias, not the input data.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a>
-If we now perform some operation on that tensor, assigning the result to <code>y</code></p>
+<p>To be clear, this is a tensor <em>with respect to which</em> gradients have to be calculated – normally, a tensor representing a
+weight or a bias, not the input data.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a> If we now perform some operation on that tensor, assigning the result to <code>y</code></p>
 <div class="sourceCode" id="cb62"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb62-1"><a href="simple-net-autograd.html#cb62-1"></a>y <span class="op">=</span> x.mean()</span></code></pre></div>
 <p>we find that <code>y</code> now has a non-empty <code>grad_fn</code> that tells torch how to compute the gradient of <code>y</code> with respect to <code>x</code>:</p>
 <div class="sourceCode" id="cb63"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb63-1"><a href="simple-net-autograd.html#cb63-1"></a>y.grad_fn</span></code></pre></div>
@@ -313,7 +318,8 @@ If we now perform some operation on that tensor, assigning the result to <code>y
 <p>That executed, <code>x</code> now has a non-empty field <code>grad</code> that stores the gradient of <code>y</code> with respect to <code>x</code>:</p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb65-1"><a href="simple-net-autograd.html#cb65-1"></a>x.grad</span></code></pre></div>
 <p>With a longer chain of computations, we can peek at how torch builds up a graph of backward operations.</p>
-<p>Here is a slightly more complex example. We call <code>retain_grad()</code> on <code>y</code> and <code>z</code> just for demonstration purposes; by default, intermediate gradients – while of course they have to be computed – aren’t stored, in order to save memory.</p>
+<p>Here is a slightly more complex example. We call <code>retain_grad()</code> on <code>y</code> and <code>z</code> just for demonstration purposes; by default,
+intermediate gradients – while of course they have to be computed – aren’t stored, in order to save memory.</p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb66-1"><a href="simple-net-autograd.html#cb66-1"></a>x1 <span class="op">=</span> torch.ones(<span class="dv">2</span>, <span class="dv">2</span>, requires_grad<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb66-2"><a href="simple-net-autograd.html#cb66-2"></a>x2 <span class="op">=</span> torch.tensor(<span class="fl">1.1</span>, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
 <span id="cb66-3"><a href="simple-net-autograd.html#cb66-3"></a></span>
@@ -343,7 +349,8 @@ If we now perform some operation on that tensor, assigning the result to <code>y
 <span id="cb67-16"><a href="simple-net-autograd.html#cb67-16"></a></span>
 <span id="cb67-17"><a href="simple-net-autograd.html#cb67-17"></a><span class="co"># here we arrive at the other leaf node (AccumulateGrad for x2)</span></span>
 <span id="cb67-18"><a href="simple-net-autograd.html#cb67-18"></a>out.grad_fn.next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">0</span>][<span class="dv">0</span>].next_functions[<span class="dv">1</span>][<span class="dv">0</span>].next_functions</span></code></pre></div>
-<p>After calling <code>out.backward()</code>, all tensors in the graph will have their respective gradients created. Without our calls to <code>retain_grad</code> above, <code>z.grad</code> and <code>y.grad</code> would be empty:</p>
+<p>After calling <code>out.backward()</code>, all tensors in the graph will have their respective gradients created. Without our calls to
+<code>retain_grad</code> above, <code>z.grad</code> and <code>y.grad</code> would be empty:</p>
 <div class="sourceCode" id="cb68"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb68-1"><a href="simple-net-autograd.html#cb68-1"></a>out.backward()</span>
 <span id="cb68-2"><a href="simple-net-autograd.html#cb68-2"></a></span>
 <span id="cb68-3"><a href="simple-net-autograd.html#cb68-3"></a>z.grad</span>
@@ -420,14 +427,16 @@ If we now perform some operation on that tensor, assigning the result to <code>y
 <span id="cb69-63"><a href="simple-net-autograd.html#cb69-63"></a>        w2.grad.zero_()<span class="op">;</span></span>
 <span id="cb69-64"><a href="simple-net-autograd.html#cb69-64"></a>        b1.grad.zero_()<span class="op">;</span></span>
 <span id="cb69-65"><a href="simple-net-autograd.html#cb69-65"></a>        b2.grad.zero_()<span class="op">;</span></span></code></pre></div>
-<p>We still manually compute the forward pass, and we still manually update the weights. In the last two chapters of this section, we’ll see how these parts of the logic can be made more modular and reusable, as well.</p>
+<p>We still manually compute the forward pass, and we still manually update the weights. In the last two chapters of this
+section, we’ll see how these parts of the logic can be made more modular and reusable, as well.</p>
 
 </div>
 </div>
 <div class="footnotes">
 <hr />
 <ol start="6">
-<li id="fn6"><p>Unless we <em>want</em> to change the data, as in adversarial example generation<a href="simple-net-autograd.html#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>Here “pointwise” implies that the weights are the same for every input fed into the layer. These feedforward neural
+networks would therefore be analogous to convolutional layers with kernel siez 1.<a href="simple-net-autograd.html#fnref6" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

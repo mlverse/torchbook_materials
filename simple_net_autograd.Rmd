@@ -1,24 +1,30 @@
-
 # Using autograd {#simple_net_autograd}
 
-So far, all we've been using from torch is _tensors_, but we've been performing all calculations ourselves -- the computing the predictions, the loss, the gradients (and thus, the necessary updates to the weights), and the new weight values. In this chapter, we'll make a significant change: Namely, we spare ourselves the cumbersome calculation of gradients, and have torch do it for us.
+So far, all we've been using from `torch` is *tensors*. Predictions, loss, gradients, desired weight updates, new weights --
+all these things we've been computing ourselves. In this chapter, we'll make a significant change: Namely, we spare ourselves
+the cumbersome calculation of gradients, and have `torch` do it for us.
 
 Before we see that in action, let's get some more background.
 
 ## Automatic differentiation with autograd
 
-Torch uses a module called _autograd_ to record operations performed on tensors, and store what has to be done to obtain the respective gradients. These actions are stored as functions, and those functions are applied in order when the gradient of the output (normally, the loss) with respect to those tensors is calculated: starting from the output node and _propagating_ gradients _back_ through the network. This is a form of _reverse mode automatic differentiation_.
+Torch uses a module called *autograd* to record operations performed on tensors, and store what has to be done to obtain the
+respective gradients. These actions are stored as functions, and those functions are applied in order when the gradient of the
+output (normally, the loss) with respect to those tensors is calculated: starting from the output node and *propagating*
+gradients *back* through the network. This is a form of *reverse mode automatic differentiation*.
 
-As users, we can see a bit of this implementation. As a prerequisite for this "recording" to happen, tensors have to be created with `requires_grad = True`.
-E.g.
+As users, we can see a bit of this implementation. As a prerequisite for this "recording" to happen, tensors have to be
+created with `requires_grad = True`. E.g.
 
 ```{python}
 import torch
 x = torch.ones(2, 2, requires_grad = True)
 ```
 
-To be clear, this is a tensor _with respect to which_ gradients have to be calculated -- normally, a tensor representing a weight or a bias, not the input data ^[Unless we _want_ to change the data, as in adversarial example generation].
-If we now perform some operation on that tensor, assigning the result to `y`
+To be clear, this is a tensor *with respect to which* gradients have to be calculated -- normally, a tensor representing a
+weight or a bias, not the input data [^1]. If we now perform some operation on that tensor, assigning the result to `y`
+
+[^1]: Unless we *want* to change the data, as in adversarial example generation
 
 ```{python}
 y = x.mean()
@@ -44,7 +50,8 @@ x.grad
 
 With a longer chain of computations, we can peek at how torch builds up a graph of backward operations.
 
-Here is a slightly more complex example. We call `retain_grad()` on `y` and `z` just for demonstration purposes; by default, intermediate gradients -- while of course they have to be computed -- aren't stored, in order to save memory.
+Here is a slightly more complex example. We call `retain_grad()` on `y` and `z` just for demonstration purposes; by default,
+intermediate gradients -- while of course they have to be computed -- aren't stored, in order to save memory.
 
 ```{python}
 x1 = torch.ones(2, 2, requires_grad=True)
@@ -82,7 +89,8 @@ out.grad_fn.next_functions[0][0].next_functions[0][0].next_functions[0][0].next_
 out.grad_fn.next_functions[0][0].next_functions[0][0].next_functions[0][0].next_functions[1][0].next_functions
 ```
 
-After calling `out.backward()`, all tensors in the graph will have their respective gradients created. Without our calls to `retain_grad` above, `z.grad` and `y.grad` would be empty:
+After calling `out.backward()`, all tensors in the graph will have their respective gradients created. Without our calls to
+`retain_grad` above, `z.grad` and `y.grad` would be empty:
 
 ```{python}
 out.backward()
@@ -93,7 +101,7 @@ x2.grad
 x1.grad
 ```
 
-Thus acquainted with autograd, we're ready to modify our example. 
+Thus acquainted with autograd, we're ready to modify our example.
 
 ## The simple network, now using autograd
 
@@ -168,4 +176,5 @@ for t in range(200):
  
 ```
 
-We still manually compute the forward pass, and we still manually update the weights. In the last two chapters of this section, we'll see how these parts of the logic can be made more modular and reusable, as well.
+We still manually compute the forward pass, and we still manually update the weights. In the last two chapters of this
+section, we'll see how these parts of the logic can be made more modular and reusable, as well.

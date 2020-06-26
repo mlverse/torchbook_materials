@@ -143,7 +143,7 @@ t
 ```
 
 In higher dimensions, especially, it can be easier to specify the type of tensor abstractly, as in: \"Give me a tensor of
-[fill in characteristic here] of shape n1 x n2\":
+\[fill in characteristic here\] of shape n1 x n2\":
 
 ```{r}
 # a 3 x 3 tensor of standard normally distributed values
@@ -197,9 +197,7 @@ To convert between `torch` tensors and R vectors/matrices/arrays, we can use `as
 likes. If a tensor is on GPU, we need to move it to CPU first:
 
 ```{r}
-
-###TBD###
-as_array(t$to(torch_device("cpu"), dtype = torch_double()))
+as_array(t$cpu())
 ```
 
 \#\#\#TBD\#\#\#
@@ -340,7 +338,6 @@ above, of shape 3x2, we have to skip over 2 elements to arrive at the next row. 
 row we just have to skip a single entry:
 
 ```{r}
-###TBD###
 t1$stride()
 ```
 
@@ -375,7 +372,7 @@ taking place.
 
 In the following snippet, the first try of reshaping by means of `view()` fails, because the tensor we're trying to reshape
 already carries metadata signifying that the underlying data should not be read in physical order. The call to `contiguous`
-creates a new tensor, which we can then [virtually] reshape using `view()`.[^3]
+creates a new tensor, which we can then \[virtually\] reshape using `view()`.[^3]
 
 [^3]: For correctness' sake, `contiguous()` will only make a copy if the tensor it is called on is *not contiguous already.*
 
@@ -469,9 +466,8 @@ The rules are:
 
     Here they are, right-aligned:
 
-```{=html}
 <!-- -->
-```
+
        # t1, shape:     8  1  6  1
        # t2, shape:        7  1  5
 
@@ -480,9 +476,8 @@ The rules are:
 
     In the above example, this is the case for the second-from-last dimension. This now gives
 
-```{=html}
 <!-- -->
-```
+
        # t1, shape:     8  1  6  1
        # t2, shape:        7  6  5
 
@@ -493,9 +488,8 @@ The rules are:
 
     This is the case with `t1`'s leftmost dimension. First, there's a virtual expansion
 
-```{=html}
 <!-- -->
-```
+
        # t1, shape:     8  1  6  1
        # t2, shape:     1  7  1  5
 
@@ -563,15 +557,13 @@ t <- torch_ones(c(2, 2), device = device)
 Tensors previously created on the CPU can be moved to GPU, and vice versa:
 
 ```{r}
-###TBD###
-t = t.cuda()
-t
+t2 <- t$cuda()
+t2
 ```
 
 ```{r}
-###TBD###
-t = t.cpu()
-t
+t3 = t2$cpu()
+t3
 ```
 
 Naturally, we don't have to specify a device for every single tensor. To perform a whole computation on the GPU, put

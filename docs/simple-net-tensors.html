@@ -422,7 +422,7 @@ get values arranged in row-major order.</p>
 <span id="cb12-6"><a href="simple-net-tensors.html#cb12-6"></a>t &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">9</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">byrow =</span> <span class="ot">TRUE</span>))</span>
 <span id="cb12-7"><a href="simple-net-tensors.html#cb12-7"></a>t</span></code></pre></div>
 <p>In higher dimensions, especially, it can be easier to specify the type of tensor abstractly, as in: "Give me a tensor of
-[fill in characteristic here] of shape n1 x n2":</p>
+<span class="math display">\[fill in characteristic here\]</span> of shape n1 x n2":</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="simple-net-tensors.html#cb13-1"></a><span class="co"># a 3 x 3 tensor of standard normally distributed values</span></span>
 <span id="cb13-2"><a href="simple-net-tensors.html#cb13-2"></a>t &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(<span class="dv">3</span>, <span class="dv">3</span>)</span>
 <span id="cb13-3"><a href="simple-net-tensors.html#cb13-3"></a>t</span>
@@ -452,8 +452,7 @@ next chapter on <em>autograd</em>.</p>
 <h3><span class="header-section-number">3.2.2</span> Conversion between <code>torch</code> tensors and R values</h3>
 <p>To convert between <code>torch</code> tensors and R vectors/matrices/arrays, we can use <code>as_numeric</code>, <code>as_integer</code>, <code>as_array</code> and their
 likes. If a tensor is on GPU, we need to move it to CPU first:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="simple-net-tensors.html#cb18-1"></a><span class="co">###TBD###</span></span>
-<span id="cb18-2"><a href="simple-net-tensors.html#cb18-2"></a><span class="kw">as_array</span>(t<span class="op">$</span><span class="kw">to</span>(<span class="kw">torch_device</span>(<span class="st">&quot;cpu&quot;</span>), <span class="dt">dtype =</span> <span class="kw">torch_double</span>()))</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="simple-net-tensors.html#cb18-1"></a><span class="kw">as_array</span>(t<span class="op">$</span><span class="kw">cpu</span>())</span></code></pre></div>
 <p>###TBD###</p>
 <p>shared storage</p>
 <pre><code>&gt;&gt;&gt; import torch
@@ -547,8 +546,7 @@ shares storage with the input tensor. To verify:</p>
 dimension, how many elements have to be traversed to arrive at its next unit (row or column, in two dimensions). For <code>t1</code>
 above, of shape 3x2, we have to skip over 2 elements to arrive at the next row. To arrive at the next column though, in every
 row we just have to skip a single entry:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="simple-net-tensors.html#cb29-1"></a><span class="co">###TBD###</span></span>
-<span id="cb29-2"><a href="simple-net-tensors.html#cb29-2"></a>t1<span class="op">$</span><span class="kw">stride</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="simple-net-tensors.html#cb29-1"></a>t1<span class="op">$</span><span class="kw">stride</span>()</span></code></pre></div>
 <p>For <code>t2</code>, of shape 3x2, the distance between column elements is the same, but the distance between rows is now 3:</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="simple-net-tensors.html#cb30-1"></a>t2<span class="op">$</span><span class="kw">stride</span>()</span></code></pre></div>
 <p>There are cases where <code>view()</code> will not work. This can happen when a tensor was obtained via an operation – other than
@@ -567,7 +565,7 @@ taking place.</p>
 <h4><span class="header-section-number">3.2.4.2</span> Reshape with copy</h4>
 <p>In the following snippet, the first try of reshaping by means of <code>view()</code> fails, because the tensor we’re trying to reshape
 already carries metadata signifying that the underlying data should not be read in physical order. The call to <code>contiguous</code>
-creates a new tensor, which we can then [virtually] reshape using <code>view()</code>.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+creates a new tensor, which we can then <span class="math display">\[virtually\]</span> reshape using <code>view()</code>.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="simple-net-tensors.html#cb32-1"></a>t1 &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="kw">rbind</span>(<span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">4</span>), <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">6</span>)))</span>
 <span id="cb32-2"><a href="simple-net-tensors.html#cb32-2"></a></span>
 <span id="cb32-3"><a href="simple-net-tensors.html#cb32-3"></a>t2 &lt;-<span class="st"> </span>t1<span class="op">$</span><span class="kw">t</span>()</span>
@@ -681,12 +679,10 @@ in that place, in which case broadcasting will happen as stated in (2).</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="simple-net-tensors.html#cb50-1"></a>device &lt;-<span class="st"> </span><span class="kw">torch_device</span>(<span class="st">&quot;cuda&quot;</span>)</span>
 <span id="cb50-2"><a href="simple-net-tensors.html#cb50-2"></a>t &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(<span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="dt">device =</span> device) </span></code></pre></div>
 <p>Tensors previously created on the CPU can be moved to GPU, and vice versa:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="simple-net-tensors.html#cb51-1"></a><span class="co">###TBD###</span></span>
-<span id="cb51-2"><a href="simple-net-tensors.html#cb51-2"></a>t =<span class="st"> </span><span class="kw">t.cuda</span>()</span>
-<span id="cb51-3"><a href="simple-net-tensors.html#cb51-3"></a>t</span></code></pre></div>
-<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="simple-net-tensors.html#cb52-1"></a><span class="co">###TBD###</span></span>
-<span id="cb52-2"><a href="simple-net-tensors.html#cb52-2"></a>t =<span class="st"> </span><span class="kw">t.cpu</span>()</span>
-<span id="cb52-3"><a href="simple-net-tensors.html#cb52-3"></a>t</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="simple-net-tensors.html#cb51-1"></a>t2 &lt;-<span class="st"> </span>t<span class="op">$</span><span class="kw">cuda</span>()</span>
+<span id="cb51-2"><a href="simple-net-tensors.html#cb51-2"></a>t2</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="simple-net-tensors.html#cb52-1"></a>t3 =<span class="st"> </span>t2<span class="op">$</span><span class="kw">cpu</span>()</span>
+<span id="cb52-2"><a href="simple-net-tensors.html#cb52-2"></a>t3</span></code></pre></div>
 <p>Naturally, we don’t have to specify a device for every single tensor. To perform a whole computation on the GPU, put
 everything in a <em>with</em> block. This will use the first GPU, as determined by <em>cuda</em>:</p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="simple-net-tensors.html#cb53-1"></a><span class="co">###TBD###</span></span>
