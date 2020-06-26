@@ -167,15 +167,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="3.2.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.2.5</b> Operations on tensors</a></li>
 </ul></li>
 <li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
-<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a>
-<ul>
-<li class="chapter" data-level="3.4.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#appendix-python-code-1"><i class="fa fa-check"></i><b>3.4.1</b> Appendix: Python code</a></li>
-</ul></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.4</b> Running on GPU</a></li>
+<li class="chapter" data-level="3.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#appendix-python-code-1"><i class="fa fa-check"></i><b>3.5</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
 <ul>
 <li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
 <li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
+<li class="chapter" data-level="4.3" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#appendix-python-code-2"><i class="fa fa-check"></i><b>4.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="4.4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#section"><i class="fa fa-check"></i><b>4.4</b> </a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
 <ul>
@@ -299,86 +299,86 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="torch-optimizers" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> Torch optimizers</h2>
 <p>For demonstration, here is a very simple network, consisting of just a single linear layer, and a single data point to call the model on.</p>
-<div class="sourceCode" id="cb86"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb86-1"><a href="simple-net-optim.html#cb86-1"></a><span class="im">import</span> torch</span>
-<span id="cb86-2"><a href="simple-net-optim.html#cb86-2"></a>model <span class="op">=</span> torch.nn.Linear(<span class="dv">3</span>, <span class="dv">1</span>)</span>
-<span id="cb86-3"><a href="simple-net-optim.html#cb86-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span>
-<span id="cb86-4"><a href="simple-net-optim.html#cb86-4"></a></span>
-<span id="cb86-5"><a href="simple-net-optim.html#cb86-5"></a>data  <span class="op">=</span> torch.randn(<span class="dv">1</span>, <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb87-1"><a href="simple-net-optim.html#cb87-1"></a><span class="im">import</span> torch</span>
+<span id="cb87-2"><a href="simple-net-optim.html#cb87-2"></a>model <span class="op">=</span> torch.nn.Linear(<span class="dv">3</span>, <span class="dv">1</span>)</span>
+<span id="cb87-3"><a href="simple-net-optim.html#cb87-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span>
+<span id="cb87-4"><a href="simple-net-optim.html#cb87-4"></a></span>
+<span id="cb87-5"><a href="simple-net-optim.html#cb87-5"></a>data  <span class="op">=</span> torch.randn(<span class="dv">1</span>, <span class="dv">3</span>)</span></code></pre></div>
 <p>On creation, an optimizer is told what parameters to work on:</p>
-<div class="sourceCode" id="cb87"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb87-1"><a href="simple-net-optim.html#cb87-1"></a>opt <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.01</span>)</span>
-<span id="cb87-2"><a href="simple-net-optim.html#cb87-2"></a>opt</span></code></pre></div>
+<div class="sourceCode" id="cb88"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb88-1"><a href="simple-net-optim.html#cb88-1"></a>opt <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> <span class="fl">0.01</span>)</span>
+<span id="cb88-2"><a href="simple-net-optim.html#cb88-2"></a>opt</span></code></pre></div>
 <p>At any time, we can inspect those parameters:</p>
-<div class="sourceCode" id="cb88"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb88-1"><a href="simple-net-optim.html#cb88-1"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb89-1"><a href="simple-net-optim.html#cb89-1"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span></code></pre></div>
 <p>Now we perform the forward and the backward pass. The backward pass calculates the gradients, but does not update the parameters, as we can see both from the model <em>and</em> the optimizer objects:</p>
-<div class="sourceCode" id="cb89"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb89-1"><a href="simple-net-optim.html#cb89-1"></a>out <span class="op">=</span> model(data)</span>
-<span id="cb89-2"><a href="simple-net-optim.html#cb89-2"></a>out.backward()</span>
-<span id="cb89-3"><a href="simple-net-optim.html#cb89-3"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span>
-<span id="cb89-4"><a href="simple-net-optim.html#cb89-4"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
+<div class="sourceCode" id="cb90"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb90-1"><a href="simple-net-optim.html#cb90-1"></a>out <span class="op">=</span> model(data)</span>
+<span id="cb90-2"><a href="simple-net-optim.html#cb90-2"></a>out.backward()</span>
+<span id="cb90-3"><a href="simple-net-optim.html#cb90-3"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span>
+<span id="cb90-4"><a href="simple-net-optim.html#cb90-4"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
 <p>Calling <code>step()</code> on the optimizer actually does the updates:</p>
-<div class="sourceCode" id="cb90"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb90-1"><a href="simple-net-optim.html#cb90-1"></a>opt.step()</span>
-<span id="cb90-2"><a href="simple-net-optim.html#cb90-2"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span>
-<span id="cb90-3"><a href="simple-net-optim.html#cb90-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
+<div class="sourceCode" id="cb91"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb91-1"><a href="simple-net-optim.html#cb91-1"></a>opt.step()</span>
+<span id="cb91-2"><a href="simple-net-optim.html#cb91-2"></a>opt.param_groups[<span class="dv">0</span>][<span class="st">&quot;params&quot;</span>]</span>
+<span id="cb91-3"><a href="simple-net-optim.html#cb91-3"></a>[(p[<span class="dv">0</span>], p[<span class="dv">1</span>]) <span class="cf">for</span> p <span class="kw">in</span> model.named_parameters()]</span></code></pre></div>
 <p>If we perform optimization in a loop, as we’d usually do with neural networks, we need to make sure we call <code>optimizer.zero_grad()</code> on every step, as otherwise gradients would be accumulated.
 We’ll see this in our final version of the network.</p>
 </div>
 <div id="simple-net-with-torch.optim" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Simple net with <code>torch.optim</code></h2>
-<div class="sourceCode" id="cb91"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb91-1"><a href="simple-net-optim.html#cb91-1"></a><span class="im">import</span> torch</span>
-<span id="cb91-2"><a href="simple-net-optim.html#cb91-2"></a></span>
-<span id="cb91-3"><a href="simple-net-optim.html#cb91-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
-<span id="cb91-4"><a href="simple-net-optim.html#cb91-4"></a></span>
-<span id="cb91-5"><a href="simple-net-optim.html#cb91-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
-<span id="cb91-6"><a href="simple-net-optim.html#cb91-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb91-7"><a href="simple-net-optim.html#cb91-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
-<span id="cb91-8"><a href="simple-net-optim.html#cb91-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb91-9"><a href="simple-net-optim.html#cb91-9"></a><span class="co"># number of observations in training set</span></span>
-<span id="cb91-10"><a href="simple-net-optim.html#cb91-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb91-11"><a href="simple-net-optim.html#cb91-11"></a></span>
-<span id="cb91-12"><a href="simple-net-optim.html#cb91-12"></a><span class="co"># create random data</span></span>
-<span id="cb91-13"><a href="simple-net-optim.html#cb91-13"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
-<span id="cb91-14"><a href="simple-net-optim.html#cb91-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
-<span id="cb91-15"><a href="simple-net-optim.html#cb91-15"></a></span>
-<span id="cb91-16"><a href="simple-net-optim.html#cb91-16"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
-<span id="cb91-17"><a href="simple-net-optim.html#cb91-17"></a></span>
-<span id="cb91-18"><a href="simple-net-optim.html#cb91-18"></a><span class="co"># dimensionality of hidden layer</span></span>
-<span id="cb91-19"><a href="simple-net-optim.html#cb91-19"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb91-20"><a href="simple-net-optim.html#cb91-20"></a></span>
-<span id="cb91-21"><a href="simple-net-optim.html#cb91-21"></a>model <span class="op">=</span> torch.nn.Sequential(</span>
-<span id="cb91-22"><a href="simple-net-optim.html#cb91-22"></a>    torch.nn.Linear(d_in, d_hidden),</span>
-<span id="cb91-23"><a href="simple-net-optim.html#cb91-23"></a>    torch.nn.ReLU(),</span>
-<span id="cb91-24"><a href="simple-net-optim.html#cb91-24"></a>    torch.nn.Linear(d_hidden, d_out),</span>
-<span id="cb91-25"><a href="simple-net-optim.html#cb91-25"></a>)</span>
-<span id="cb91-26"><a href="simple-net-optim.html#cb91-26"></a></span>
-<span id="cb91-27"><a href="simple-net-optim.html#cb91-27"></a>mse_loss <span class="op">=</span> torch.nn.MSELoss(reduction<span class="op">=</span><span class="st">&#39;sum&#39;</span>)</span>
-<span id="cb91-28"><a href="simple-net-optim.html#cb91-28"></a></span>
-<span id="cb91-29"><a href="simple-net-optim.html#cb91-29"></a></span>
-<span id="cb91-30"><a href="simple-net-optim.html#cb91-30"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
-<span id="cb91-31"><a href="simple-net-optim.html#cb91-31"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
-<span id="cb91-32"><a href="simple-net-optim.html#cb91-32"></a></span>
-<span id="cb91-33"><a href="simple-net-optim.html#cb91-33"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> learning_rate)</span>
-<span id="cb91-34"><a href="simple-net-optim.html#cb91-34"></a></span>
-<span id="cb91-35"><a href="simple-net-optim.html#cb91-35"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
-<span id="cb91-36"><a href="simple-net-optim.html#cb91-36"></a>    </span>
-<span id="cb91-37"><a href="simple-net-optim.html#cb91-37"></a>    <span class="co">### -------- Forward pass -------- </span></span>
-<span id="cb91-38"><a href="simple-net-optim.html#cb91-38"></a></span>
-<span id="cb91-39"><a href="simple-net-optim.html#cb91-39"></a>    y_pred <span class="op">=</span> model(x)</span>
-<span id="cb91-40"><a href="simple-net-optim.html#cb91-40"></a></span>
-<span id="cb91-41"><a href="simple-net-optim.html#cb91-41"></a>    <span class="co">### -------- compute loss -------- </span></span>
-<span id="cb91-42"><a href="simple-net-optim.html#cb91-42"></a>    loss <span class="op">=</span> mse_loss(y_pred, y)</span>
-<span id="cb91-43"><a href="simple-net-optim.html#cb91-43"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
-<span id="cb91-44"><a href="simple-net-optim.html#cb91-44"></a></span>
-<span id="cb91-45"><a href="simple-net-optim.html#cb91-45"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
-<span id="cb91-46"><a href="simple-net-optim.html#cb91-46"></a></span>
-<span id="cb91-47"><a href="simple-net-optim.html#cb91-47"></a>    <span class="co"># Still need to zero out the gradients before the backward pass, only this time, on the optimizer object</span></span>
-<span id="cb91-48"><a href="simple-net-optim.html#cb91-48"></a>    optimizer.zero_grad()</span>
-<span id="cb91-49"><a href="simple-net-optim.html#cb91-49"></a>    </span>
-<span id="cb91-50"><a href="simple-net-optim.html#cb91-50"></a>    <span class="co"># gradients are still computed on the loss tensor</span></span>
-<span id="cb91-51"><a href="simple-net-optim.html#cb91-51"></a>    loss.backward()</span>
-<span id="cb91-52"><a href="simple-net-optim.html#cb91-52"></a> </span>
-<span id="cb91-53"><a href="simple-net-optim.html#cb91-53"></a>    <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb91-54"><a href="simple-net-optim.html#cb91-54"></a>    </span>
-<span id="cb91-55"><a href="simple-net-optim.html#cb91-55"></a>     <span class="co"># use the ptimizer to update model parameters</span></span>
-<span id="cb91-56"><a href="simple-net-optim.html#cb91-56"></a>    optimizer.step()</span></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb92-1"><a href="simple-net-optim.html#cb92-1"></a><span class="im">import</span> torch</span>
+<span id="cb92-2"><a href="simple-net-optim.html#cb92-2"></a></span>
+<span id="cb92-3"><a href="simple-net-optim.html#cb92-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb92-4"><a href="simple-net-optim.html#cb92-4"></a></span>
+<span id="cb92-5"><a href="simple-net-optim.html#cb92-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb92-6"><a href="simple-net-optim.html#cb92-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb92-7"><a href="simple-net-optim.html#cb92-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb92-8"><a href="simple-net-optim.html#cb92-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb92-9"><a href="simple-net-optim.html#cb92-9"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb92-10"><a href="simple-net-optim.html#cb92-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb92-11"><a href="simple-net-optim.html#cb92-11"></a></span>
+<span id="cb92-12"><a href="simple-net-optim.html#cb92-12"></a><span class="co"># create random data</span></span>
+<span id="cb92-13"><a href="simple-net-optim.html#cb92-13"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
+<span id="cb92-14"><a href="simple-net-optim.html#cb92-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
+<span id="cb92-15"><a href="simple-net-optim.html#cb92-15"></a></span>
+<span id="cb92-16"><a href="simple-net-optim.html#cb92-16"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
+<span id="cb92-17"><a href="simple-net-optim.html#cb92-17"></a></span>
+<span id="cb92-18"><a href="simple-net-optim.html#cb92-18"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb92-19"><a href="simple-net-optim.html#cb92-19"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb92-20"><a href="simple-net-optim.html#cb92-20"></a></span>
+<span id="cb92-21"><a href="simple-net-optim.html#cb92-21"></a>model <span class="op">=</span> torch.nn.Sequential(</span>
+<span id="cb92-22"><a href="simple-net-optim.html#cb92-22"></a>    torch.nn.Linear(d_in, d_hidden),</span>
+<span id="cb92-23"><a href="simple-net-optim.html#cb92-23"></a>    torch.nn.ReLU(),</span>
+<span id="cb92-24"><a href="simple-net-optim.html#cb92-24"></a>    torch.nn.Linear(d_hidden, d_out),</span>
+<span id="cb92-25"><a href="simple-net-optim.html#cb92-25"></a>)</span>
+<span id="cb92-26"><a href="simple-net-optim.html#cb92-26"></a></span>
+<span id="cb92-27"><a href="simple-net-optim.html#cb92-27"></a>mse_loss <span class="op">=</span> torch.nn.MSELoss(reduction<span class="op">=</span><span class="st">&#39;sum&#39;</span>)</span>
+<span id="cb92-28"><a href="simple-net-optim.html#cb92-28"></a></span>
+<span id="cb92-29"><a href="simple-net-optim.html#cb92-29"></a></span>
+<span id="cb92-30"><a href="simple-net-optim.html#cb92-30"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb92-31"><a href="simple-net-optim.html#cb92-31"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span id="cb92-32"><a href="simple-net-optim.html#cb92-32"></a></span>
+<span id="cb92-33"><a href="simple-net-optim.html#cb92-33"></a>optimizer <span class="op">=</span> torch.optim.SGD(model.parameters(), lr <span class="op">=</span> learning_rate)</span>
+<span id="cb92-34"><a href="simple-net-optim.html#cb92-34"></a></span>
+<span id="cb92-35"><a href="simple-net-optim.html#cb92-35"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
+<span id="cb92-36"><a href="simple-net-optim.html#cb92-36"></a>    </span>
+<span id="cb92-37"><a href="simple-net-optim.html#cb92-37"></a>    <span class="co">### -------- Forward pass -------- </span></span>
+<span id="cb92-38"><a href="simple-net-optim.html#cb92-38"></a></span>
+<span id="cb92-39"><a href="simple-net-optim.html#cb92-39"></a>    y_pred <span class="op">=</span> model(x)</span>
+<span id="cb92-40"><a href="simple-net-optim.html#cb92-40"></a></span>
+<span id="cb92-41"><a href="simple-net-optim.html#cb92-41"></a>    <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb92-42"><a href="simple-net-optim.html#cb92-42"></a>    loss <span class="op">=</span> mse_loss(y_pred, y)</span>
+<span id="cb92-43"><a href="simple-net-optim.html#cb92-43"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
+<span id="cb92-44"><a href="simple-net-optim.html#cb92-44"></a></span>
+<span id="cb92-45"><a href="simple-net-optim.html#cb92-45"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
+<span id="cb92-46"><a href="simple-net-optim.html#cb92-46"></a></span>
+<span id="cb92-47"><a href="simple-net-optim.html#cb92-47"></a>    <span class="co"># Still need to zero out the gradients before the backward pass, only this time, on the optimizer object</span></span>
+<span id="cb92-48"><a href="simple-net-optim.html#cb92-48"></a>    optimizer.zero_grad()</span>
+<span id="cb92-49"><a href="simple-net-optim.html#cb92-49"></a>    </span>
+<span id="cb92-50"><a href="simple-net-optim.html#cb92-50"></a>    <span class="co"># gradients are still computed on the loss tensor</span></span>
+<span id="cb92-51"><a href="simple-net-optim.html#cb92-51"></a>    loss.backward()</span>
+<span id="cb92-52"><a href="simple-net-optim.html#cb92-52"></a> </span>
+<span id="cb92-53"><a href="simple-net-optim.html#cb92-53"></a>    <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb92-54"><a href="simple-net-optim.html#cb92-54"></a>    </span>
+<span id="cb92-55"><a href="simple-net-optim.html#cb92-55"></a>     <span class="co"># use the ptimizer to update model parameters</span></span>
+<span id="cb92-56"><a href="simple-net-optim.html#cb92-56"></a>    optimizer.step()</span></code></pre></div>
 <p>At this point, we’re fully completed the transformation; the network has been fully torchified. In the next section, we’ll see classical applications of deep learning for supervised and unsupervised learning.</p>
 
 </div>

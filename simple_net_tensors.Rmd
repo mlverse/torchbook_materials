@@ -647,7 +647,7 @@ torch.cuda.memory_reserved()
 That's it for a first introduction to torch tensors. In the next chapter, we continue our torchification of the simple
 network.
 
-### Appendix: Python code
+## Appendix: Python code
 
 ```{python}
 
