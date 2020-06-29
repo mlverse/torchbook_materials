@@ -307,201 +307,201 @@ the gradients calculated are <em>propagated</em> <em>back</em> through the netwo
 differentiation</em>.</p>
 <p>As users, we can see a bit of this implementation. As a prerequisite for this “recording” to happen, tensors have to be
 created with <code>requires_grad = TRUE</code>. E.g.</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="simple-net-autograd.html#cb61-1"></a>x &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="simple-net-autograd.html#cb64-1"></a>x &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 <p>To be clear, this is a tensor <em>with respect to which</em> gradients have to be calculated – normally, a tensor representing a
 weight or a bias, not the input data.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a> If we now perform some operation on that tensor, assigning the result to <code>y</code></p>
-<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="simple-net-autograd.html#cb62-1"></a>y &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">mean</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="simple-net-autograd.html#cb65-1"></a>y &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">mean</span>()</span></code></pre></div>
 <p>we find that <code>y</code> now has a non-empty <code>grad_fn</code> that tells <code>torch</code> how to compute the gradient of <code>y</code> with respect to <code>x</code>:</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="simple-net-autograd.html#cb63-1"></a>y<span class="op">$</span>grad_fn</span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="simple-net-autograd.html#cb66-1"></a>y<span class="op">$</span>grad_fn</span></code></pre></div>
 <p>Actual computation of gradients is triggered by calling <code>backward()</code> on the output tensor.</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="simple-net-autograd.html#cb64-1"></a>y<span class="op">$</span><span class="kw">backward</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="simple-net-autograd.html#cb67-1"></a>y<span class="op">$</span><span class="kw">backward</span>()</span></code></pre></div>
 <p>After <code>backward()</code> has been called, <code>x</code> has a non-empty field <code>grad</code> that stores the gradient of <code>y</code> with respect to <code>x</code>:</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="simple-net-autograd.html#cb65-1"></a>x<span class="op">$</span>grad</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="simple-net-autograd.html#cb68-1"></a>x<span class="op">$</span>grad</span></code></pre></div>
 <p>With longer chains of computations, we can peek at how <code>torch</code> builds up a graph of backward operations.</p>
 <p>Here is a slightly more complex example. We call <code>retain_grad()</code> on <code>y</code> and <code>z</code> just for demonstration purposes; by default,
 intermediate gradients – while of course they have to be computed – aren’t stored, in order to save memory.</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="simple-net-autograd.html#cb66-1"></a>x1 &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb66-2"><a href="simple-net-autograd.html#cb66-2"></a>x2 &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="fl">1.1</span>, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb66-3"><a href="simple-net-autograd.html#cb66-3"></a></span>
-<span id="cb66-4"><a href="simple-net-autograd.html#cb66-4"></a>y &lt;-<span class="st"> </span>x1 <span class="op">*</span><span class="st"> </span>(x2 <span class="op">+</span><span class="st"> </span><span class="dv">2</span>)</span>
-<span id="cb66-5"><a href="simple-net-autograd.html#cb66-5"></a>y<span class="op">$</span><span class="kw">retain_grad</span>()</span>
-<span id="cb66-6"><a href="simple-net-autograd.html#cb66-6"></a></span>
-<span id="cb66-7"><a href="simple-net-autograd.html#cb66-7"></a>z &lt;-<span class="st"> </span>y<span class="op">$</span><span class="kw">pow</span>(<span class="dv">2</span>) <span class="op">*</span><span class="st"> </span><span class="dv">3</span></span>
-<span id="cb66-8"><a href="simple-net-autograd.html#cb66-8"></a>z<span class="op">$</span><span class="kw">retain_grad</span>()</span>
-<span id="cb66-9"><a href="simple-net-autograd.html#cb66-9"></a></span>
-<span id="cb66-10"><a href="simple-net-autograd.html#cb66-10"></a>out &lt;-<span class="st"> </span>z<span class="op">$</span><span class="kw">mean</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="simple-net-autograd.html#cb69-1"></a>x1 &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb69-2"><a href="simple-net-autograd.html#cb69-2"></a>x2 &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="fl">1.1</span>, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb69-3"><a href="simple-net-autograd.html#cb69-3"></a></span>
+<span id="cb69-4"><a href="simple-net-autograd.html#cb69-4"></a>y &lt;-<span class="st"> </span>x1 <span class="op">*</span><span class="st"> </span>(x2 <span class="op">+</span><span class="st"> </span><span class="dv">2</span>)</span>
+<span id="cb69-5"><a href="simple-net-autograd.html#cb69-5"></a>y<span class="op">$</span><span class="kw">retain_grad</span>()</span>
+<span id="cb69-6"><a href="simple-net-autograd.html#cb69-6"></a></span>
+<span id="cb69-7"><a href="simple-net-autograd.html#cb69-7"></a>z &lt;-<span class="st"> </span>y<span class="op">$</span><span class="kw">pow</span>(<span class="dv">2</span>) <span class="op">*</span><span class="st"> </span><span class="dv">3</span></span>
+<span id="cb69-8"><a href="simple-net-autograd.html#cb69-8"></a>z<span class="op">$</span><span class="kw">retain_grad</span>()</span>
+<span id="cb69-9"><a href="simple-net-autograd.html#cb69-9"></a></span>
+<span id="cb69-10"><a href="simple-net-autograd.html#cb69-10"></a>out &lt;-<span class="st"> </span>z<span class="op">$</span><span class="kw">mean</span>()</span></code></pre></div>
 <p>Starting from <code>out$grad_fn</code>, we can follow the graph all back to the leaf nodes:</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="simple-net-autograd.html#cb67-1"></a><span class="co"># how to compute the gradient for mean, the last operation executed</span></span>
-<span id="cb67-2"><a href="simple-net-autograd.html#cb67-2"></a>out<span class="op">$</span>grad_fn</span>
-<span id="cb67-3"><a href="simple-net-autograd.html#cb67-3"></a></span>
-<span id="cb67-4"><a href="simple-net-autograd.html#cb67-4"></a><span class="co"># how to compute the gradient for the multiplication by 3 in z = y.pow(2) * 3</span></span>
-<span id="cb67-5"><a href="simple-net-autograd.html#cb67-5"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions</span>
-<span id="cb67-6"><a href="simple-net-autograd.html#cb67-6"></a></span>
-<span id="cb67-7"><a href="simple-net-autograd.html#cb67-7"></a><span class="co"># how to compute the gradient for pow in z = y.pow(2) * 3</span></span>
-<span id="cb67-8"><a href="simple-net-autograd.html#cb67-8"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions</span>
-<span id="cb67-9"><a href="simple-net-autograd.html#cb67-9"></a></span>
-<span id="cb67-10"><a href="simple-net-autograd.html#cb67-10"></a><span class="co"># how to compute the gradient for the multiplication in y = x * (x + 2)</span></span>
-<span id="cb67-11"><a href="simple-net-autograd.html#cb67-11"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions</span>
-<span id="cb67-12"><a href="simple-net-autograd.html#cb67-12"></a></span>
-<span id="cb67-13"><a href="simple-net-autograd.html#cb67-13"></a><span class="co"># how to compute the gradient for the two branches of y = x * (x + 2),</span></span>
-<span id="cb67-14"><a href="simple-net-autograd.html#cb67-14"></a><span class="co"># where the left branch is a leaf node (AccumulateGrad for x1)</span></span>
-<span id="cb67-15"><a href="simple-net-autograd.html#cb67-15"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions</span>
-<span id="cb67-16"><a href="simple-net-autograd.html#cb67-16"></a></span>
-<span id="cb67-17"><a href="simple-net-autograd.html#cb67-17"></a><span class="co"># here we arrive at the other leaf node (AccumulateGrad for x2)</span></span>
-<span id="cb67-18"><a href="simple-net-autograd.html#cb67-18"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">2</span>]]<span class="op">$</span>next_functions</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="simple-net-autograd.html#cb70-1"></a><span class="co"># how to compute the gradient for mean, the last operation executed</span></span>
+<span id="cb70-2"><a href="simple-net-autograd.html#cb70-2"></a>out<span class="op">$</span>grad_fn</span>
+<span id="cb70-3"><a href="simple-net-autograd.html#cb70-3"></a></span>
+<span id="cb70-4"><a href="simple-net-autograd.html#cb70-4"></a><span class="co"># how to compute the gradient for the multiplication by 3 in z = y.pow(2) * 3</span></span>
+<span id="cb70-5"><a href="simple-net-autograd.html#cb70-5"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions</span>
+<span id="cb70-6"><a href="simple-net-autograd.html#cb70-6"></a></span>
+<span id="cb70-7"><a href="simple-net-autograd.html#cb70-7"></a><span class="co"># how to compute the gradient for pow in z = y.pow(2) * 3</span></span>
+<span id="cb70-8"><a href="simple-net-autograd.html#cb70-8"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions</span>
+<span id="cb70-9"><a href="simple-net-autograd.html#cb70-9"></a></span>
+<span id="cb70-10"><a href="simple-net-autograd.html#cb70-10"></a><span class="co"># how to compute the gradient for the multiplication in y = x * (x + 2)</span></span>
+<span id="cb70-11"><a href="simple-net-autograd.html#cb70-11"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions</span>
+<span id="cb70-12"><a href="simple-net-autograd.html#cb70-12"></a></span>
+<span id="cb70-13"><a href="simple-net-autograd.html#cb70-13"></a><span class="co"># how to compute the gradient for the two branches of y = x * (x + 2),</span></span>
+<span id="cb70-14"><a href="simple-net-autograd.html#cb70-14"></a><span class="co"># where the left branch is a leaf node (AccumulateGrad for x1)</span></span>
+<span id="cb70-15"><a href="simple-net-autograd.html#cb70-15"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions</span>
+<span id="cb70-16"><a href="simple-net-autograd.html#cb70-16"></a></span>
+<span id="cb70-17"><a href="simple-net-autograd.html#cb70-17"></a><span class="co"># here we arrive at the other leaf node (AccumulateGrad for x2)</span></span>
+<span id="cb70-18"><a href="simple-net-autograd.html#cb70-18"></a>out<span class="op">$</span>grad_fn<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">1</span>]]<span class="op">$</span>next_functions[[<span class="dv">2</span>]]<span class="op">$</span>next_functions</span></code></pre></div>
 <p>After calling <code>out$backward()</code>, all tensors in the graph will have their respective gradients created. Without our calls to
 <code>retain_grad</code> above, <code>z$grad</code> and <code>y$grad</code> would be empty:</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="simple-net-autograd.html#cb68-1"></a>out<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb68-2"><a href="simple-net-autograd.html#cb68-2"></a></span>
-<span id="cb68-3"><a href="simple-net-autograd.html#cb68-3"></a>z<span class="op">$</span>grad</span>
-<span id="cb68-4"><a href="simple-net-autograd.html#cb68-4"></a>y<span class="op">$</span>grad</span>
-<span id="cb68-5"><a href="simple-net-autograd.html#cb68-5"></a>x2<span class="op">$</span>grad</span>
-<span id="cb68-6"><a href="simple-net-autograd.html#cb68-6"></a>x1<span class="op">$</span>grad</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="simple-net-autograd.html#cb71-1"></a>out<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb71-2"><a href="simple-net-autograd.html#cb71-2"></a></span>
+<span id="cb71-3"><a href="simple-net-autograd.html#cb71-3"></a>z<span class="op">$</span>grad</span>
+<span id="cb71-4"><a href="simple-net-autograd.html#cb71-4"></a>y<span class="op">$</span>grad</span>
+<span id="cb71-5"><a href="simple-net-autograd.html#cb71-5"></a>x2<span class="op">$</span>grad</span>
+<span id="cb71-6"><a href="simple-net-autograd.html#cb71-6"></a>x1<span class="op">$</span>grad</span></code></pre></div>
 <p>Thus acquainted with autograd, we’re ready to modify our example.</p>
 </div>
 <div id="the-simple-network-now-using-autograd" class="section level2" number="4.2">
 <h2><span class="header-section-number">4.2</span> The simple network, now using autograd</h2>
 <p>For a single new line calling <code>loss$backward()</code>, now a number of lines (that did manual backprop) are gone:</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="simple-net-autograd.html#cb69-1"></a><span class="kw">library</span>(torch)</span>
-<span id="cb69-2"><a href="simple-net-autograd.html#cb69-2"></a></span>
-<span id="cb69-3"><a href="simple-net-autograd.html#cb69-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
-<span id="cb69-4"><a href="simple-net-autograd.html#cb69-4"></a></span>
-<span id="cb69-5"><a href="simple-net-autograd.html#cb69-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
-<span id="cb69-6"><a href="simple-net-autograd.html#cb69-6"></a>d_in &lt;-<span class="st"> </span><span class="dv">3</span></span>
-<span id="cb69-7"><a href="simple-net-autograd.html#cb69-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
-<span id="cb69-8"><a href="simple-net-autograd.html#cb69-8"></a>d_out &lt;-<span class="st"> </span><span class="dv">1</span></span>
-<span id="cb69-9"><a href="simple-net-autograd.html#cb69-9"></a><span class="co"># number of observations in training set</span></span>
-<span id="cb69-10"><a href="simple-net-autograd.html#cb69-10"></a>n &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb69-11"><a href="simple-net-autograd.html#cb69-11"></a></span>
-<span id="cb69-12"><a href="simple-net-autograd.html#cb69-12"></a></span>
-<span id="cb69-13"><a href="simple-net-autograd.html#cb69-13"></a><span class="co"># create random data</span></span>
-<span id="cb69-14"><a href="simple-net-autograd.html#cb69-14"></a>x &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(n, d_in)</span>
-<span id="cb69-15"><a href="simple-net-autograd.html#cb69-15"></a>y &lt;-</span>
-<span id="cb69-16"><a href="simple-net-autograd.html#cb69-16"></a><span class="st">  </span>x[, <span class="dv">0</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.2</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">1</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">1.3</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">2</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="kw">torch_randn</span>(n, <span class="dv">1</span>)</span>
-<span id="cb69-17"><a href="simple-net-autograd.html#cb69-17"></a></span>
-<span id="cb69-18"><a href="simple-net-autograd.html#cb69-18"></a></span>
-<span id="cb69-19"><a href="simple-net-autograd.html#cb69-19"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
-<span id="cb69-20"><a href="simple-net-autograd.html#cb69-20"></a></span>
-<span id="cb69-21"><a href="simple-net-autograd.html#cb69-21"></a><span class="co"># dimensionality of hidden layer</span></span>
-<span id="cb69-22"><a href="simple-net-autograd.html#cb69-22"></a>d_hidden &lt;-<span class="st"> </span><span class="dv">32</span></span>
-<span id="cb69-23"><a href="simple-net-autograd.html#cb69-23"></a><span class="co"># weights connecting input to hidden layer</span></span>
-<span id="cb69-24"><a href="simple-net-autograd.html#cb69-24"></a>w1 &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(d_in, d_hidden, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb69-25"><a href="simple-net-autograd.html#cb69-25"></a><span class="co"># weights connecting hidden to output layer</span></span>
-<span id="cb69-26"><a href="simple-net-autograd.html#cb69-26"></a>w2 &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(d_hidden, d_out, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb69-27"><a href="simple-net-autograd.html#cb69-27"></a></span>
-<span id="cb69-28"><a href="simple-net-autograd.html#cb69-28"></a><span class="co"># hidden layer bias</span></span>
-<span id="cb69-29"><a href="simple-net-autograd.html#cb69-29"></a>b1 &lt;-<span class="st"> </span><span class="kw">torch_zeros</span>(<span class="dv">1</span>, d_hidden, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb69-30"><a href="simple-net-autograd.html#cb69-30"></a><span class="co"># output layer bias</span></span>
-<span id="cb69-31"><a href="simple-net-autograd.html#cb69-31"></a>b2 &lt;-<span class="st"> </span><span class="kw">torch_zeros</span>(<span class="dv">1</span>, d_out, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb69-32"><a href="simple-net-autograd.html#cb69-32"></a></span>
-<span id="cb69-33"><a href="simple-net-autograd.html#cb69-33"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
-<span id="cb69-34"><a href="simple-net-autograd.html#cb69-34"></a></span>
-<span id="cb69-35"><a href="simple-net-autograd.html#cb69-35"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">1e-4</span></span>
-<span id="cb69-36"><a href="simple-net-autograd.html#cb69-36"></a></span>
-<span id="cb69-37"><a href="simple-net-autograd.html#cb69-37"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
-<span id="cb69-38"><a href="simple-net-autograd.html#cb69-38"></a></span>
-<span id="cb69-39"><a href="simple-net-autograd.html#cb69-39"></a><span class="cf">for</span> (t <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">200</span>) {</span>
-<span id="cb69-40"><a href="simple-net-autograd.html#cb69-40"></a>  <span class="co">### -------- Forward pass --------</span></span>
-<span id="cb69-41"><a href="simple-net-autograd.html#cb69-41"></a>  </span>
-<span id="cb69-42"><a href="simple-net-autograd.html#cb69-42"></a>  y_pred &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">mm</span>(w1)<span class="op">$</span><span class="kw">add</span>(b1)<span class="op">$</span><span class="kw">clamp</span>(<span class="dt">min =</span> <span class="dv">0</span>)<span class="op">$</span><span class="kw">mm</span>(w2)<span class="op">$</span><span class="kw">add</span>(b2)</span>
-<span id="cb69-43"><a href="simple-net-autograd.html#cb69-43"></a>  </span>
-<span id="cb69-44"><a href="simple-net-autograd.html#cb69-44"></a>  <span class="co">### -------- compute loss -------- </span></span>
-<span id="cb69-45"><a href="simple-net-autograd.html#cb69-45"></a>  loss &lt;-<span class="st"> </span>(y_pred <span class="op">-</span><span class="st"> </span>y)<span class="op">$</span><span class="kw">pow</span>(<span class="dv">2</span>)<span class="op">$</span><span class="kw">sum</span>()</span>
-<span id="cb69-46"><a href="simple-net-autograd.html#cb69-46"></a>  <span class="cf">if</span> (t <span class="op">%%</span><span class="st"> </span><span class="dv">10</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)</span>
-<span id="cb69-47"><a href="simple-net-autograd.html#cb69-47"></a>    <span class="kw">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, t, <span class="st">&quot;   Loss: &quot;</span>, loss<span class="op">$</span><span class="kw">item</span>(), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb69-48"><a href="simple-net-autograd.html#cb69-48"></a>  </span>
-<span id="cb69-49"><a href="simple-net-autograd.html#cb69-49"></a>  <span class="co">### -------- Backpropagation --------</span></span>
-<span id="cb69-50"><a href="simple-net-autograd.html#cb69-50"></a>  </span>
-<span id="cb69-51"><a href="simple-net-autograd.html#cb69-51"></a>  <span class="co"># compute the gradient of loss with respect to all tensors with requires_grad = True.</span></span>
-<span id="cb69-52"><a href="simple-net-autograd.html#cb69-52"></a>  loss<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb69-53"><a href="simple-net-autograd.html#cb69-53"></a>  </span>
-<span id="cb69-54"><a href="simple-net-autograd.html#cb69-54"></a>  <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb69-55"><a href="simple-net-autograd.html#cb69-55"></a>  </span>
-<span id="cb69-56"><a href="simple-net-autograd.html#cb69-56"></a>  <span class="co"># Wrap in with_no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
-<span id="cb69-57"><a href="simple-net-autograd.html#cb69-57"></a>   <span class="kw">with_no_grad</span>({</span>
-<span id="cb69-58"><a href="simple-net-autograd.html#cb69-58"></a>     w1 &lt;-<span class="st"> </span>w1<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>w1<span class="op">$</span>grad)</span>
-<span id="cb69-59"><a href="simple-net-autograd.html#cb69-59"></a>     w2 &lt;-<span class="st"> </span>w2<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>w2<span class="op">$</span>grad)</span>
-<span id="cb69-60"><a href="simple-net-autograd.html#cb69-60"></a>     b1 &lt;-<span class="st"> </span>b1<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>b1<span class="op">$</span>grad)</span>
-<span id="cb69-61"><a href="simple-net-autograd.html#cb69-61"></a>     b2 &lt;-<span class="st"> </span>b2<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>b2<span class="op">$</span>grad)  </span>
-<span id="cb69-62"><a href="simple-net-autograd.html#cb69-62"></a>     </span>
-<span id="cb69-63"><a href="simple-net-autograd.html#cb69-63"></a>     <span class="co"># Zero the gradients after every pass, because they&#39;d accumulate otherwise</span></span>
-<span id="cb69-64"><a href="simple-net-autograd.html#cb69-64"></a>     w1<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()</span>
-<span id="cb69-65"><a href="simple-net-autograd.html#cb69-65"></a>     w2<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()</span>
-<span id="cb69-66"><a href="simple-net-autograd.html#cb69-66"></a>     b1<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()</span>
-<span id="cb69-67"><a href="simple-net-autograd.html#cb69-67"></a>     b2<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()  </span>
-<span id="cb69-68"><a href="simple-net-autograd.html#cb69-68"></a>   })</span>
-<span id="cb69-69"><a href="simple-net-autograd.html#cb69-69"></a></span>
-<span id="cb69-70"><a href="simple-net-autograd.html#cb69-70"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="simple-net-autograd.html#cb72-1"></a><span class="kw">library</span>(torch)</span>
+<span id="cb72-2"><a href="simple-net-autograd.html#cb72-2"></a></span>
+<span id="cb72-3"><a href="simple-net-autograd.html#cb72-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb72-4"><a href="simple-net-autograd.html#cb72-4"></a></span>
+<span id="cb72-5"><a href="simple-net-autograd.html#cb72-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb72-6"><a href="simple-net-autograd.html#cb72-6"></a>d_in &lt;-<span class="st"> </span><span class="dv">3</span></span>
+<span id="cb72-7"><a href="simple-net-autograd.html#cb72-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb72-8"><a href="simple-net-autograd.html#cb72-8"></a>d_out &lt;-<span class="st"> </span><span class="dv">1</span></span>
+<span id="cb72-9"><a href="simple-net-autograd.html#cb72-9"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb72-10"><a href="simple-net-autograd.html#cb72-10"></a>n &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb72-11"><a href="simple-net-autograd.html#cb72-11"></a></span>
+<span id="cb72-12"><a href="simple-net-autograd.html#cb72-12"></a></span>
+<span id="cb72-13"><a href="simple-net-autograd.html#cb72-13"></a><span class="co"># create random data</span></span>
+<span id="cb72-14"><a href="simple-net-autograd.html#cb72-14"></a>x &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(n, d_in)</span>
+<span id="cb72-15"><a href="simple-net-autograd.html#cb72-15"></a>y &lt;-</span>
+<span id="cb72-16"><a href="simple-net-autograd.html#cb72-16"></a><span class="st">  </span>x[, <span class="dv">0</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.2</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">1</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">1.3</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">2</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="kw">torch_randn</span>(n, <span class="dv">1</span>)</span>
+<span id="cb72-17"><a href="simple-net-autograd.html#cb72-17"></a></span>
+<span id="cb72-18"><a href="simple-net-autograd.html#cb72-18"></a></span>
+<span id="cb72-19"><a href="simple-net-autograd.html#cb72-19"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
+<span id="cb72-20"><a href="simple-net-autograd.html#cb72-20"></a></span>
+<span id="cb72-21"><a href="simple-net-autograd.html#cb72-21"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb72-22"><a href="simple-net-autograd.html#cb72-22"></a>d_hidden &lt;-<span class="st"> </span><span class="dv">32</span></span>
+<span id="cb72-23"><a href="simple-net-autograd.html#cb72-23"></a><span class="co"># weights connecting input to hidden layer</span></span>
+<span id="cb72-24"><a href="simple-net-autograd.html#cb72-24"></a>w1 &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(d_in, d_hidden, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb72-25"><a href="simple-net-autograd.html#cb72-25"></a><span class="co"># weights connecting hidden to output layer</span></span>
+<span id="cb72-26"><a href="simple-net-autograd.html#cb72-26"></a>w2 &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(d_hidden, d_out, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb72-27"><a href="simple-net-autograd.html#cb72-27"></a></span>
+<span id="cb72-28"><a href="simple-net-autograd.html#cb72-28"></a><span class="co"># hidden layer bias</span></span>
+<span id="cb72-29"><a href="simple-net-autograd.html#cb72-29"></a>b1 &lt;-<span class="st"> </span><span class="kw">torch_zeros</span>(<span class="dv">1</span>, d_hidden, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb72-30"><a href="simple-net-autograd.html#cb72-30"></a><span class="co"># output layer bias</span></span>
+<span id="cb72-31"><a href="simple-net-autograd.html#cb72-31"></a>b2 &lt;-<span class="st"> </span><span class="kw">torch_zeros</span>(<span class="dv">1</span>, d_out, <span class="dt">requires_grad =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb72-32"><a href="simple-net-autograd.html#cb72-32"></a></span>
+<span id="cb72-33"><a href="simple-net-autograd.html#cb72-33"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
+<span id="cb72-34"><a href="simple-net-autograd.html#cb72-34"></a></span>
+<span id="cb72-35"><a href="simple-net-autograd.html#cb72-35"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">1e-4</span></span>
+<span id="cb72-36"><a href="simple-net-autograd.html#cb72-36"></a></span>
+<span id="cb72-37"><a href="simple-net-autograd.html#cb72-37"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb72-38"><a href="simple-net-autograd.html#cb72-38"></a></span>
+<span id="cb72-39"><a href="simple-net-autograd.html#cb72-39"></a><span class="cf">for</span> (t <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">200</span>) {</span>
+<span id="cb72-40"><a href="simple-net-autograd.html#cb72-40"></a>  <span class="co">### -------- Forward pass --------</span></span>
+<span id="cb72-41"><a href="simple-net-autograd.html#cb72-41"></a>  </span>
+<span id="cb72-42"><a href="simple-net-autograd.html#cb72-42"></a>  y_pred &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">mm</span>(w1)<span class="op">$</span><span class="kw">add</span>(b1)<span class="op">$</span><span class="kw">clamp</span>(<span class="dt">min =</span> <span class="dv">0</span>)<span class="op">$</span><span class="kw">mm</span>(w2)<span class="op">$</span><span class="kw">add</span>(b2)</span>
+<span id="cb72-43"><a href="simple-net-autograd.html#cb72-43"></a>  </span>
+<span id="cb72-44"><a href="simple-net-autograd.html#cb72-44"></a>  <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb72-45"><a href="simple-net-autograd.html#cb72-45"></a>  loss &lt;-<span class="st"> </span>(y_pred <span class="op">-</span><span class="st"> </span>y)<span class="op">$</span><span class="kw">pow</span>(<span class="dv">2</span>)<span class="op">$</span><span class="kw">sum</span>()</span>
+<span id="cb72-46"><a href="simple-net-autograd.html#cb72-46"></a>  <span class="cf">if</span> (t <span class="op">%%</span><span class="st"> </span><span class="dv">10</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb72-47"><a href="simple-net-autograd.html#cb72-47"></a>    <span class="kw">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, t, <span class="st">&quot;   Loss: &quot;</span>, loss<span class="op">$</span><span class="kw">item</span>(), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb72-48"><a href="simple-net-autograd.html#cb72-48"></a>  </span>
+<span id="cb72-49"><a href="simple-net-autograd.html#cb72-49"></a>  <span class="co">### -------- Backpropagation --------</span></span>
+<span id="cb72-50"><a href="simple-net-autograd.html#cb72-50"></a>  </span>
+<span id="cb72-51"><a href="simple-net-autograd.html#cb72-51"></a>  <span class="co"># compute the gradient of loss with respect to all tensors with requires_grad = True.</span></span>
+<span id="cb72-52"><a href="simple-net-autograd.html#cb72-52"></a>  loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb72-53"><a href="simple-net-autograd.html#cb72-53"></a>  </span>
+<span id="cb72-54"><a href="simple-net-autograd.html#cb72-54"></a>  <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb72-55"><a href="simple-net-autograd.html#cb72-55"></a>  </span>
+<span id="cb72-56"><a href="simple-net-autograd.html#cb72-56"></a>  <span class="co"># Wrap in with_no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
+<span id="cb72-57"><a href="simple-net-autograd.html#cb72-57"></a>   <span class="kw">with_no_grad</span>({</span>
+<span id="cb72-58"><a href="simple-net-autograd.html#cb72-58"></a>     w1 &lt;-<span class="st"> </span>w1<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>w1<span class="op">$</span>grad)</span>
+<span id="cb72-59"><a href="simple-net-autograd.html#cb72-59"></a>     w2 &lt;-<span class="st"> </span>w2<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>w2<span class="op">$</span>grad)</span>
+<span id="cb72-60"><a href="simple-net-autograd.html#cb72-60"></a>     b1 &lt;-<span class="st"> </span>b1<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>b1<span class="op">$</span>grad)</span>
+<span id="cb72-61"><a href="simple-net-autograd.html#cb72-61"></a>     b2 &lt;-<span class="st"> </span>b2<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>b2<span class="op">$</span>grad)  </span>
+<span id="cb72-62"><a href="simple-net-autograd.html#cb72-62"></a>     </span>
+<span id="cb72-63"><a href="simple-net-autograd.html#cb72-63"></a>     <span class="co"># Zero the gradients after every pass, because they&#39;d accumulate otherwise</span></span>
+<span id="cb72-64"><a href="simple-net-autograd.html#cb72-64"></a>     w1<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()</span>
+<span id="cb72-65"><a href="simple-net-autograd.html#cb72-65"></a>     w2<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()</span>
+<span id="cb72-66"><a href="simple-net-autograd.html#cb72-66"></a>     b1<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()</span>
+<span id="cb72-67"><a href="simple-net-autograd.html#cb72-67"></a>     b2<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>()  </span>
+<span id="cb72-68"><a href="simple-net-autograd.html#cb72-68"></a>   })</span>
+<span id="cb72-69"><a href="simple-net-autograd.html#cb72-69"></a></span>
+<span id="cb72-70"><a href="simple-net-autograd.html#cb72-70"></a>}</span></code></pre></div>
 <p>We still manually compute the forward pass, and we still manually update the weights. In the last two chapters of this
 section, we’ll see how these parts of the logic can be made more modular and reusable, as well.</p>
 </div>
 <div id="appendix-python-code-2" class="section level2" number="4.3">
 <h2><span class="header-section-number">4.3</span> Appendix: Python code</h2>
-<div class="sourceCode" id="cb70"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb70-1"><a href="simple-net-autograd.html#cb70-1"></a><span class="im">import</span> torch</span>
-<span id="cb70-2"><a href="simple-net-autograd.html#cb70-2"></a></span>
-<span id="cb70-3"><a href="simple-net-autograd.html#cb70-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
-<span id="cb70-4"><a href="simple-net-autograd.html#cb70-4"></a></span>
-<span id="cb70-5"><a href="simple-net-autograd.html#cb70-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
-<span id="cb70-6"><a href="simple-net-autograd.html#cb70-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb70-7"><a href="simple-net-autograd.html#cb70-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
-<span id="cb70-8"><a href="simple-net-autograd.html#cb70-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb70-9"><a href="simple-net-autograd.html#cb70-9"></a><span class="co"># number of observations in training set</span></span>
-<span id="cb70-10"><a href="simple-net-autograd.html#cb70-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb70-11"><a href="simple-net-autograd.html#cb70-11"></a></span>
-<span id="cb70-12"><a href="simple-net-autograd.html#cb70-12"></a><span class="co"># create random data</span></span>
-<span id="cb70-13"><a href="simple-net-autograd.html#cb70-13"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
-<span id="cb70-14"><a href="simple-net-autograd.html#cb70-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
-<span id="cb70-15"><a href="simple-net-autograd.html#cb70-15"></a></span>
-<span id="cb70-16"><a href="simple-net-autograd.html#cb70-16"></a></span>
-<span id="cb70-17"><a href="simple-net-autograd.html#cb70-17"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
-<span id="cb70-18"><a href="simple-net-autograd.html#cb70-18"></a></span>
-<span id="cb70-19"><a href="simple-net-autograd.html#cb70-19"></a><span class="co"># dimensionality of hidden layer</span></span>
-<span id="cb70-20"><a href="simple-net-autograd.html#cb70-20"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb70-21"><a href="simple-net-autograd.html#cb70-21"></a><span class="co"># weights connecting input to hidden layer</span></span>
-<span id="cb70-22"><a href="simple-net-autograd.html#cb70-22"></a>w1 <span class="op">=</span> torch.randn(d_in, d_hidden, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb70-23"><a href="simple-net-autograd.html#cb70-23"></a><span class="co"># weights connecting hidden to output layer</span></span>
-<span id="cb70-24"><a href="simple-net-autograd.html#cb70-24"></a>w2 <span class="op">=</span> torch.randn(d_hidden, d_out, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb70-25"><a href="simple-net-autograd.html#cb70-25"></a></span>
-<span id="cb70-26"><a href="simple-net-autograd.html#cb70-26"></a><span class="co"># hidden layer bias</span></span>
-<span id="cb70-27"><a href="simple-net-autograd.html#cb70-27"></a>b1 <span class="op">=</span> torch.zeros((<span class="dv">1</span>, d_hidden), requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb70-28"><a href="simple-net-autograd.html#cb70-28"></a><span class="co"># output layer bias</span></span>
-<span id="cb70-29"><a href="simple-net-autograd.html#cb70-29"></a>b2 <span class="op">=</span> torch.zeros((<span class="dv">1</span>, d_out), requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb70-30"><a href="simple-net-autograd.html#cb70-30"></a></span>
-<span id="cb70-31"><a href="simple-net-autograd.html#cb70-31"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
-<span id="cb70-32"><a href="simple-net-autograd.html#cb70-32"></a></span>
-<span id="cb70-33"><a href="simple-net-autograd.html#cb70-33"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
-<span id="cb70-34"><a href="simple-net-autograd.html#cb70-34"></a></span>
-<span id="cb70-35"><a href="simple-net-autograd.html#cb70-35"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
-<span id="cb70-36"><a href="simple-net-autograd.html#cb70-36"></a></span>
-<span id="cb70-37"><a href="simple-net-autograd.html#cb70-37"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
-<span id="cb70-38"><a href="simple-net-autograd.html#cb70-38"></a>    </span>
-<span id="cb70-39"><a href="simple-net-autograd.html#cb70-39"></a>    <span class="co">### -------- Forward pass -------- </span></span>
-<span id="cb70-40"><a href="simple-net-autograd.html#cb70-40"></a></span>
-<span id="cb70-41"><a href="simple-net-autograd.html#cb70-41"></a>    y_pred <span class="op">=</span> x.mm(w1).add(b1).clamp(<span class="bu">min</span> <span class="op">=</span> <span class="dv">0</span>).mm(w2).add(b2)</span>
-<span id="cb70-42"><a href="simple-net-autograd.html#cb70-42"></a></span>
-<span id="cb70-43"><a href="simple-net-autograd.html#cb70-43"></a>    <span class="co">### -------- compute loss -------- </span></span>
-<span id="cb70-44"><a href="simple-net-autograd.html#cb70-44"></a>    loss <span class="op">=</span> (y_pred <span class="op">-</span> y).<span class="bu">pow</span>(<span class="dv">2</span>).<span class="bu">sum</span>()</span>
-<span id="cb70-45"><a href="simple-net-autograd.html#cb70-45"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
-<span id="cb70-46"><a href="simple-net-autograd.html#cb70-46"></a></span>
-<span id="cb70-47"><a href="simple-net-autograd.html#cb70-47"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
-<span id="cb70-48"><a href="simple-net-autograd.html#cb70-48"></a></span>
-<span id="cb70-49"><a href="simple-net-autograd.html#cb70-49"></a>    <span class="co"># compute the gradient of loss with respect to all tensors with requires_grad = True.</span></span>
-<span id="cb70-50"><a href="simple-net-autograd.html#cb70-50"></a>    loss.backward()</span>
-<span id="cb70-51"><a href="simple-net-autograd.html#cb70-51"></a> </span>
-<span id="cb70-52"><a href="simple-net-autograd.html#cb70-52"></a>    <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb70-53"><a href="simple-net-autograd.html#cb70-53"></a>    </span>
-<span id="cb70-54"><a href="simple-net-autograd.html#cb70-54"></a>    <span class="co"># Wrap in torch.no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
-<span id="cb70-55"><a href="simple-net-autograd.html#cb70-55"></a>    <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb70-56"><a href="simple-net-autograd.html#cb70-56"></a>        w1 <span class="op">-=</span> learning_rate <span class="op">*</span> w1.grad</span>
-<span id="cb70-57"><a href="simple-net-autograd.html#cb70-57"></a>        w2 <span class="op">-=</span> learning_rate <span class="op">*</span> w2.grad</span>
-<span id="cb70-58"><a href="simple-net-autograd.html#cb70-58"></a>        b1 <span class="op">-=</span> learning_rate <span class="op">*</span> b1.grad</span>
-<span id="cb70-59"><a href="simple-net-autograd.html#cb70-59"></a>        b2 <span class="op">-=</span> learning_rate <span class="op">*</span> b2.grad</span>
-<span id="cb70-60"><a href="simple-net-autograd.html#cb70-60"></a></span>
-<span id="cb70-61"><a href="simple-net-autograd.html#cb70-61"></a>        <span class="co"># Zero the gradients after every pass, because they&#39;d accumulate otherwise</span></span>
-<span id="cb70-62"><a href="simple-net-autograd.html#cb70-62"></a>        w1.grad.zero_()<span class="op">;</span></span>
-<span id="cb70-63"><a href="simple-net-autograd.html#cb70-63"></a>        w2.grad.zero_()<span class="op">;</span></span>
-<span id="cb70-64"><a href="simple-net-autograd.html#cb70-64"></a>        b1.grad.zero_()<span class="op">;</span></span>
-<span id="cb70-65"><a href="simple-net-autograd.html#cb70-65"></a>        b2.grad.zero_()<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb73-1"><a href="simple-net-autograd.html#cb73-1"></a><span class="im">import</span> torch</span>
+<span id="cb73-2"><a href="simple-net-autograd.html#cb73-2"></a></span>
+<span id="cb73-3"><a href="simple-net-autograd.html#cb73-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb73-4"><a href="simple-net-autograd.html#cb73-4"></a></span>
+<span id="cb73-5"><a href="simple-net-autograd.html#cb73-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb73-6"><a href="simple-net-autograd.html#cb73-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb73-7"><a href="simple-net-autograd.html#cb73-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb73-8"><a href="simple-net-autograd.html#cb73-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb73-9"><a href="simple-net-autograd.html#cb73-9"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb73-10"><a href="simple-net-autograd.html#cb73-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb73-11"><a href="simple-net-autograd.html#cb73-11"></a></span>
+<span id="cb73-12"><a href="simple-net-autograd.html#cb73-12"></a><span class="co"># create random data</span></span>
+<span id="cb73-13"><a href="simple-net-autograd.html#cb73-13"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
+<span id="cb73-14"><a href="simple-net-autograd.html#cb73-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
+<span id="cb73-15"><a href="simple-net-autograd.html#cb73-15"></a></span>
+<span id="cb73-16"><a href="simple-net-autograd.html#cb73-16"></a></span>
+<span id="cb73-17"><a href="simple-net-autograd.html#cb73-17"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
+<span id="cb73-18"><a href="simple-net-autograd.html#cb73-18"></a></span>
+<span id="cb73-19"><a href="simple-net-autograd.html#cb73-19"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb73-20"><a href="simple-net-autograd.html#cb73-20"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb73-21"><a href="simple-net-autograd.html#cb73-21"></a><span class="co"># weights connecting input to hidden layer</span></span>
+<span id="cb73-22"><a href="simple-net-autograd.html#cb73-22"></a>w1 <span class="op">=</span> torch.randn(d_in, d_hidden, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb73-23"><a href="simple-net-autograd.html#cb73-23"></a><span class="co"># weights connecting hidden to output layer</span></span>
+<span id="cb73-24"><a href="simple-net-autograd.html#cb73-24"></a>w2 <span class="op">=</span> torch.randn(d_hidden, d_out, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb73-25"><a href="simple-net-autograd.html#cb73-25"></a></span>
+<span id="cb73-26"><a href="simple-net-autograd.html#cb73-26"></a><span class="co"># hidden layer bias</span></span>
+<span id="cb73-27"><a href="simple-net-autograd.html#cb73-27"></a>b1 <span class="op">=</span> torch.zeros((<span class="dv">1</span>, d_hidden), requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb73-28"><a href="simple-net-autograd.html#cb73-28"></a><span class="co"># output layer bias</span></span>
+<span id="cb73-29"><a href="simple-net-autograd.html#cb73-29"></a>b2 <span class="op">=</span> torch.zeros((<span class="dv">1</span>, d_out), requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb73-30"><a href="simple-net-autograd.html#cb73-30"></a></span>
+<span id="cb73-31"><a href="simple-net-autograd.html#cb73-31"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
+<span id="cb73-32"><a href="simple-net-autograd.html#cb73-32"></a></span>
+<span id="cb73-33"><a href="simple-net-autograd.html#cb73-33"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span id="cb73-34"><a href="simple-net-autograd.html#cb73-34"></a></span>
+<span id="cb73-35"><a href="simple-net-autograd.html#cb73-35"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb73-36"><a href="simple-net-autograd.html#cb73-36"></a></span>
+<span id="cb73-37"><a href="simple-net-autograd.html#cb73-37"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
+<span id="cb73-38"><a href="simple-net-autograd.html#cb73-38"></a>    </span>
+<span id="cb73-39"><a href="simple-net-autograd.html#cb73-39"></a>    <span class="co">### -------- Forward pass -------- </span></span>
+<span id="cb73-40"><a href="simple-net-autograd.html#cb73-40"></a></span>
+<span id="cb73-41"><a href="simple-net-autograd.html#cb73-41"></a>    y_pred <span class="op">=</span> x.mm(w1).add(b1).clamp(<span class="bu">min</span> <span class="op">=</span> <span class="dv">0</span>).mm(w2).add(b2)</span>
+<span id="cb73-42"><a href="simple-net-autograd.html#cb73-42"></a></span>
+<span id="cb73-43"><a href="simple-net-autograd.html#cb73-43"></a>    <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb73-44"><a href="simple-net-autograd.html#cb73-44"></a>    loss <span class="op">=</span> (y_pred <span class="op">-</span> y).<span class="bu">pow</span>(<span class="dv">2</span>).<span class="bu">sum</span>()</span>
+<span id="cb73-45"><a href="simple-net-autograd.html#cb73-45"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
+<span id="cb73-46"><a href="simple-net-autograd.html#cb73-46"></a></span>
+<span id="cb73-47"><a href="simple-net-autograd.html#cb73-47"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
+<span id="cb73-48"><a href="simple-net-autograd.html#cb73-48"></a></span>
+<span id="cb73-49"><a href="simple-net-autograd.html#cb73-49"></a>    <span class="co"># compute the gradient of loss with respect to all tensors with requires_grad = True.</span></span>
+<span id="cb73-50"><a href="simple-net-autograd.html#cb73-50"></a>    loss.backward()</span>
+<span id="cb73-51"><a href="simple-net-autograd.html#cb73-51"></a> </span>
+<span id="cb73-52"><a href="simple-net-autograd.html#cb73-52"></a>    <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb73-53"><a href="simple-net-autograd.html#cb73-53"></a>    </span>
+<span id="cb73-54"><a href="simple-net-autograd.html#cb73-54"></a>    <span class="co"># Wrap in torch.no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
+<span id="cb73-55"><a href="simple-net-autograd.html#cb73-55"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb73-56"><a href="simple-net-autograd.html#cb73-56"></a>        w1 <span class="op">-=</span> learning_rate <span class="op">*</span> w1.grad</span>
+<span id="cb73-57"><a href="simple-net-autograd.html#cb73-57"></a>        w2 <span class="op">-=</span> learning_rate <span class="op">*</span> w2.grad</span>
+<span id="cb73-58"><a href="simple-net-autograd.html#cb73-58"></a>        b1 <span class="op">-=</span> learning_rate <span class="op">*</span> b1.grad</span>
+<span id="cb73-59"><a href="simple-net-autograd.html#cb73-59"></a>        b2 <span class="op">-=</span> learning_rate <span class="op">*</span> b2.grad</span>
+<span id="cb73-60"><a href="simple-net-autograd.html#cb73-60"></a></span>
+<span id="cb73-61"><a href="simple-net-autograd.html#cb73-61"></a>        <span class="co"># Zero the gradients after every pass, because they&#39;d accumulate otherwise</span></span>
+<span id="cb73-62"><a href="simple-net-autograd.html#cb73-62"></a>        w1.grad.zero_()<span class="op">;</span></span>
+<span id="cb73-63"><a href="simple-net-autograd.html#cb73-63"></a>        w2.grad.zero_()<span class="op">;</span></span>
+<span id="cb73-64"><a href="simple-net-autograd.html#cb73-64"></a>        b1.grad.zero_()<span class="op">;</span></span>
+<span id="cb73-65"><a href="simple-net-autograd.html#cb73-65"></a>        b2.grad.zero_()<span class="op">;</span></span></code></pre></div>
 </div>
 <div id="section" class="section level2" number="4.4">
 <h2><span class="header-section-number">4.4</span> </h2>

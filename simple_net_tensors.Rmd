@@ -113,8 +113,6 @@ to fully understand their use in the above example.
 
 ### Creating tensors
 
-\#\#\#TBD\#\#\# named tensors
-
 Tensors can be created by specifying individual values. Here we create two one-dimensional tensors (vectors), of type `float`
 and `bool`, resp.:
 
@@ -155,6 +153,10 @@ t <- torch_zeros(4, 2, 2)
 t
 
 ```
+
+Many similar function exist, including `torch_arange` to create a tensor holding a sequence of values, `torch_eye` that
+returns an identity matrix, and `torch_logspace` that will fill a specified range with a list of logarithmically spaced
+values.
 
 If no `dtype` is specified, `torch` will infer it from the data. For example:
 
@@ -224,18 +226,23 @@ shared storage
 
 ### Indexing and slicing tensors
 
-\#\#\#TBD\#\#\# named tensors
+Indexing and slicing tensors is 1-based and works, to a high degree, like you'd expect from R. For easy retrieval, we split
+this section into two subsections: things that work as expected, from the point of view of an R user, and things you might not
+be expecting a priori, but that are inspired by powerful indexing functionality in Python's NumPy.
 
-Indexing and slicing tensors is 1-based and works like you'd expect from R:
+#### R-like behavior
 
 ```{r}
 t <- torch_tensor(rbind(c(1,2,3), c(4,5,6)))
 t
 
+# a single value
 t[1, 1]
 
+# one row, all columns
 t[1, ]
 
+# one row, a subset of columns
 t[1, 1:2]
 ```
 
@@ -254,6 +261,36 @@ And just like in R, you can specify `drop = FALSE` to keep those dimensions:
 ```{r}
 t[1, 1:2, drop = FALSE]$size()
 t[1, 1, drop = FALSE]$size()
+```
+
+#### Functionality beyond what you'd expect from R
+
+Whereas R uses negative numbers to remove elements at specified positions, in `torch` negative values indicate we start
+counting from the end of a tensor -- with `-1` pointing to its last element:
+
+```{r}
+t[1, -1]
+t[ , -2:-1] 
+```
+
+This is a feature you might know from NumPy. Same with the following: When the slicing expression `n1:n2` is augmented by
+another semicolon and a third number -- `n1:n2:n3` -- we will take, in the range specified by `n1` and `n2`, every `n3`rd
+item:
+
+```{r}
+t <- torch_tensor(1:10)
+t[2:10:2]
+```
+
+Sometimes we don't know how many dimensions a tensor has, but we do know what to do with the last available dimension, or the
+first one. To subsume all others, we can use `..`:
+
+```{r}
+t <- torch_randint(-7, 7, size = c(2, 2, 2))
+t
+t[.., 1]
+t[2, ..]
+
 ```
 
 ### Reshaping tensors

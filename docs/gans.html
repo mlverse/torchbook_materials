@@ -308,35 +308,35 @@ and/or parameters may make an important difference.</p>
 drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided
 into 10 classes.</p>
 <p>We can use torch for loading it. With an unsupervised learning task such as this one, we only need the training set:</p>
-<div class="sourceCode" id="cb182"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb182-1"><a href="gans.html#cb182-1"></a><span class="im">import</span> torch</span>
-<span id="cb182-2"><a href="gans.html#cb182-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
-<span id="cb182-3"><a href="gans.html#cb182-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
-<span id="cb182-4"><a href="gans.html#cb182-4"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb182-5"><a href="gans.html#cb182-5"></a><span class="im">import</span> torchvision</span>
-<span id="cb182-6"><a href="gans.html#cb182-6"></a><span class="im">from</span> torchvision <span class="im">import</span> transforms, datasets, utils</span>
-<span id="cb182-7"><a href="gans.html#cb182-7"></a><span class="im">import</span> os</span>
-<span id="cb182-8"><a href="gans.html#cb182-8"></a></span>
-<span id="cb182-9"><a href="gans.html#cb182-9"></a>transform <span class="op">=</span> transforms.Compose([transforms.ToTensor()])</span>
-<span id="cb182-10"><a href="gans.html#cb182-10"></a></span>
-<span id="cb182-11"><a href="gans.html#cb182-11"></a>kmnist <span class="op">=</span> torchvision.datasets.KMNIST(<span class="st">&quot;data/kmnist&quot;</span>, train <span class="op">=</span> <span class="va">True</span>, transform <span class="op">=</span> transform, download <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb182-12"><a href="gans.html#cb182-12"></a></span>
-<span id="cb182-13"><a href="gans.html#cb182-13"></a>dataloader <span class="op">=</span> torch.utils.data.DataLoader(kmnist, batch_size<span class="op">=</span><span class="dv">128</span>, shuffle <span class="op">=</span> <span class="va">True</span>, num_workers <span class="op">=</span> <span class="dv">8</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb185"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb185-1"><a href="gans.html#cb185-1"></a><span class="im">import</span> torch</span>
+<span id="cb185-2"><a href="gans.html#cb185-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb185-3"><a href="gans.html#cb185-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
+<span id="cb185-4"><a href="gans.html#cb185-4"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb185-5"><a href="gans.html#cb185-5"></a><span class="im">import</span> torchvision</span>
+<span id="cb185-6"><a href="gans.html#cb185-6"></a><span class="im">from</span> torchvision <span class="im">import</span> transforms, datasets, utils</span>
+<span id="cb185-7"><a href="gans.html#cb185-7"></a><span class="im">import</span> os</span>
+<span id="cb185-8"><a href="gans.html#cb185-8"></a></span>
+<span id="cb185-9"><a href="gans.html#cb185-9"></a>transform <span class="op">=</span> transforms.Compose([transforms.ToTensor()])</span>
+<span id="cb185-10"><a href="gans.html#cb185-10"></a></span>
+<span id="cb185-11"><a href="gans.html#cb185-11"></a>kmnist <span class="op">=</span> torchvision.datasets.KMNIST(<span class="st">&quot;data/kmnist&quot;</span>, train <span class="op">=</span> <span class="va">True</span>, transform <span class="op">=</span> transform, download <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb185-12"><a href="gans.html#cb185-12"></a></span>
+<span id="cb185-13"><a href="gans.html#cb185-13"></a>dataloader <span class="op">=</span> torch.utils.data.DataLoader(kmnist, batch_size<span class="op">=</span><span class="dv">128</span>, shuffle <span class="op">=</span> <span class="va">True</span>, num_workers <span class="op">=</span> <span class="dv">8</span>)</span></code></pre></div>
 <p>Let’s view a few of those. Here are the first 128 images:</p>
-<div class="sourceCode" id="cb183"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb183-1"><a href="gans.html#cb183-1"></a>images <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(dataloader))[<span class="dv">0</span>].cpu()</span>
-<span id="cb183-2"><a href="gans.html#cb183-2"></a>images.device</span></code></pre></div>
+<div class="sourceCode" id="cb186"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb186-1"><a href="gans.html#cb186-1"></a>images <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(dataloader))[<span class="dv">0</span>].cpu()</span>
+<span id="cb186-2"><a href="gans.html#cb186-2"></a>images.device</span></code></pre></div>
 <p>… of which, let’s plot the first 16:</p>
-<div class="sourceCode" id="cb184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb184-1"><a href="gans.html#cb184-1"></a><span class="kw">library</span>(reticulate)</span>
-<span id="cb184-2"><a href="gans.html#cb184-2"></a><span class="kw">library</span>(dplyr)</span>
-<span id="cb184-3"><a href="gans.html#cb184-3"></a></span>
-<span id="cb184-4"><a href="gans.html#cb184-4"></a>index &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">16</span></span>
-<span id="cb184-5"><a href="gans.html#cb184-5"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>images<span class="op">$</span><span class="kw">numpy</span>()[index,,,] </span>
-<span id="cb184-6"><a href="gans.html#cb184-6"></a></span>
-<span id="cb184-7"><a href="gans.html#cb184-7"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
-<span id="cb184-8"><a href="gans.html#cb184-8"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb184-9"><a href="gans.html#cb184-9"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb184-10"><a href="gans.html#cb184-10"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster) <span class="op">%&gt;%</span></span>
-<span id="cb184-11"><a href="gans.html#cb184-11"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
-<div class="sourceCode" id="cb185"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb185-1"><a href="gans.html#cb185-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_real.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb187"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb187-1"><a href="gans.html#cb187-1"></a><span class="kw">library</span>(reticulate)</span>
+<span id="cb187-2"><a href="gans.html#cb187-2"></a><span class="kw">library</span>(dplyr)</span>
+<span id="cb187-3"><a href="gans.html#cb187-3"></a></span>
+<span id="cb187-4"><a href="gans.html#cb187-4"></a>index &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">16</span></span>
+<span id="cb187-5"><a href="gans.html#cb187-5"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>images<span class="op">$</span><span class="kw">numpy</span>()[index,,,] </span>
+<span id="cb187-6"><a href="gans.html#cb187-6"></a></span>
+<span id="cb187-7"><a href="gans.html#cb187-7"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
+<span id="cb187-8"><a href="gans.html#cb187-8"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb187-9"><a href="gans.html#cb187-9"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb187-10"><a href="gans.html#cb187-10"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster) <span class="op">%&gt;%</span></span>
+<span id="cb187-11"><a href="gans.html#cb187-11"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb188-1"><a href="gans.html#cb188-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_real.png&quot;</span>)</span></code></pre></div>
 </div>
 <div id="model-2" class="section level2" number="11.2">
 <h2><span class="header-section-number">11.2</span> Model</h2>
@@ -351,91 +351,91 @@ over time.)</p>
 repeated application of <em>transposed convolutions</em> that upsample from a resolution of 1x1 to the required resolution of 28x28.</p>
 <p>Following the DCGAN paper, the generator’s <code>ConvTranspose2d</code> and <code>BatchNorm2d</code> layers are initialized according to a normal
 distribution with mean 0 and standard deviation 0.02.</p>
-<div class="sourceCode" id="cb186"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb186-1"><a href="gans.html#cb186-1"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda:0&quot;</span> <span class="cf">if</span> torch.cuda.is_available()  <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span>)</span>
-<span id="cb186-2"><a href="gans.html#cb186-2"></a></span>
-<span id="cb186-3"><a href="gans.html#cb186-3"></a><span class="co"># size of generator input</span></span>
-<span id="cb186-4"><a href="gans.html#cb186-4"></a>latent_input_size <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb186-5"><a href="gans.html#cb186-5"></a></span>
-<span id="cb186-6"><a href="gans.html#cb186-6"></a>image_size <span class="op">=</span> <span class="dv">28</span></span>
-<span id="cb186-7"><a href="gans.html#cb186-7"></a></span>
-<span id="cb186-8"><a href="gans.html#cb186-8"></a><span class="kw">class</span> Generator(nn.Module):</span>
-<span id="cb186-9"><a href="gans.html#cb186-9"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
-<span id="cb186-10"><a href="gans.html#cb186-10"></a>        <span class="bu">super</span>(Generator, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb186-11"><a href="gans.html#cb186-11"></a>        <span class="va">self</span>.main <span class="op">=</span> nn.Sequential(</span>
-<span id="cb186-12"><a href="gans.html#cb186-12"></a>            <span class="co"># h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1</span></span>
-<span id="cb186-13"><a href="gans.html#cb186-13"></a>            <span class="co"># h_out = (  1  - 1) *   1    - 2 *    0    +     1    * (      4     - 1) +        0       + 1</span></span>
-<span id="cb186-14"><a href="gans.html#cb186-14"></a>            <span class="co"># 4 x 4</span></span>
-<span id="cb186-15"><a href="gans.html#cb186-15"></a>            nn.ConvTranspose2d(latent_input_size, image_size <span class="op">*</span> <span class="dv">4</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">1</span>, padding <span class="op">=</span> <span class="dv">0</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
-<span id="cb186-16"><a href="gans.html#cb186-16"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">4</span>),</span>
-<span id="cb186-17"><a href="gans.html#cb186-17"></a>            nn.ReLU(<span class="va">True</span>),</span>
-<span id="cb186-18"><a href="gans.html#cb186-18"></a>            <span class="co"># 8 * 8</span></span>
-<span id="cb186-19"><a href="gans.html#cb186-19"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">4</span>, image_size <span class="op">*</span> <span class="dv">2</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">1</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
-<span id="cb186-20"><a href="gans.html#cb186-20"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">2</span>),</span>
-<span id="cb186-21"><a href="gans.html#cb186-21"></a>            nn.ReLU(<span class="va">True</span>),</span>
-<span id="cb186-22"><a href="gans.html#cb186-22"></a>            <span class="co"># 16 x 16</span></span>
-<span id="cb186-23"><a href="gans.html#cb186-23"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">2</span>, image_size, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">2</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
-<span id="cb186-24"><a href="gans.html#cb186-24"></a>            nn.BatchNorm2d(image_size),</span>
-<span id="cb186-25"><a href="gans.html#cb186-25"></a>            nn.ReLU(<span class="va">True</span>),</span>
-<span id="cb186-26"><a href="gans.html#cb186-26"></a>            <span class="co"># 28 x 28</span></span>
-<span id="cb186-27"><a href="gans.html#cb186-27"></a>            nn.ConvTranspose2d(image_size, <span class="dv">1</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">1</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
-<span id="cb186-28"><a href="gans.html#cb186-28"></a>            nn.Tanh()</span>
-<span id="cb186-29"><a href="gans.html#cb186-29"></a>        )</span>
-<span id="cb186-30"><a href="gans.html#cb186-30"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>):</span>
-<span id="cb186-31"><a href="gans.html#cb186-31"></a>        <span class="cf">return</span> <span class="va">self</span>.main(<span class="bu">input</span>)</span>
-<span id="cb186-32"><a href="gans.html#cb186-32"></a></span>
-<span id="cb186-33"><a href="gans.html#cb186-33"></a>generator <span class="op">=</span> Generator().to(device)</span>
-<span id="cb186-34"><a href="gans.html#cb186-34"></a></span>
-<span id="cb186-35"><a href="gans.html#cb186-35"></a><span class="kw">def</span> weights_init(m):</span>
-<span id="cb186-36"><a href="gans.html#cb186-36"></a>    classname <span class="op">=</span> m.__class__.<span class="va">__name__</span></span>
-<span id="cb186-37"><a href="gans.html#cb186-37"></a>    <span class="cf">if</span> classname.find(<span class="st">&#39;Conv&#39;</span>) <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span>:</span>
-<span id="cb186-38"><a href="gans.html#cb186-38"></a>        nn.init.normal_(m.weight.data, <span class="fl">0.0</span>, <span class="fl">0.02</span>)</span>
-<span id="cb186-39"><a href="gans.html#cb186-39"></a>    <span class="cf">elif</span> classname.find(<span class="st">&#39;BatchNorm&#39;</span>) <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span>:</span>
-<span id="cb186-40"><a href="gans.html#cb186-40"></a>        nn.init.normal_(m.weight.data, <span class="fl">1.0</span>, <span class="fl">0.02</span>)</span>
-<span id="cb186-41"><a href="gans.html#cb186-41"></a>        nn.init.constant_(m.bias.data, <span class="dv">0</span>)</span>
-<span id="cb186-42"><a href="gans.html#cb186-42"></a>        </span>
-<span id="cb186-43"><a href="gans.html#cb186-43"></a>generator.<span class="bu">apply</span>(weights_init)</span></code></pre></div>
+<div class="sourceCode" id="cb189"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb189-1"><a href="gans.html#cb189-1"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda:0&quot;</span> <span class="cf">if</span> torch.cuda.is_available()  <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span>)</span>
+<span id="cb189-2"><a href="gans.html#cb189-2"></a></span>
+<span id="cb189-3"><a href="gans.html#cb189-3"></a><span class="co"># size of generator input</span></span>
+<span id="cb189-4"><a href="gans.html#cb189-4"></a>latent_input_size <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb189-5"><a href="gans.html#cb189-5"></a></span>
+<span id="cb189-6"><a href="gans.html#cb189-6"></a>image_size <span class="op">=</span> <span class="dv">28</span></span>
+<span id="cb189-7"><a href="gans.html#cb189-7"></a></span>
+<span id="cb189-8"><a href="gans.html#cb189-8"></a><span class="kw">class</span> Generator(nn.Module):</span>
+<span id="cb189-9"><a href="gans.html#cb189-9"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb189-10"><a href="gans.html#cb189-10"></a>        <span class="bu">super</span>(Generator, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb189-11"><a href="gans.html#cb189-11"></a>        <span class="va">self</span>.main <span class="op">=</span> nn.Sequential(</span>
+<span id="cb189-12"><a href="gans.html#cb189-12"></a>            <span class="co"># h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1</span></span>
+<span id="cb189-13"><a href="gans.html#cb189-13"></a>            <span class="co"># h_out = (  1  - 1) *   1    - 2 *    0    +     1    * (      4     - 1) +        0       + 1</span></span>
+<span id="cb189-14"><a href="gans.html#cb189-14"></a>            <span class="co"># 4 x 4</span></span>
+<span id="cb189-15"><a href="gans.html#cb189-15"></a>            nn.ConvTranspose2d(latent_input_size, image_size <span class="op">*</span> <span class="dv">4</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">1</span>, padding <span class="op">=</span> <span class="dv">0</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
+<span id="cb189-16"><a href="gans.html#cb189-16"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">4</span>),</span>
+<span id="cb189-17"><a href="gans.html#cb189-17"></a>            nn.ReLU(<span class="va">True</span>),</span>
+<span id="cb189-18"><a href="gans.html#cb189-18"></a>            <span class="co"># 8 * 8</span></span>
+<span id="cb189-19"><a href="gans.html#cb189-19"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">4</span>, image_size <span class="op">*</span> <span class="dv">2</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">1</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
+<span id="cb189-20"><a href="gans.html#cb189-20"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">2</span>),</span>
+<span id="cb189-21"><a href="gans.html#cb189-21"></a>            nn.ReLU(<span class="va">True</span>),</span>
+<span id="cb189-22"><a href="gans.html#cb189-22"></a>            <span class="co"># 16 x 16</span></span>
+<span id="cb189-23"><a href="gans.html#cb189-23"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">2</span>, image_size, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">2</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
+<span id="cb189-24"><a href="gans.html#cb189-24"></a>            nn.BatchNorm2d(image_size),</span>
+<span id="cb189-25"><a href="gans.html#cb189-25"></a>            nn.ReLU(<span class="va">True</span>),</span>
+<span id="cb189-26"><a href="gans.html#cb189-26"></a>            <span class="co"># 28 x 28</span></span>
+<span id="cb189-27"><a href="gans.html#cb189-27"></a>            nn.ConvTranspose2d(image_size, <span class="dv">1</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">1</span>, bias <span class="op">=</span> <span class="va">False</span>),</span>
+<span id="cb189-28"><a href="gans.html#cb189-28"></a>            nn.Tanh()</span>
+<span id="cb189-29"><a href="gans.html#cb189-29"></a>        )</span>
+<span id="cb189-30"><a href="gans.html#cb189-30"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>):</span>
+<span id="cb189-31"><a href="gans.html#cb189-31"></a>        <span class="cf">return</span> <span class="va">self</span>.main(<span class="bu">input</span>)</span>
+<span id="cb189-32"><a href="gans.html#cb189-32"></a></span>
+<span id="cb189-33"><a href="gans.html#cb189-33"></a>generator <span class="op">=</span> Generator().to(device)</span>
+<span id="cb189-34"><a href="gans.html#cb189-34"></a></span>
+<span id="cb189-35"><a href="gans.html#cb189-35"></a><span class="kw">def</span> weights_init(m):</span>
+<span id="cb189-36"><a href="gans.html#cb189-36"></a>    classname <span class="op">=</span> m.__class__.<span class="va">__name__</span></span>
+<span id="cb189-37"><a href="gans.html#cb189-37"></a>    <span class="cf">if</span> classname.find(<span class="st">&#39;Conv&#39;</span>) <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb189-38"><a href="gans.html#cb189-38"></a>        nn.init.normal_(m.weight.data, <span class="fl">0.0</span>, <span class="fl">0.02</span>)</span>
+<span id="cb189-39"><a href="gans.html#cb189-39"></a>    <span class="cf">elif</span> classname.find(<span class="st">&#39;BatchNorm&#39;</span>) <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb189-40"><a href="gans.html#cb189-40"></a>        nn.init.normal_(m.weight.data, <span class="fl">1.0</span>, <span class="fl">0.02</span>)</span>
+<span id="cb189-41"><a href="gans.html#cb189-41"></a>        nn.init.constant_(m.bias.data, <span class="dv">0</span>)</span>
+<span id="cb189-42"><a href="gans.html#cb189-42"></a>        </span>
+<span id="cb189-43"><a href="gans.html#cb189-43"></a>generator.<span class="bu">apply</span>(weights_init)</span></code></pre></div>
 </div>
 <div id="discriminator" class="section level3" number="11.2.2">
 <h3><span class="header-section-number">11.2.2</span> Discriminator</h3>
 <p>The discriminator is a pretty conventional convnet. Its layers’ weights are initialized in the same way as the generator’s.</p>
-<div class="sourceCode" id="cb187"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb187-1"><a href="gans.html#cb187-1"></a><span class="kw">class</span> Discriminator(nn.Module):</span>
-<span id="cb187-2"><a href="gans.html#cb187-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
-<span id="cb187-3"><a href="gans.html#cb187-3"></a>        <span class="bu">super</span>(Discriminator, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb187-4"><a href="gans.html#cb187-4"></a>        <span class="va">self</span>.main <span class="op">=</span> nn.Sequential(</span>
-<span id="cb187-5"><a href="gans.html#cb187-5"></a>            <span class="co"># 14 x 14</span></span>
-<span id="cb187-6"><a href="gans.html#cb187-6"></a>            nn.Conv2d(<span class="dv">1</span>, image_size, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
-<span id="cb187-7"><a href="gans.html#cb187-7"></a>            nn.LeakyReLU(<span class="fl">0.2</span>, inplace<span class="op">=</span><span class="va">True</span>),</span>
-<span id="cb187-8"><a href="gans.html#cb187-8"></a>            <span class="co"># 7 x 7</span></span>
-<span id="cb187-9"><a href="gans.html#cb187-9"></a>            nn.Conv2d(image_size, image_size <span class="op">*</span> <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
-<span id="cb187-10"><a href="gans.html#cb187-10"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">2</span>),</span>
-<span id="cb187-11"><a href="gans.html#cb187-11"></a>            nn.LeakyReLU(<span class="fl">0.2</span>, inplace<span class="op">=</span><span class="va">True</span>),</span>
-<span id="cb187-12"><a href="gans.html#cb187-12"></a>            <span class="co"># 3 x 3</span></span>
-<span id="cb187-13"><a href="gans.html#cb187-13"></a>            nn.Conv2d(image_size <span class="op">*</span> <span class="dv">2</span>, image_size <span class="op">*</span> <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
-<span id="cb187-14"><a href="gans.html#cb187-14"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">4</span>),</span>
-<span id="cb187-15"><a href="gans.html#cb187-15"></a>            nn.LeakyReLU(<span class="fl">0.2</span>, inplace<span class="op">=</span><span class="va">True</span>),</span>
-<span id="cb187-16"><a href="gans.html#cb187-16"></a>            <span class="co"># 1 x 1</span></span>
-<span id="cb187-17"><a href="gans.html#cb187-17"></a>            nn.Conv2d(image_size <span class="op">*</span> <span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
-<span id="cb187-18"><a href="gans.html#cb187-18"></a>            nn.Sigmoid()</span>
-<span id="cb187-19"><a href="gans.html#cb187-19"></a>        )</span>
-<span id="cb187-20"><a href="gans.html#cb187-20"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>):</span>
-<span id="cb187-21"><a href="gans.html#cb187-21"></a>        <span class="cf">return</span> <span class="va">self</span>.main(<span class="bu">input</span>)</span>
-<span id="cb187-22"><a href="gans.html#cb187-22"></a></span>
-<span id="cb187-23"><a href="gans.html#cb187-23"></a></span>
-<span id="cb187-24"><a href="gans.html#cb187-24"></a>discriminator <span class="op">=</span> Discriminator().to(device)</span>
-<span id="cb187-25"><a href="gans.html#cb187-25"></a></span>
-<span id="cb187-26"><a href="gans.html#cb187-26"></a>discriminator.<span class="bu">apply</span>(weights_init)</span></code></pre></div>
+<div class="sourceCode" id="cb190"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb190-1"><a href="gans.html#cb190-1"></a><span class="kw">class</span> Discriminator(nn.Module):</span>
+<span id="cb190-2"><a href="gans.html#cb190-2"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb190-3"><a href="gans.html#cb190-3"></a>        <span class="bu">super</span>(Discriminator, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb190-4"><a href="gans.html#cb190-4"></a>        <span class="va">self</span>.main <span class="op">=</span> nn.Sequential(</span>
+<span id="cb190-5"><a href="gans.html#cb190-5"></a>            <span class="co"># 14 x 14</span></span>
+<span id="cb190-6"><a href="gans.html#cb190-6"></a>            nn.Conv2d(<span class="dv">1</span>, image_size, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
+<span id="cb190-7"><a href="gans.html#cb190-7"></a>            nn.LeakyReLU(<span class="fl">0.2</span>, inplace<span class="op">=</span><span class="va">True</span>),</span>
+<span id="cb190-8"><a href="gans.html#cb190-8"></a>            <span class="co"># 7 x 7</span></span>
+<span id="cb190-9"><a href="gans.html#cb190-9"></a>            nn.Conv2d(image_size, image_size <span class="op">*</span> <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
+<span id="cb190-10"><a href="gans.html#cb190-10"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">2</span>),</span>
+<span id="cb190-11"><a href="gans.html#cb190-11"></a>            nn.LeakyReLU(<span class="fl">0.2</span>, inplace<span class="op">=</span><span class="va">True</span>),</span>
+<span id="cb190-12"><a href="gans.html#cb190-12"></a>            <span class="co"># 3 x 3</span></span>
+<span id="cb190-13"><a href="gans.html#cb190-13"></a>            nn.Conv2d(image_size <span class="op">*</span> <span class="dv">2</span>, image_size <span class="op">*</span> <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
+<span id="cb190-14"><a href="gans.html#cb190-14"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">4</span>),</span>
+<span id="cb190-15"><a href="gans.html#cb190-15"></a>            nn.LeakyReLU(<span class="fl">0.2</span>, inplace<span class="op">=</span><span class="va">True</span>),</span>
+<span id="cb190-16"><a href="gans.html#cb190-16"></a>            <span class="co"># 1 x 1</span></span>
+<span id="cb190-17"><a href="gans.html#cb190-17"></a>            nn.Conv2d(image_size <span class="op">*</span> <span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, bias<span class="op">=</span><span class="va">False</span>),</span>
+<span id="cb190-18"><a href="gans.html#cb190-18"></a>            nn.Sigmoid()</span>
+<span id="cb190-19"><a href="gans.html#cb190-19"></a>        )</span>
+<span id="cb190-20"><a href="gans.html#cb190-20"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>):</span>
+<span id="cb190-21"><a href="gans.html#cb190-21"></a>        <span class="cf">return</span> <span class="va">self</span>.main(<span class="bu">input</span>)</span>
+<span id="cb190-22"><a href="gans.html#cb190-22"></a></span>
+<span id="cb190-23"><a href="gans.html#cb190-23"></a></span>
+<span id="cb190-24"><a href="gans.html#cb190-24"></a>discriminator <span class="op">=</span> Discriminator().to(device)</span>
+<span id="cb190-25"><a href="gans.html#cb190-25"></a></span>
+<span id="cb190-26"><a href="gans.html#cb190-26"></a>discriminator.<span class="bu">apply</span>(weights_init)</span></code></pre></div>
 </div>
 <div id="optimizers-and-loss-function" class="section level3" number="11.2.3">
 <h3><span class="header-section-number">11.2.3</span> Optimizers and loss function</h3>
 <p>While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary
 crossentropy:</p>
-<div class="sourceCode" id="cb188"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb188-1"><a href="gans.html#cb188-1"></a>criterion <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
+<div class="sourceCode" id="cb191"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb191-1"><a href="gans.html#cb191-1"></a>criterion <span class="op">=</span> nn.BCELoss()</span></code></pre></div>
 <p>They each have their own optimizer:</p>
-<div class="sourceCode" id="cb189"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb189-1"><a href="gans.html#cb189-1"></a>lr <span class="op">=</span> <span class="fl">0.0002</span></span>
-<span id="cb189-2"><a href="gans.html#cb189-2"></a>beta1 <span class="op">=</span> <span class="fl">0.5</span></span>
-<span id="cb189-3"><a href="gans.html#cb189-3"></a></span>
-<span id="cb189-4"><a href="gans.html#cb189-4"></a>disc_optimizer <span class="op">=</span> optim.Adam(discriminator.parameters(), lr <span class="op">=</span> lr, betas <span class="op">=</span> (beta1, <span class="fl">0.999</span>))</span>
-<span id="cb189-5"><a href="gans.html#cb189-5"></a>gen_optimizer <span class="op">=</span> optim.Adam(generator.parameters(), lr <span class="op">=</span> lr, betas <span class="op">=</span> (beta1, <span class="fl">0.999</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb192"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb192-1"><a href="gans.html#cb192-1"></a>lr <span class="op">=</span> <span class="fl">0.0002</span></span>
+<span id="cb192-2"><a href="gans.html#cb192-2"></a>beta1 <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb192-3"><a href="gans.html#cb192-3"></a></span>
+<span id="cb192-4"><a href="gans.html#cb192-4"></a>disc_optimizer <span class="op">=</span> optim.Adam(discriminator.parameters(), lr <span class="op">=</span> lr, betas <span class="op">=</span> (beta1, <span class="fl">0.999</span>))</span>
+<span id="cb192-5"><a href="gans.html#cb192-5"></a>gen_optimizer <span class="op">=</span> optim.Adam(generator.parameters(), lr <span class="op">=</span> lr, betas <span class="op">=</span> (beta1, <span class="fl">0.999</span>))</span></code></pre></div>
 </div>
 </div>
 <div id="training-loop-1" class="section level2" number="11.3">
@@ -450,131 +450,131 @@ if all images are characterized as fake.</p>
 turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is “no fake”, so the
 labels are set to “real”. The binary cross entropy loss then reflects the generator’s performance, not that of the
 discriminator.</p>
-<div class="sourceCode" id="cb190"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb190-1"><a href="gans.html#cb190-1"></a><span class="co"># random noise - input for generator</span></span>
-<span id="cb190-2"><a href="gans.html#cb190-2"></a>fixed_noise <span class="op">=</span> torch.randn(<span class="dv">64</span>, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, device <span class="op">=</span> device)</span>
-<span id="cb190-3"><a href="gans.html#cb190-3"></a></span>
-<span id="cb190-4"><a href="gans.html#cb190-4"></a>real_label <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb190-5"><a href="gans.html#cb190-5"></a>fake_label <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb190-6"><a href="gans.html#cb190-6"></a></span>
-<span id="cb190-7"><a href="gans.html#cb190-7"></a>img_list <span class="op">=</span> []</span>
-<span id="cb190-8"><a href="gans.html#cb190-8"></a>generator_losses <span class="op">=</span> []</span>
-<span id="cb190-9"><a href="gans.html#cb190-9"></a>discriminator_losses <span class="op">=</span> []</span>
-<span id="cb190-10"><a href="gans.html#cb190-10"></a>discriminator_outputs_fake <span class="op">=</span> []</span>
-<span id="cb190-11"><a href="gans.html#cb190-11"></a>discriminator_outputs_real <span class="op">=</span> []</span>
-<span id="cb190-12"><a href="gans.html#cb190-12"></a></span>
-<span id="cb190-13"><a href="gans.html#cb190-13"></a>num_epochs <span class="op">=</span> <span class="dv">5</span></span>
-<span id="cb190-14"><a href="gans.html#cb190-14"></a></span>
-<span id="cb190-15"><a href="gans.html#cb190-15"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
-<span id="cb190-16"><a href="gans.html#cb190-16"></a></span>
-<span id="cb190-17"><a href="gans.html#cb190-17"></a>    <span class="cf">for</span> i, data <span class="kw">in</span> <span class="bu">enumerate</span>(dataloader, <span class="dv">0</span>):</span>
-<span id="cb190-18"><a href="gans.html#cb190-18"></a>    </span>
-<span id="cb190-19"><a href="gans.html#cb190-19"></a>        <span class="co"># (1) Train discriminator</span></span>
-<span id="cb190-20"><a href="gans.html#cb190-20"></a>        </span>
-<span id="cb190-21"><a href="gans.html#cb190-21"></a>        <span class="co">## Train with all-real batch</span></span>
-<span id="cb190-22"><a href="gans.html#cb190-22"></a></span>
-<span id="cb190-23"><a href="gans.html#cb190-23"></a>        discriminator.zero_grad()</span>
-<span id="cb190-24"><a href="gans.html#cb190-24"></a>        real_cpu <span class="op">=</span> data[<span class="dv">0</span>].to(device)</span>
-<span id="cb190-25"><a href="gans.html#cb190-25"></a>        b_size <span class="op">=</span> real_cpu.size(<span class="dv">0</span>)</span>
-<span id="cb190-26"><a href="gans.html#cb190-26"></a>        label <span class="op">=</span> torch.full((b_size,), real_label, device<span class="op">=</span>device)</span>
-<span id="cb190-27"><a href="gans.html#cb190-27"></a>        output <span class="op">=</span> discriminator(real_cpu).view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb190-28"><a href="gans.html#cb190-28"></a>        discriminator_loss_real <span class="op">=</span> criterion(output, label)</span>
-<span id="cb190-29"><a href="gans.html#cb190-29"></a>        discriminator_loss_real.backward()</span>
-<span id="cb190-30"><a href="gans.html#cb190-30"></a>        discriminator_output_real <span class="op">=</span> output.mean().item()</span>
-<span id="cb190-31"><a href="gans.html#cb190-31"></a>        </span>
-<span id="cb190-32"><a href="gans.html#cb190-32"></a>        <span class="co">## Train with all-fake batch</span></span>
-<span id="cb190-33"><a href="gans.html#cb190-33"></a></span>
-<span id="cb190-34"><a href="gans.html#cb190-34"></a>        noise <span class="op">=</span> torch.randn(b_size, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, device<span class="op">=</span>device)</span>
-<span id="cb190-35"><a href="gans.html#cb190-35"></a>        fake <span class="op">=</span> generator(noise)</span>
-<span id="cb190-36"><a href="gans.html#cb190-36"></a>        label.fill_(fake_label)</span>
-<span id="cb190-37"><a href="gans.html#cb190-37"></a>        output <span class="op">=</span> discriminator(fake.detach()).view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb190-38"><a href="gans.html#cb190-38"></a>        discriminator_loss_fake <span class="op">=</span> criterion(output, label)</span>
-<span id="cb190-39"><a href="gans.html#cb190-39"></a>        discriminator_loss_fake.backward()</span>
-<span id="cb190-40"><a href="gans.html#cb190-40"></a>    </span>
-<span id="cb190-41"><a href="gans.html#cb190-41"></a>        <span class="co"># Update discriminator weights</span></span>
-<span id="cb190-42"><a href="gans.html#cb190-42"></a>    </span>
-<span id="cb190-43"><a href="gans.html#cb190-43"></a>        discriminator_loss <span class="op">=</span> discriminator_loss_real <span class="op">+</span> discriminator_loss_fake    </span>
-<span id="cb190-44"><a href="gans.html#cb190-44"></a>        disc_optimizer.step()</span>
-<span id="cb190-45"><a href="gans.html#cb190-45"></a></span>
-<span id="cb190-46"><a href="gans.html#cb190-46"></a>        <span class="co"># (2) Train generator</span></span>
-<span id="cb190-47"><a href="gans.html#cb190-47"></a></span>
-<span id="cb190-48"><a href="gans.html#cb190-48"></a>        generator.zero_grad()</span>
-<span id="cb190-49"><a href="gans.html#cb190-49"></a>        label.fill_(real_label)  </span>
-<span id="cb190-50"><a href="gans.html#cb190-50"></a>        output <span class="op">=</span> discriminator(fake).view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb190-51"><a href="gans.html#cb190-51"></a>        generator_loss <span class="op">=</span> criterion(output, label)</span>
-<span id="cb190-52"><a href="gans.html#cb190-52"></a>        generator_loss.backward()</span>
-<span id="cb190-53"><a href="gans.html#cb190-53"></a>        discriminator_output_fake <span class="op">=</span> output.mean().item()</span>
-<span id="cb190-54"><a href="gans.html#cb190-54"></a></span>
-<span id="cb190-55"><a href="gans.html#cb190-55"></a>        <span class="co"># Update generator weights</span></span>
-<span id="cb190-56"><a href="gans.html#cb190-56"></a>        gen_optimizer.step()</span>
-<span id="cb190-57"><a href="gans.html#cb190-57"></a></span>
-<span id="cb190-58"><a href="gans.html#cb190-58"></a>        <span class="co"># Output training stats</span></span>
-<span id="cb190-59"><a href="gans.html#cb190-59"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">50</span> <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb190-60"><a href="gans.html#cb190-60"></a>            <span class="bu">print</span>(<span class="st">&#39;[</span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st">][</span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st">]</span><span class="ch">\t</span><span class="st">Loss_D: </span><span class="sc">%.4f</span><span class="ch">\t</span><span class="st">Loss_G: </span><span class="sc">%.4f</span><span class="ch">\t</span><span class="st">D(x): </span><span class="sc">%.4f</span><span class="ch">\t</span><span class="st">D(G(z)): </span><span class="sc">%.4f</span><span class="st"> &#39;</span></span>
-<span id="cb190-61"><a href="gans.html#cb190-61"></a>                  <span class="op">%</span> (epoch, num_epochs, i, <span class="bu">len</span>(dataloader),</span>
-<span id="cb190-62"><a href="gans.html#cb190-62"></a>                     discriminator_loss.item(), generator_loss.item(), discriminator_output_real, discriminator_output_fake))</span>
-<span id="cb190-63"><a href="gans.html#cb190-63"></a>            generator_losses.append(generator_loss.item())</span>
-<span id="cb190-64"><a href="gans.html#cb190-64"></a>            discriminator_losses.append(discriminator_loss.item())</span>
-<span id="cb190-65"><a href="gans.html#cb190-65"></a>            discriminator_outputs_fake.append(discriminator_output_fake)</span>
-<span id="cb190-66"><a href="gans.html#cb190-66"></a>            discriminator_outputs_real.append(discriminator_output_real)</span>
-<span id="cb190-67"><a href="gans.html#cb190-67"></a>            <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb190-68"><a href="gans.html#cb190-68"></a>              fake <span class="op">=</span> generator(fixed_noise).detach().cpu()</span>
-<span id="cb190-69"><a href="gans.html#cb190-69"></a>              img_list.append(utils.make_grid(fake, padding<span class="op">=</span><span class="dv">2</span>, normalize<span class="op">=</span><span class="va">True</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb193"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb193-1"><a href="gans.html#cb193-1"></a><span class="co"># random noise - input for generator</span></span>
+<span id="cb193-2"><a href="gans.html#cb193-2"></a>fixed_noise <span class="op">=</span> torch.randn(<span class="dv">64</span>, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, device <span class="op">=</span> device)</span>
+<span id="cb193-3"><a href="gans.html#cb193-3"></a></span>
+<span id="cb193-4"><a href="gans.html#cb193-4"></a>real_label <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb193-5"><a href="gans.html#cb193-5"></a>fake_label <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb193-6"><a href="gans.html#cb193-6"></a></span>
+<span id="cb193-7"><a href="gans.html#cb193-7"></a>img_list <span class="op">=</span> []</span>
+<span id="cb193-8"><a href="gans.html#cb193-8"></a>generator_losses <span class="op">=</span> []</span>
+<span id="cb193-9"><a href="gans.html#cb193-9"></a>discriminator_losses <span class="op">=</span> []</span>
+<span id="cb193-10"><a href="gans.html#cb193-10"></a>discriminator_outputs_fake <span class="op">=</span> []</span>
+<span id="cb193-11"><a href="gans.html#cb193-11"></a>discriminator_outputs_real <span class="op">=</span> []</span>
+<span id="cb193-12"><a href="gans.html#cb193-12"></a></span>
+<span id="cb193-13"><a href="gans.html#cb193-13"></a>num_epochs <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb193-14"><a href="gans.html#cb193-14"></a></span>
+<span id="cb193-15"><a href="gans.html#cb193-15"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
+<span id="cb193-16"><a href="gans.html#cb193-16"></a></span>
+<span id="cb193-17"><a href="gans.html#cb193-17"></a>    <span class="cf">for</span> i, data <span class="kw">in</span> <span class="bu">enumerate</span>(dataloader, <span class="dv">0</span>):</span>
+<span id="cb193-18"><a href="gans.html#cb193-18"></a>    </span>
+<span id="cb193-19"><a href="gans.html#cb193-19"></a>        <span class="co"># (1) Train discriminator</span></span>
+<span id="cb193-20"><a href="gans.html#cb193-20"></a>        </span>
+<span id="cb193-21"><a href="gans.html#cb193-21"></a>        <span class="co">## Train with all-real batch</span></span>
+<span id="cb193-22"><a href="gans.html#cb193-22"></a></span>
+<span id="cb193-23"><a href="gans.html#cb193-23"></a>        discriminator.zero_grad()</span>
+<span id="cb193-24"><a href="gans.html#cb193-24"></a>        real_cpu <span class="op">=</span> data[<span class="dv">0</span>].to(device)</span>
+<span id="cb193-25"><a href="gans.html#cb193-25"></a>        b_size <span class="op">=</span> real_cpu.size(<span class="dv">0</span>)</span>
+<span id="cb193-26"><a href="gans.html#cb193-26"></a>        label <span class="op">=</span> torch.full((b_size,), real_label, device<span class="op">=</span>device)</span>
+<span id="cb193-27"><a href="gans.html#cb193-27"></a>        output <span class="op">=</span> discriminator(real_cpu).view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb193-28"><a href="gans.html#cb193-28"></a>        discriminator_loss_real <span class="op">=</span> criterion(output, label)</span>
+<span id="cb193-29"><a href="gans.html#cb193-29"></a>        discriminator_loss_real.backward()</span>
+<span id="cb193-30"><a href="gans.html#cb193-30"></a>        discriminator_output_real <span class="op">=</span> output.mean().item()</span>
+<span id="cb193-31"><a href="gans.html#cb193-31"></a>        </span>
+<span id="cb193-32"><a href="gans.html#cb193-32"></a>        <span class="co">## Train with all-fake batch</span></span>
+<span id="cb193-33"><a href="gans.html#cb193-33"></a></span>
+<span id="cb193-34"><a href="gans.html#cb193-34"></a>        noise <span class="op">=</span> torch.randn(b_size, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, device<span class="op">=</span>device)</span>
+<span id="cb193-35"><a href="gans.html#cb193-35"></a>        fake <span class="op">=</span> generator(noise)</span>
+<span id="cb193-36"><a href="gans.html#cb193-36"></a>        label.fill_(fake_label)</span>
+<span id="cb193-37"><a href="gans.html#cb193-37"></a>        output <span class="op">=</span> discriminator(fake.detach()).view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb193-38"><a href="gans.html#cb193-38"></a>        discriminator_loss_fake <span class="op">=</span> criterion(output, label)</span>
+<span id="cb193-39"><a href="gans.html#cb193-39"></a>        discriminator_loss_fake.backward()</span>
+<span id="cb193-40"><a href="gans.html#cb193-40"></a>    </span>
+<span id="cb193-41"><a href="gans.html#cb193-41"></a>        <span class="co"># Update discriminator weights</span></span>
+<span id="cb193-42"><a href="gans.html#cb193-42"></a>    </span>
+<span id="cb193-43"><a href="gans.html#cb193-43"></a>        discriminator_loss <span class="op">=</span> discriminator_loss_real <span class="op">+</span> discriminator_loss_fake    </span>
+<span id="cb193-44"><a href="gans.html#cb193-44"></a>        disc_optimizer.step()</span>
+<span id="cb193-45"><a href="gans.html#cb193-45"></a></span>
+<span id="cb193-46"><a href="gans.html#cb193-46"></a>        <span class="co"># (2) Train generator</span></span>
+<span id="cb193-47"><a href="gans.html#cb193-47"></a></span>
+<span id="cb193-48"><a href="gans.html#cb193-48"></a>        generator.zero_grad()</span>
+<span id="cb193-49"><a href="gans.html#cb193-49"></a>        label.fill_(real_label)  </span>
+<span id="cb193-50"><a href="gans.html#cb193-50"></a>        output <span class="op">=</span> discriminator(fake).view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb193-51"><a href="gans.html#cb193-51"></a>        generator_loss <span class="op">=</span> criterion(output, label)</span>
+<span id="cb193-52"><a href="gans.html#cb193-52"></a>        generator_loss.backward()</span>
+<span id="cb193-53"><a href="gans.html#cb193-53"></a>        discriminator_output_fake <span class="op">=</span> output.mean().item()</span>
+<span id="cb193-54"><a href="gans.html#cb193-54"></a></span>
+<span id="cb193-55"><a href="gans.html#cb193-55"></a>        <span class="co"># Update generator weights</span></span>
+<span id="cb193-56"><a href="gans.html#cb193-56"></a>        gen_optimizer.step()</span>
+<span id="cb193-57"><a href="gans.html#cb193-57"></a></span>
+<span id="cb193-58"><a href="gans.html#cb193-58"></a>        <span class="co"># Output training stats</span></span>
+<span id="cb193-59"><a href="gans.html#cb193-59"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">50</span> <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb193-60"><a href="gans.html#cb193-60"></a>            <span class="bu">print</span>(<span class="st">&#39;[</span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st">][</span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st">]</span><span class="ch">\t</span><span class="st">Loss_D: </span><span class="sc">%.4f</span><span class="ch">\t</span><span class="st">Loss_G: </span><span class="sc">%.4f</span><span class="ch">\t</span><span class="st">D(x): </span><span class="sc">%.4f</span><span class="ch">\t</span><span class="st">D(G(z)): </span><span class="sc">%.4f</span><span class="st"> &#39;</span></span>
+<span id="cb193-61"><a href="gans.html#cb193-61"></a>                  <span class="op">%</span> (epoch, num_epochs, i, <span class="bu">len</span>(dataloader),</span>
+<span id="cb193-62"><a href="gans.html#cb193-62"></a>                     discriminator_loss.item(), generator_loss.item(), discriminator_output_real, discriminator_output_fake))</span>
+<span id="cb193-63"><a href="gans.html#cb193-63"></a>            generator_losses.append(generator_loss.item())</span>
+<span id="cb193-64"><a href="gans.html#cb193-64"></a>            discriminator_losses.append(discriminator_loss.item())</span>
+<span id="cb193-65"><a href="gans.html#cb193-65"></a>            discriminator_outputs_fake.append(discriminator_output_fake)</span>
+<span id="cb193-66"><a href="gans.html#cb193-66"></a>            discriminator_outputs_real.append(discriminator_output_real)</span>
+<span id="cb193-67"><a href="gans.html#cb193-67"></a>            <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb193-68"><a href="gans.html#cb193-68"></a>              fake <span class="op">=</span> generator(fixed_noise).detach().cpu()</span>
+<span id="cb193-69"><a href="gans.html#cb193-69"></a>              img_list.append(utils.make_grid(fake, padding<span class="op">=</span><span class="dv">2</span>, normalize<span class="op">=</span><span class="va">True</span>))</span></code></pre></div>
 <p>Now let’s see samples of generated images, spread out over training time:</p>
-<div class="sourceCode" id="cb191"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb191-1"><a href="gans.html#cb191-1"></a>index &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(py<span class="op">$</span>img_list), <span class="dt">length.out =</span> <span class="dv">16</span>)</span>
-<span id="cb191-2"><a href="gans.html#cb191-2"></a><span class="co"># these have 3 channels! (probably due to torchvision.utils.make_grid)</span></span>
-<span id="cb191-3"><a href="gans.html#cb191-3"></a><span class="co"># size is 3 x 242 x 242</span></span>
-<span id="cb191-4"><a href="gans.html#cb191-4"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>img_list[index]</span>
-<span id="cb191-5"><a href="gans.html#cb191-5"></a></span>
-<span id="cb191-6"><a href="gans.html#cb191-6"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
-<span id="cb191-7"><a href="gans.html#cb191-7"></a>rasterize &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
-<span id="cb191-8"><a href="gans.html#cb191-8"></a>     x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">numpy</span>()</span>
-<span id="cb191-9"><a href="gans.html#cb191-9"></a>     x &lt;-<span class="st"> </span><span class="kw">aperm</span>(x, <span class="dt">perm =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>))</span>
-<span id="cb191-10"><a href="gans.html#cb191-10"></a>     <span class="kw">as.raster</span>(x)</span>
-<span id="cb191-11"><a href="gans.html#cb191-11"></a>}</span>
-<span id="cb191-12"><a href="gans.html#cb191-12"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb191-13"><a href="gans.html#cb191-13"></a><span class="st">   </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
-<span id="cb191-14"><a href="gans.html#cb191-14"></a><span class="st">   </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
-<div class="sourceCode" id="cb192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb192-1"><a href="gans.html#cb192-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_over_time.png&quot;</span>)</span></code></pre></div>
-<p>To my (untrained) eyes, the final results look pretty good! Let’s generate a fresh batch:</p>
-<div class="sourceCode" id="cb193"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb193-1"><a href="gans.html#cb193-1"></a>new <span class="op">=</span> generator(fixed_noise).cpu().detach().numpy()</span></code></pre></div>
-<div class="sourceCode" id="cb194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb194-1"><a href="gans.html#cb194-1"></a><span class="co"># dim 64 x 28 x 28 because drop </span></span>
-<span id="cb194-2"><a href="gans.html#cb194-2"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>new[,<span class="dv">1</span>,,] </span>
-<span id="cb194-3"><a href="gans.html#cb194-3"></a>images[images <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb194-4"><a href="gans.html#cb194-4"></a></span>
-<span id="cb194-5"><a href="gans.html#cb194-5"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">8</span>,<span class="dv">8</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
-<span id="cb194-6"><a href="gans.html#cb194-6"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb194-7"><a href="gans.html#cb194-7"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb194-8"><a href="gans.html#cb194-8"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster) <span class="op">%&gt;%</span></span>
-<span id="cb194-9"><a href="gans.html#cb194-9"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb194-1"><a href="gans.html#cb194-1"></a>index &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(py<span class="op">$</span>img_list), <span class="dt">length.out =</span> <span class="dv">16</span>)</span>
+<span id="cb194-2"><a href="gans.html#cb194-2"></a><span class="co"># these have 3 channels! (probably due to torchvision.utils.make_grid)</span></span>
+<span id="cb194-3"><a href="gans.html#cb194-3"></a><span class="co"># size is 3 x 242 x 242</span></span>
+<span id="cb194-4"><a href="gans.html#cb194-4"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>img_list[index]</span>
+<span id="cb194-5"><a href="gans.html#cb194-5"></a></span>
+<span id="cb194-6"><a href="gans.html#cb194-6"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
+<span id="cb194-7"><a href="gans.html#cb194-7"></a>rasterize &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb194-8"><a href="gans.html#cb194-8"></a>     x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">numpy</span>()</span>
+<span id="cb194-9"><a href="gans.html#cb194-9"></a>     x &lt;-<span class="st"> </span><span class="kw">aperm</span>(x, <span class="dt">perm =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>))</span>
+<span id="cb194-10"><a href="gans.html#cb194-10"></a>     <span class="kw">as.raster</span>(x)</span>
+<span id="cb194-11"><a href="gans.html#cb194-11"></a>}</span>
+<span id="cb194-12"><a href="gans.html#cb194-12"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb194-13"><a href="gans.html#cb194-13"></a><span class="st">   </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
+<span id="cb194-14"><a href="gans.html#cb194-14"></a><span class="st">   </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
 <div class="sourceCode" id="cb195"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb195-1"><a href="gans.html#cb195-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_over_time.png&quot;</span>)</span></code></pre></div>
+<p>To my (untrained) eyes, the final results look pretty good! Let’s generate a fresh batch:</p>
+<div class="sourceCode" id="cb196"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb196-1"><a href="gans.html#cb196-1"></a>new <span class="op">=</span> generator(fixed_noise).cpu().detach().numpy()</span></code></pre></div>
+<div class="sourceCode" id="cb197"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb197-1"><a href="gans.html#cb197-1"></a><span class="co"># dim 64 x 28 x 28 because drop </span></span>
+<span id="cb197-2"><a href="gans.html#cb197-2"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>new[,<span class="dv">1</span>,,] </span>
+<span id="cb197-3"><a href="gans.html#cb197-3"></a>images[images <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb197-4"><a href="gans.html#cb197-4"></a></span>
+<span id="cb197-5"><a href="gans.html#cb197-5"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">8</span>,<span class="dv">8</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
+<span id="cb197-6"><a href="gans.html#cb197-6"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb197-7"><a href="gans.html#cb197-7"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb197-8"><a href="gans.html#cb197-8"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster) <span class="op">%&gt;%</span></span>
+<span id="cb197-9"><a href="gans.html#cb197-9"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb198"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb198-1"><a href="gans.html#cb198-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_over_time.png&quot;</span>)</span></code></pre></div>
 <p>We can also inspect how the respective losses developed over time:</p>
-<div class="sourceCode" id="cb196"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb196-1"><a href="gans.html#cb196-1"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb196-2"><a href="gans.html#cb196-2"></a><span class="kw">library</span>(tidyr)</span>
-<span id="cb196-3"><a href="gans.html#cb196-3"></a></span>
-<span id="cb196-4"><a href="gans.html#cb196-4"></a>generator_losses &lt;-<span class="st"> </span>py<span class="op">$</span>generator_losses</span>
-<span id="cb196-5"><a href="gans.html#cb196-5"></a>discriminator_losses &lt;-<span class="st"> </span>py<span class="op">$</span>discriminator_losses</span>
-<span id="cb196-6"><a href="gans.html#cb196-6"></a>iterations &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(discriminator_losses)</span>
-<span id="cb196-7"><a href="gans.html#cb196-7"></a></span>
-<span id="cb196-8"><a href="gans.html#cb196-8"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">iteration =</span> iterations, <span class="dt">discriminator =</span> discriminator_losses, <span class="dt">generator =</span> generator_losses)</span>
-<span id="cb196-9"><a href="gans.html#cb196-9"></a>df <span class="op">%&gt;%</span></span>
-<span id="cb196-10"><a href="gans.html#cb196-10"></a><span class="st">  </span><span class="kw">gather</span>(module, loss, discriminator, generator) <span class="op">%&gt;%</span></span>
-<span id="cb196-11"><a href="gans.html#cb196-11"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> loss, <span class="dt">colour =</span> module)) <span class="op">+</span></span>
-<span id="cb196-12"><a href="gans.html#cb196-12"></a><span class="st">    </span><span class="kw">geom_line</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb199"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb199-1"><a href="gans.html#cb199-1"></a><span class="kw">library</span>(ggplot2)</span>
+<span id="cb199-2"><a href="gans.html#cb199-2"></a><span class="kw">library</span>(tidyr)</span>
+<span id="cb199-3"><a href="gans.html#cb199-3"></a></span>
+<span id="cb199-4"><a href="gans.html#cb199-4"></a>generator_losses &lt;-<span class="st"> </span>py<span class="op">$</span>generator_losses</span>
+<span id="cb199-5"><a href="gans.html#cb199-5"></a>discriminator_losses &lt;-<span class="st"> </span>py<span class="op">$</span>discriminator_losses</span>
+<span id="cb199-6"><a href="gans.html#cb199-6"></a>iterations &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(discriminator_losses)</span>
+<span id="cb199-7"><a href="gans.html#cb199-7"></a></span>
+<span id="cb199-8"><a href="gans.html#cb199-8"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">iteration =</span> iterations, <span class="dt">discriminator =</span> discriminator_losses, <span class="dt">generator =</span> generator_losses)</span>
+<span id="cb199-9"><a href="gans.html#cb199-9"></a>df <span class="op">%&gt;%</span></span>
+<span id="cb199-10"><a href="gans.html#cb199-10"></a><span class="st">  </span><span class="kw">gather</span>(module, loss, discriminator, generator) <span class="op">%&gt;%</span></span>
+<span id="cb199-11"><a href="gans.html#cb199-11"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> loss, <span class="dt">colour =</span> module)) <span class="op">+</span></span>
+<span id="cb199-12"><a href="gans.html#cb199-12"></a><span class="st">    </span><span class="kw">geom_line</span>()</span></code></pre></div>
 <p>As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this
 with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5
 (and thus, close to each other), which obviously isn’t the case here. This means there is still room for improvement.</p>
-<div class="sourceCode" id="cb197"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb197-1"><a href="gans.html#cb197-1"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb197-2"><a href="gans.html#cb197-2"></a><span class="kw">library</span>(tidyr)</span>
-<span id="cb197-3"><a href="gans.html#cb197-3"></a></span>
-<span id="cb197-4"><a href="gans.html#cb197-4"></a>discriminator_outputs_fake &lt;-<span class="st"> </span>py<span class="op">$</span>discriminator_outputs_fake</span>
-<span id="cb197-5"><a href="gans.html#cb197-5"></a>discriminator_outputs_real &lt;-<span class="st"> </span>py<span class="op">$</span>discriminator_outputs_real</span>
-<span id="cb197-6"><a href="gans.html#cb197-6"></a>iterations &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(discriminator_outputs_real)</span>
-<span id="cb197-7"><a href="gans.html#cb197-7"></a></span>
-<span id="cb197-8"><a href="gans.html#cb197-8"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">iteration =</span> iterations, <span class="dt">real =</span> discriminator_outputs_real, <span class="dt">fake =</span> discriminator_outputs_fake)</span>
-<span id="cb197-9"><a href="gans.html#cb197-9"></a>df <span class="op">%&gt;%</span></span>
-<span id="cb197-10"><a href="gans.html#cb197-10"></a><span class="st">  </span><span class="kw">gather</span>(images, ratio_accepted, real, fake) <span class="op">%&gt;%</span></span>
-<span id="cb197-11"><a href="gans.html#cb197-11"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> ratio_accepted, <span class="dt">colour =</span> images)) <span class="op">+</span></span>
-<span id="cb197-12"><a href="gans.html#cb197-12"></a><span class="st">    </span><span class="kw">geom_line</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb200"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb200-1"><a href="gans.html#cb200-1"></a><span class="kw">library</span>(ggplot2)</span>
+<span id="cb200-2"><a href="gans.html#cb200-2"></a><span class="kw">library</span>(tidyr)</span>
+<span id="cb200-3"><a href="gans.html#cb200-3"></a></span>
+<span id="cb200-4"><a href="gans.html#cb200-4"></a>discriminator_outputs_fake &lt;-<span class="st"> </span>py<span class="op">$</span>discriminator_outputs_fake</span>
+<span id="cb200-5"><a href="gans.html#cb200-5"></a>discriminator_outputs_real &lt;-<span class="st"> </span>py<span class="op">$</span>discriminator_outputs_real</span>
+<span id="cb200-6"><a href="gans.html#cb200-6"></a>iterations &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(discriminator_outputs_real)</span>
+<span id="cb200-7"><a href="gans.html#cb200-7"></a></span>
+<span id="cb200-8"><a href="gans.html#cb200-8"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">iteration =</span> iterations, <span class="dt">real =</span> discriminator_outputs_real, <span class="dt">fake =</span> discriminator_outputs_fake)</span>
+<span id="cb200-9"><a href="gans.html#cb200-9"></a>df <span class="op">%&gt;%</span></span>
+<span id="cb200-10"><a href="gans.html#cb200-10"></a><span class="st">  </span><span class="kw">gather</span>(images, ratio_accepted, real, fake) <span class="op">%&gt;%</span></span>
+<span id="cb200-11"><a href="gans.html#cb200-11"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> ratio_accepted, <span class="dt">colour =</span> images)) <span class="op">+</span></span>
+<span id="cb200-12"><a href="gans.html#cb200-12"></a><span class="st">    </span><span class="kw">geom_line</span>()</span></code></pre></div>
 
 </div>
 </div>
