@@ -81,8 +81,7 @@ for (t in 1:200) {
   grad_h_relu <- grad_y_pred$mm(
     w2$t())
   # gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)
-  ###TBD###
-  grad_h <- grad_h_relu$copy()
+  grad_h <- grad_h_relu$clone()
   
   ###TBD###
   # grad_h[h < 0, ] <- 0
@@ -364,9 +363,8 @@ shares storage with the input tensor. To verify:
 [^1]: As well as a few others (for an overview see <https://pytorch.org/docs/stable/tensor_view.html#tensor-view-doc>).
 
 ```{r}
-###TBD###
-t1.storage().data_ptr()
-t2.storage().data_ptr()
+t1$storage()$data_ptr()
+t2$storage()$data_ptr()
 ```
 
 What differs is the storage *metadata* `torch` keeps about both tensors. A tensor's `stride` method tracks, for every
@@ -429,7 +427,6 @@ Alternatively, we can use `reshape()`. `reshape()` defaults to `view()`-like beh
 physical copy.
 
 ```{r}
-###TBD###
 t2$storage()$data_ptr()
 
 t4 <- t2$reshape(6)
@@ -443,8 +440,7 @@ Tensor methods normally return references to new objects. Here, `t1` is not modi
 
 ```{r}
 t1 <- torch_tensor(rbind(c(1, 2), c(3, 4), c(5, 6)))
-###TBD###
-t2 <- t1$copy()
+t2 <- t1$clone()
 
 t1$add(t2)
 t1

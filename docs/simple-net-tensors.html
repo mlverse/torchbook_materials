@@ -372,29 +372,28 @@ way.</p>
 <span id="cb10-63"><a href="simple-net-tensors.html#cb10-63"></a>  grad_h_relu &lt;-<span class="st"> </span>grad_y_pred<span class="op">$</span><span class="kw">mm</span>(</span>
 <span id="cb10-64"><a href="simple-net-tensors.html#cb10-64"></a>    w2<span class="op">$</span><span class="kw">t</span>())</span>
 <span id="cb10-65"><a href="simple-net-tensors.html#cb10-65"></a>  <span class="co"># gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)</span></span>
-<span id="cb10-66"><a href="simple-net-tensors.html#cb10-66"></a>  <span class="co">###TBD###</span></span>
-<span id="cb10-67"><a href="simple-net-tensors.html#cb10-67"></a>  grad_h &lt;-<span class="st"> </span>grad_h_relu<span class="op">$</span><span class="kw">copy</span>()</span>
-<span id="cb10-68"><a href="simple-net-tensors.html#cb10-68"></a>  </span>
-<span id="cb10-69"><a href="simple-net-tensors.html#cb10-69"></a>  <span class="co">###TBD###</span></span>
-<span id="cb10-70"><a href="simple-net-tensors.html#cb10-70"></a>  <span class="co"># grad_h[h &lt; 0, ] &lt;- 0</span></span>
-<span id="cb10-71"><a href="simple-net-tensors.html#cb10-71"></a>  grad_h &lt;-<span class="st"> </span>h <span class="op">*</span><span class="st"> </span>(h <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
-<span id="cb10-72"><a href="simple-net-tensors.html#cb10-72"></a>  </span>
-<span id="cb10-73"><a href="simple-net-tensors.html#cb10-73"></a>  <span class="co"># gradient of loss w.r.t. b2 (shape: ())</span></span>
-<span id="cb10-74"><a href="simple-net-tensors.html#cb10-74"></a>  grad_b2 &lt;-<span class="st"> </span>grad_y_pred<span class="op">$</span><span class="kw">sum</span>()</span>
-<span id="cb10-75"><a href="simple-net-tensors.html#cb10-75"></a>  </span>
-<span id="cb10-76"><a href="simple-net-tensors.html#cb10-76"></a>  <span class="co"># gradient of loss w.r.t. w1 (dim: 3 x 32)</span></span>
-<span id="cb10-77"><a href="simple-net-tensors.html#cb10-77"></a>  grad_w1 &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">t</span>()<span class="op">$</span><span class="kw">mm</span>(grad_h)</span>
-<span id="cb10-78"><a href="simple-net-tensors.html#cb10-78"></a>  <span class="co"># gradient of loss w.r.t. b1 (shape: (32, ))</span></span>
-<span id="cb10-79"><a href="simple-net-tensors.html#cb10-79"></a>  grad_b1 &lt;-<span class="st"> </span>grad_h<span class="op">$</span><span class="kw">sum</span>(<span class="dt">dim =</span> <span class="dv">0</span>)</span>
-<span id="cb10-80"><a href="simple-net-tensors.html#cb10-80"></a>  </span>
-<span id="cb10-81"><a href="simple-net-tensors.html#cb10-81"></a>  <span class="co">### -------- Update weights --------</span></span>
-<span id="cb10-82"><a href="simple-net-tensors.html#cb10-82"></a>  </span>
-<span id="cb10-83"><a href="simple-net-tensors.html#cb10-83"></a>  w2 &lt;-<span class="st"> </span>w2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w2</span>
-<span id="cb10-84"><a href="simple-net-tensors.html#cb10-84"></a>  b2 &lt;-<span class="st"> </span>b2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b2</span>
-<span id="cb10-85"><a href="simple-net-tensors.html#cb10-85"></a>  w1 &lt;-<span class="st"> </span>w1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w1</span>
-<span id="cb10-86"><a href="simple-net-tensors.html#cb10-86"></a>  b1 &lt;-<span class="st"> </span>b1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b1</span>
-<span id="cb10-87"><a href="simple-net-tensors.html#cb10-87"></a>  </span>
-<span id="cb10-88"><a href="simple-net-tensors.html#cb10-88"></a>}</span></code></pre></div>
+<span id="cb10-66"><a href="simple-net-tensors.html#cb10-66"></a>  grad_h &lt;-<span class="st"> </span>grad_h_relu<span class="op">$</span><span class="kw">clone</span>()</span>
+<span id="cb10-67"><a href="simple-net-tensors.html#cb10-67"></a>  </span>
+<span id="cb10-68"><a href="simple-net-tensors.html#cb10-68"></a>  <span class="co">###TBD###</span></span>
+<span id="cb10-69"><a href="simple-net-tensors.html#cb10-69"></a>  <span class="co"># grad_h[h &lt; 0, ] &lt;- 0</span></span>
+<span id="cb10-70"><a href="simple-net-tensors.html#cb10-70"></a>  grad_h &lt;-<span class="st"> </span>h <span class="op">*</span><span class="st"> </span>(h <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb10-71"><a href="simple-net-tensors.html#cb10-71"></a>  </span>
+<span id="cb10-72"><a href="simple-net-tensors.html#cb10-72"></a>  <span class="co"># gradient of loss w.r.t. b2 (shape: ())</span></span>
+<span id="cb10-73"><a href="simple-net-tensors.html#cb10-73"></a>  grad_b2 &lt;-<span class="st"> </span>grad_y_pred<span class="op">$</span><span class="kw">sum</span>()</span>
+<span id="cb10-74"><a href="simple-net-tensors.html#cb10-74"></a>  </span>
+<span id="cb10-75"><a href="simple-net-tensors.html#cb10-75"></a>  <span class="co"># gradient of loss w.r.t. w1 (dim: 3 x 32)</span></span>
+<span id="cb10-76"><a href="simple-net-tensors.html#cb10-76"></a>  grad_w1 &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">t</span>()<span class="op">$</span><span class="kw">mm</span>(grad_h)</span>
+<span id="cb10-77"><a href="simple-net-tensors.html#cb10-77"></a>  <span class="co"># gradient of loss w.r.t. b1 (shape: (32, ))</span></span>
+<span id="cb10-78"><a href="simple-net-tensors.html#cb10-78"></a>  grad_b1 &lt;-<span class="st"> </span>grad_h<span class="op">$</span><span class="kw">sum</span>(<span class="dt">dim =</span> <span class="dv">0</span>)</span>
+<span id="cb10-79"><a href="simple-net-tensors.html#cb10-79"></a>  </span>
+<span id="cb10-80"><a href="simple-net-tensors.html#cb10-80"></a>  <span class="co">### -------- Update weights --------</span></span>
+<span id="cb10-81"><a href="simple-net-tensors.html#cb10-81"></a>  </span>
+<span id="cb10-82"><a href="simple-net-tensors.html#cb10-82"></a>  w2 &lt;-<span class="st"> </span>w2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w2</span>
+<span id="cb10-83"><a href="simple-net-tensors.html#cb10-83"></a>  b2 &lt;-<span class="st"> </span>b2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b2</span>
+<span id="cb10-84"><a href="simple-net-tensors.html#cb10-84"></a>  w1 &lt;-<span class="st"> </span>w1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w1</span>
+<span id="cb10-85"><a href="simple-net-tensors.html#cb10-85"></a>  b1 &lt;-<span class="st"> </span>b1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b1</span>
+<span id="cb10-86"><a href="simple-net-tensors.html#cb10-86"></a>  </span>
+<span id="cb10-87"><a href="simple-net-tensors.html#cb10-87"></a>}</span></code></pre></div>
 </div>
 <div id="more-on-tensors" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> More on tensors</h2>
@@ -566,9 +565,8 @@ dimension 3; <code>torch</code> – like Python – does this for every position
 <p>In contrast to indexing operations, this does not drop dimensions.</p>
 <p>Like we said above, operations like <code>squeeze</code> or <code>view()</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a> does not make copies, or put differently: The output tensor
 shares storage with the input tensor. To verify:</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="simple-net-tensors.html#cb31-1"></a><span class="co">###TBD###</span></span>
-<span id="cb31-2"><a href="simple-net-tensors.html#cb31-2"></a><span class="kw">t1.storage</span>()<span class="kw">.data_ptr</span>()</span>
-<span id="cb31-3"><a href="simple-net-tensors.html#cb31-3"></a><span class="kw">t2.storage</span>()<span class="kw">.data_ptr</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="simple-net-tensors.html#cb31-1"></a>t1<span class="op">$</span><span class="kw">storage</span>()<span class="op">$</span><span class="kw">data_ptr</span>()</span>
+<span id="cb31-2"><a href="simple-net-tensors.html#cb31-2"></a>t2<span class="op">$</span><span class="kw">storage</span>()<span class="op">$</span><span class="kw">data_ptr</span>()</span></code></pre></div>
 <p>What differs is the storage <em>metadata</em> <code>torch</code> keeps about both tensors. A tensor’s <code>stride</code> method tracks, for every
 dimension, how many elements have to be traversed to arrive at its next unit (row or column, in two dimensions). For <code>t1</code>
 above, of shape 3x2, we have to skip over 2 elements to arrive at the next row. To arrive at the next column though, in every
@@ -604,23 +602,21 @@ creates a new tensor, which we can then <span class="math display">\[virtually\]
 <span id="cb35-9"><a href="simple-net-tensors.html#cb35-9"></a>t3<span class="op">$</span><span class="kw">view</span>(<span class="dv">6</span>)</span></code></pre></div>
 <p>Alternatively, we can use <code>reshape()</code>. <code>reshape()</code> defaults to <code>view()</code>-like behavior if possible; otherwise it will create a
 physical copy.</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="simple-net-tensors.html#cb36-1"></a><span class="co">###TBD###</span></span>
-<span id="cb36-2"><a href="simple-net-tensors.html#cb36-2"></a>t2<span class="op">$</span><span class="kw">storage</span>()<span class="op">$</span><span class="kw">data_ptr</span>()</span>
-<span id="cb36-3"><a href="simple-net-tensors.html#cb36-3"></a></span>
-<span id="cb36-4"><a href="simple-net-tensors.html#cb36-4"></a>t4 &lt;-<span class="st"> </span>t2<span class="op">$</span><span class="kw">reshape</span>(<span class="dv">6</span>)</span>
-<span id="cb36-5"><a href="simple-net-tensors.html#cb36-5"></a>t4</span>
-<span id="cb36-6"><a href="simple-net-tensors.html#cb36-6"></a>t4<span class="op">$</span><span class="kw">storage</span>()<span class="op">$</span><span class="kw">data_ptr</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="simple-net-tensors.html#cb36-1"></a>t2<span class="op">$</span><span class="kw">storage</span>()<span class="op">$</span><span class="kw">data_ptr</span>()</span>
+<span id="cb36-2"><a href="simple-net-tensors.html#cb36-2"></a></span>
+<span id="cb36-3"><a href="simple-net-tensors.html#cb36-3"></a>t4 &lt;-<span class="st"> </span>t2<span class="op">$</span><span class="kw">reshape</span>(<span class="dv">6</span>)</span>
+<span id="cb36-4"><a href="simple-net-tensors.html#cb36-4"></a>t4</span>
+<span id="cb36-5"><a href="simple-net-tensors.html#cb36-5"></a>t4<span class="op">$</span><span class="kw">storage</span>()<span class="op">$</span><span class="kw">data_ptr</span>()</span></code></pre></div>
 </div>
 </div>
 <div id="operations-on-tensors" class="section level3" number="3.2.5">
 <h3><span class="header-section-number">3.2.5</span> Operations on tensors</h3>
 <p>Tensor methods normally return references to new objects. Here, <code>t1</code> is not modified:</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="simple-net-tensors.html#cb37-1"></a>t1 &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="kw">rbind</span>(<span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">4</span>), <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">6</span>)))</span>
-<span id="cb37-2"><a href="simple-net-tensors.html#cb37-2"></a><span class="co">###TBD###</span></span>
-<span id="cb37-3"><a href="simple-net-tensors.html#cb37-3"></a>t2 &lt;-<span class="st"> </span>t1<span class="op">$</span><span class="kw">copy</span>()</span>
-<span id="cb37-4"><a href="simple-net-tensors.html#cb37-4"></a></span>
-<span id="cb37-5"><a href="simple-net-tensors.html#cb37-5"></a>t1<span class="op">$</span><span class="kw">add</span>(t2)</span>
-<span id="cb37-6"><a href="simple-net-tensors.html#cb37-6"></a>t1</span></code></pre></div>
+<span id="cb37-2"><a href="simple-net-tensors.html#cb37-2"></a>t2 &lt;-<span class="st"> </span>t1<span class="op">$</span><span class="kw">clone</span>()</span>
+<span id="cb37-3"><a href="simple-net-tensors.html#cb37-3"></a></span>
+<span id="cb37-4"><a href="simple-net-tensors.html#cb37-4"></a>t1<span class="op">$</span><span class="kw">add</span>(t2)</span>
+<span id="cb37-5"><a href="simple-net-tensors.html#cb37-5"></a>t1</span></code></pre></div>
 <p>Often, there are variants for mutating operations; these are discernible by a trailing underscore:</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="simple-net-tensors.html#cb38-1"></a>t1<span class="op">$</span><span class="kw">add_</span>(t2)</span>
 <span id="cb38-2"><a href="simple-net-tensors.html#cb38-2"></a>t1</span></code></pre></div>
