@@ -222,6 +222,9 @@ for (t in 1:200) {
 }
 ```
 
+The forward pass looks a lot better now; however, we still loop through the model's parameters and update each one by hand. As
+a final act of simplification, the next chapter will show how to make use of torch optimizers instead.
+
 ## Appendix: Python code
 
 ```{python}
@@ -285,5 +288,4 @@ for t in range(200):
 
 ```
 
-The forward pass looks a lot better now; however, we still loop through the model's parameters and update each one by hand. As
-a final act of simplification, the next chapter will show how to make use of torch optimizers instead.
+

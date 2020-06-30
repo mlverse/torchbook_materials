@@ -186,10 +186,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
 <li class="chapter" data-level="5.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
 </ul></li>
-<li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using torch optimizers</a>
+<li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
 <ul>
 <li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
-<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-torch.optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>torch.optim</code></a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>optim</code></a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="part"><span><b>II Image Recognition</b></span></li>
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
@@ -446,6 +447,8 @@ calculate mean squared error “by hand” anymore either; instead, we’ll use 
 <span id="cb89-68"><a href="simple-net-modules.html#cb89-68"></a>  })</span>
 <span id="cb89-69"><a href="simple-net-modules.html#cb89-69"></a>  </span>
 <span id="cb89-70"><a href="simple-net-modules.html#cb89-70"></a>}</span></code></pre></div>
+<p>The forward pass looks a lot better now; however, we still loop through the model’s parameters and update each one by hand. As
+a final act of simplification, the next chapter will show how to make use of torch optimizers instead.</p>
 </div>
 <div id="appendix-python-code" class="section level2" number="5.3">
 <h2><span class="header-section-number">5.3</span> Appendix: Python code</h2>
@@ -506,8 +509,6 @@ calculate mean squared error “by hand” anymore either; instead, we’ll use 
 <span id="cb90-55"><a href="simple-net-modules.html#cb90-55"></a>    <span class="cf">with</span> torch.no_grad():</span>
 <span id="cb90-56"><a href="simple-net-modules.html#cb90-56"></a>        <span class="cf">for</span> param <span class="kw">in</span> model.parameters():</span>
 <span id="cb90-57"><a href="simple-net-modules.html#cb90-57"></a>            param <span class="op">-=</span> learning_rate <span class="op">*</span> param.grad</span></code></pre></div>
-<p>The forward pass looks a lot better now; however, we still loop through the model’s parameters and update each one by hand. As
-a final act of simplification, the next chapter will show how to make use of torch optimizers instead.</p>
 
 </div>
 </div>
