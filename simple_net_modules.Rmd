@@ -52,7 +52,6 @@ out$grad_fn
 At this point, we have done a forward pass, but as we haven't called `backward(),` no gradients have yet been calculated:
 
 ```{r}
-###TBD###
 l$weight$grad
 l$bias$grad
 ```
@@ -82,11 +81,11 @@ Of the quantities on the right side, we're interested in the second. We need to 
 out$backward(gradient = torch_tensor(10)$`repeat`(10)$unsqueeze(0)$t())
 ```
 
-Now, `l.weight.grad` and `l.bias.grad` *will* contain the respective gradients:
+Now, `l$weight$grad` and `l$bias$grad` *will* contain the respective gradients:
 
-```{python}
-l$parameters$weight$grad
-l$parameters$bias$grad
+```{r}
+l$weight$grad
+l$bias$grad
 ```
 
 Back to the main thread. `nn_linear()` is one of the most often used layers in neural networks; we'll see others
@@ -95,56 +94,135 @@ Back to the main thread. `nn_linear()` is one of the most often used layers in n
 ### Models as modules
 
 Now, *models* are just modules that contain other modules. For example, if all data is supposed to flow through the same
-nodes, in a unidirectional fashion, then `torch.nn.Sequential` can be used to build a simple graph.
+nodes, in a unidirectional fashion, then `nn_sequential()` can be used to build a simple graph.
 
 For example:
 
-```{python}
-model = torch.nn.Sequential(
-    torch.nn.Linear(3, 16),
-    torch.nn.ReLU(),
-    torch.nn.Linear(16, 1),
+```{r}
+model <- nn_sequential(
+    nn_linear(3, 16),
+    nn_relu(),
+    nn_linear(16, 1),
 )
 ```
 
 We can use the same technique used on the single linear layer to get an overview of all model parameters:
 
-```{python}
-[(p[0], p[1]) for p in l.named_parameters()]
+```{r}
+model$parameters
 ```
 
 Individual parameters can just be directly inspected making use of their position in the sequential model, e.g.
 
-```{python}
-model[0].bias
+```{r}
+# TBD
+model[[1]]$bias
 ```
 
 And just like the simple `Linear` module, this model can directly be called on data:
 
-```{python}
-out = model(data)
+```{r}
+out <- model(data)
 ```
 
 On this composite module, calling `backward()` will effectuate a backward pass through all the layers:
 
-```{python}
-out.backward(gradient = [torch.Tensor([[0.1] * 10]).T])
+```{r}
+out$backward(gradient = torch_tensor(10)$`repeat`(10)$unsqueeze(0)$t())
 
 # e.g.
-model[0].bias.grad
+# TBD
+model[[1]]$bias$grad
 ```
 
 And placing the composite on the GPU will move all tensors there:
 
-```{python}
-model.cuda()
-model[0].bias.grad.device
+```{r}
+model$cuda()
+# TBD
+model[[1]]$bias$grad
 ```
 
-Now let's see how using `Sequential` can simplify our example network. As an act of further simplication, we won't calculate
-mean squared error "by hand" anymore either; instead, we'll use one of the loss functions torch provides, `torch.nn.MSELoss`.
+Now let's see how using `nn_sequential()` can simplify our example network. As an act of further simplication, we won't
+calculate mean squared error "by hand" anymore either; instead, we'll use one of the loss functions torch provides,
+`torch.nn.MSELoss`.
 
 ## Simple network using modules
+
+```{r}
+library(torch)
+
+### generate training data -----------------------------------------------------
+
+# input dimensionality (number of input features)
+d_in <- 3
+# output dimensionality (number of predicted features)
+d_out <- 1
+# number of observations in training set
+n <- 100
+
+
+# create random data
+x <- torch_randn(n, d_in)
+y <-
+  x[, 0, NULL] * 0.2 - x[, 1, NULL] * 1.3 - x[, 2, NULL] * 0.5 + torch_randn(n, 1)
+
+
+
+### define the network ---------------------------------------------------------
+
+# dimensionality of hidden layer
+d_hidden <- 32
+
+model <- nn_sequential(
+  nn_linear(d_in, d_hidden),
+  nn_relu(),
+  nn_linear(d_hidden, d_out)
+)
+
+# TBD
+#mse_loss = torch.nn.MSELoss(reduction='sum')
+
+
+### network parameters ---------------------------------------------------------
+
+learning_rate <- 1e-4
+
+### training loop --------------------------------------------------------------
+
+for (t in 1:200) {
+  
+  ### -------- Forward pass -------- 
+  
+  y_pred <- model(x)
+  
+  ### -------- compute loss -------- 
+  loss <- nnf_mse_loss(y_pred, y, reduction = "sum")
+  if t % 10 == 0: print(t, as.numeric(loss))
+  
+  ### -------- Backpropagation -------- 
+  
+  # Zero the gradients before running the backward pass.
+  # TBD
+  # model$zero_grad()
+  if (t > 1) model$parameters %>% purrr::walk(function(param) param$grad$zero_())
+  
+  # compute gradient of the loss w.r.t. all learnable parameters of the model
+  loss$backward()
+  
+  ### -------- Update weights -------- 
+  
+  # Wrap in with_no_grad() because this is a part we DON'T want to record for automatic gradient computation
+  # Update each parameter by its `grad`
+  
+  with_no_grad({
+    model$parameters %>% purrr::walk(function(param) param$sub_(learning_rate * param$grad))
+  })
+  
+}
+```
+
+## Appendix: Python code
 
 ```{python}
 import torch
