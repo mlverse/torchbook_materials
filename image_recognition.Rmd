@@ -18,7 +18,7 @@ Segmentation takes place whenever an image is not labeled as a whole, but split 
 criterion. For example, satellite images could be divided into different types of land cover such as river, forest,
 residential, and more.
 
-[...]
+\[...\]
 
 A word about what is *not* here. For ethical reasons[^1], we do not cover either of face recognition nor object detection.
 While this may be immediately evident in the former case, the latter may have you ask: How is object detection worse than

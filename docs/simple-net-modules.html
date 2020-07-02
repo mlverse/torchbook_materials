@@ -351,25 +351,22 @@ nodes, in a unidirectional fashion, then <code>nn_sequential()</code> can be use
 <div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="simple-net-modules.html#cb83-1"></a>model &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
 <span id="cb83-2"><a href="simple-net-modules.html#cb83-2"></a>    <span class="kw">nn_linear</span>(<span class="dv">3</span>, <span class="dv">16</span>),</span>
 <span id="cb83-3"><a href="simple-net-modules.html#cb83-3"></a>    <span class="kw">nn_relu</span>(),</span>
-<span id="cb83-4"><a href="simple-net-modules.html#cb83-4"></a>    <span class="kw">nn_linear</span>(<span class="dv">16</span>, <span class="dv">1</span>),</span>
+<span id="cb83-4"><a href="simple-net-modules.html#cb83-4"></a>    <span class="kw">nn_linear</span>(<span class="dv">16</span>, <span class="dv">1</span>)</span>
 <span id="cb83-5"><a href="simple-net-modules.html#cb83-5"></a>)</span></code></pre></div>
 <p>We can use the same technique used on the single linear layer to get an overview of all model parameters:</p>
 <div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="simple-net-modules.html#cb84-1"></a>model<span class="op">$</span>parameters</span></code></pre></div>
 <p>Individual parameters can just be directly inspected making use of their position in the sequential model, e.g.</p>
-<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb85-1"><a href="simple-net-modules.html#cb85-1"></a><span class="co"># </span><span class="al">TBD</span></span>
-<span id="cb85-2"><a href="simple-net-modules.html#cb85-2"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias</span></code></pre></div>
+<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb85-1"><a href="simple-net-modules.html#cb85-1"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias</span></code></pre></div>
 <p>And just like the simple <code>Linear</code> module, this model can directly be called on data:</p>
 <div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="simple-net-modules.html#cb86-1"></a>out &lt;-<span class="st"> </span><span class="kw">model</span>(data)</span></code></pre></div>
 <p>On this composite module, calling <code>backward()</code> will effectuate a backward pass through all the layers:</p>
 <div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="simple-net-modules.html#cb87-1"></a>out<span class="op">$</span><span class="kw">backward</span>(<span class="dt">gradient =</span> <span class="kw">torch_tensor</span>(<span class="dv">10</span>)<span class="op">$</span><span class="st">`</span><span class="dt">repeat</span><span class="st">`</span>(<span class="dv">10</span>)<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dv">0</span>)<span class="op">$</span><span class="kw">t</span>())</span>
 <span id="cb87-2"><a href="simple-net-modules.html#cb87-2"></a></span>
 <span id="cb87-3"><a href="simple-net-modules.html#cb87-3"></a><span class="co"># e.g.</span></span>
-<span id="cb87-4"><a href="simple-net-modules.html#cb87-4"></a><span class="co"># </span><span class="al">TBD</span></span>
-<span id="cb87-5"><a href="simple-net-modules.html#cb87-5"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
+<span id="cb87-4"><a href="simple-net-modules.html#cb87-4"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
 <p>And placing the composite on the GPU will move all tensors there:</p>
 <div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="simple-net-modules.html#cb88-1"></a>model<span class="op">$</span><span class="kw">cuda</span>()</span>
-<span id="cb88-2"><a href="simple-net-modules.html#cb88-2"></a><span class="co"># </span><span class="al">TBD</span></span>
-<span id="cb88-3"><a href="simple-net-modules.html#cb88-3"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
+<span id="cb88-2"><a href="simple-net-modules.html#cb88-2"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
 <p>Now let’s see how using <code>nn_sequential()</code> can simplify our example network. As an act of further simplication, we won’t
 calculate mean squared error “by hand” anymore either; instead, we’ll use one of the loss functions torch provides,
 <code>torch.nn.MSELoss</code>.</p>
@@ -430,23 +427,21 @@ calculate mean squared error “by hand” anymore either; instead, we’ll use 
 <span id="cb89-51"><a href="simple-net-modules.html#cb89-51"></a>  <span class="co">### -------- Backpropagation -------- </span></span>
 <span id="cb89-52"><a href="simple-net-modules.html#cb89-52"></a>  </span>
 <span id="cb89-53"><a href="simple-net-modules.html#cb89-53"></a>  <span class="co"># Zero the gradients before running the backward pass.</span></span>
-<span id="cb89-54"><a href="simple-net-modules.html#cb89-54"></a>  <span class="co"># </span><span class="al">TBD</span></span>
-<span id="cb89-55"><a href="simple-net-modules.html#cb89-55"></a>  <span class="co"># model$zero_grad()</span></span>
-<span id="cb89-56"><a href="simple-net-modules.html#cb89-56"></a>  <span class="cf">if</span> (t <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>) model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span>grad<span class="op">$</span><span class="kw">zero_</span>())</span>
-<span id="cb89-57"><a href="simple-net-modules.html#cb89-57"></a>  </span>
-<span id="cb89-58"><a href="simple-net-modules.html#cb89-58"></a>  <span class="co"># compute gradient of the loss w.r.t. all learnable parameters of the model</span></span>
-<span id="cb89-59"><a href="simple-net-modules.html#cb89-59"></a>  loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb89-54"><a href="simple-net-modules.html#cb89-54"></a>  model<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb89-55"><a href="simple-net-modules.html#cb89-55"></a>  </span>
+<span id="cb89-56"><a href="simple-net-modules.html#cb89-56"></a>  <span class="co"># compute gradient of the loss w.r.t. all learnable parameters of the model</span></span>
+<span id="cb89-57"><a href="simple-net-modules.html#cb89-57"></a>  loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb89-58"><a href="simple-net-modules.html#cb89-58"></a>  </span>
+<span id="cb89-59"><a href="simple-net-modules.html#cb89-59"></a>  <span class="co">### -------- Update weights -------- </span></span>
 <span id="cb89-60"><a href="simple-net-modules.html#cb89-60"></a>  </span>
-<span id="cb89-61"><a href="simple-net-modules.html#cb89-61"></a>  <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb89-62"><a href="simple-net-modules.html#cb89-62"></a>  </span>
-<span id="cb89-63"><a href="simple-net-modules.html#cb89-63"></a>  <span class="co"># Wrap in with_no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
-<span id="cb89-64"><a href="simple-net-modules.html#cb89-64"></a>  <span class="co"># Update each parameter by its `grad`</span></span>
-<span id="cb89-65"><a href="simple-net-modules.html#cb89-65"></a>  </span>
-<span id="cb89-66"><a href="simple-net-modules.html#cb89-66"></a>  <span class="kw">with_no_grad</span>({</span>
-<span id="cb89-67"><a href="simple-net-modules.html#cb89-67"></a>    model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>param<span class="op">$</span>grad))</span>
-<span id="cb89-68"><a href="simple-net-modules.html#cb89-68"></a>  })</span>
-<span id="cb89-69"><a href="simple-net-modules.html#cb89-69"></a>  </span>
-<span id="cb89-70"><a href="simple-net-modules.html#cb89-70"></a>}</span></code></pre></div>
+<span id="cb89-61"><a href="simple-net-modules.html#cb89-61"></a>  <span class="co"># Wrap in with_no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
+<span id="cb89-62"><a href="simple-net-modules.html#cb89-62"></a>  <span class="co"># Update each parameter by its `grad`</span></span>
+<span id="cb89-63"><a href="simple-net-modules.html#cb89-63"></a>  </span>
+<span id="cb89-64"><a href="simple-net-modules.html#cb89-64"></a>  <span class="kw">with_no_grad</span>({</span>
+<span id="cb89-65"><a href="simple-net-modules.html#cb89-65"></a>    model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>param<span class="op">$</span>grad))</span>
+<span id="cb89-66"><a href="simple-net-modules.html#cb89-66"></a>  })</span>
+<span id="cb89-67"><a href="simple-net-modules.html#cb89-67"></a>  </span>
+<span id="cb89-68"><a href="simple-net-modules.html#cb89-68"></a>}</span></code></pre></div>
 <p>The forward pass looks a lot better now; however, we still loop through the model’s parameters and update each one by hand. As
 a final act of simplification, the next chapter will show how to make use of torch optimizers instead.</p>
 </div>

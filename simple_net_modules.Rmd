@@ -102,7 +102,7 @@ For example:
 model <- nn_sequential(
     nn_linear(3, 16),
     nn_relu(),
-    nn_linear(16, 1),
+    nn_linear(16, 1)
 )
 ```
 
@@ -115,7 +115,6 @@ model$parameters
 Individual parameters can just be directly inspected making use of their position in the sequential model, e.g.
 
 ```{r}
-# TBD
 model[[1]]$bias
 ```
 
@@ -131,7 +130,6 @@ On this composite module, calling `backward()` will effectuate a backward pass t
 out$backward(gradient = torch_tensor(10)$`repeat`(10)$unsqueeze(0)$t())
 
 # e.g.
-# TBD
 model[[1]]$bias$grad
 ```
 
@@ -139,7 +137,6 @@ And placing the composite on the GPU will move all tensors there:
 
 ```{r}
 model$cuda()
-# TBD
 model[[1]]$bias$grad
 ```
 
@@ -203,9 +200,7 @@ for (t in 1:200) {
   ### -------- Backpropagation -------- 
   
   # Zero the gradients before running the backward pass.
-  # TBD
-  # model$zero_grad()
-  if (t > 1) model$parameters %>% purrr::walk(function(param) param$grad$zero_())
+  model$zero_grad()
   
   # compute gradient of the loss w.r.t. all learnable parameters of the model
   loss$backward()
