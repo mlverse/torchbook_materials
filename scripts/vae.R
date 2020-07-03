@@ -2,8 +2,6 @@
 
 # change dir
 # use KMNIST
-# use batchnorm
-# "cuda:0"
 # use Adam
 
 
@@ -45,16 +43,16 @@ vae <- nn_module(
 
         self$encoder <- nn_sequential(
             nn_conv2d(1, image_size, kernel_size= 3, stride= 2, padding  = 1),
-            #nn_batchnorm_2d(image_size),
+            nn_batchnorm_2d(image_size),
             nn_leaky_relu(),
             nn_conv2d(image_size, image_size * 2, kernel_size= 3, stride= 2, padding  = 1),
-            #nn_batchnorm_2d(image_size * 2),
+            nn_batchnorm_2d(image_size * 2),
             nn_leaky_relu(),
             nn_conv2d(image_size * 2, image_size * 4, kernel_size= 3, stride= 2, padding  = 1),
-            #nn_batchnorm_2d(image_size * 4),
+            nn_batchnorm_2d(image_size * 4),
             nn_leaky_relu(),
             nn_conv2d(image_size * 4, image_size * 8, kernel_size= 3, stride= 2, padding  = 1),
-            #nn_batchnorm_2d(image_size * 8),
+            nn_batchnorm_2d(image_size * 8),
             nn_leaky_relu()
         )
 
@@ -62,15 +60,15 @@ vae <- nn_module(
             nn_linear(latent_dim, image_size * 8),
             view(c(-1, image_size * 8, 1, 1)),
             nn_conv_transpose2d(image_size * 8, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = FALSE),
-            #nn_batchnorm_2d(image_size * 4),
+            nn_batchnorm_2d(image_size * 4),
             nn_leaky_relu(),
             # 8 * 8
             nn_conv_transpose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = FALSE),
-            #nn_batchnorm_2d(image_size * 2),
+            nn_batchnorm_2d(image_size * 2),
             nn_leaky_relu(),
             # 16 x 16
             nn_conv_transpose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = FALSE),
-            #nn_batchnorm_2d(image_size),
+            nn_batchnorm_2d(image_size),
             nn_leaky_relu(),
             # 28 x 28
             nn_conv_transpose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = FALSE),
