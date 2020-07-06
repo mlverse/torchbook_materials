@@ -2,6 +2,7 @@
 
 # use KMNIST
 
+library(torch)
 library(zeallot)
 
 dir <- "/tmp"
@@ -117,7 +118,7 @@ model <- vae(latent_dim = 2)$to(device = device)
 
 optimizer <- optim_adam(model$parameters, lr = 0.001)
 
-num_epochs <- 5
+num_epochs <- 3
 
 img_list <- vector(mode = "list")
 
@@ -182,10 +183,7 @@ for (epoch in 1:num_epochs) {
         }
         loss$backward()
         optimizer$step()
-
     }
-
-
 }
 
 index <- seq(1, length(img_list), length.out = 16)
