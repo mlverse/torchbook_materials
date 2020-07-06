@@ -1,9 +1,6 @@
 ## TBD ###
 
-# change dir
 # use KMNIST
-# use Adam
-
 
 library(zeallot)
 
@@ -43,16 +40,16 @@ vae <- nn_module(
 
         self$encoder <- nn_sequential(
             nn_conv2d(1, image_size, kernel_size= 3, stride= 2, padding  = 1),
-            nn_batchnorm_2d(image_size),
+            nn_batch_norm2d(image_size),
             nn_leaky_relu(),
             nn_conv2d(image_size, image_size * 2, kernel_size= 3, stride= 2, padding  = 1),
-            nn_batchnorm_2d(image_size * 2),
+            nn_batch_norm2d(image_size * 2),
             nn_leaky_relu(),
             nn_conv2d(image_size * 2, image_size * 4, kernel_size= 3, stride= 2, padding  = 1),
-            nn_batchnorm_2d(image_size * 4),
+            nn_batch_norm2d(image_size * 4),
             nn_leaky_relu(),
             nn_conv2d(image_size * 4, image_size * 8, kernel_size= 3, stride= 2, padding  = 1),
-            nn_batchnorm_2d(image_size * 8),
+            nn_batch_norm2d(image_size * 8),
             nn_leaky_relu()
         )
 
@@ -60,15 +57,15 @@ vae <- nn_module(
             nn_linear(latent_dim, image_size * 8),
             view(c(-1, image_size * 8, 1, 1)),
             nn_conv_transpose2d(image_size * 8, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = FALSE),
-            nn_batchnorm_2d(image_size * 4),
+            nn_batch_norm2d(image_size * 4),
             nn_leaky_relu(),
             # 8 * 8
             nn_conv_transpose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = FALSE),
-            nn_batchnorm_2d(image_size * 2),
+            nn_batch_norm2d(image_size * 2),
             nn_leaky_relu(),
             # 16 x 16
             nn_conv_transpose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = FALSE),
-            nn_batchnorm_2d(image_size),
+            nn_batch_norm2d(image_size),
             nn_leaky_relu(),
             # 28 x 28
             nn_conv_transpose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = FALSE),
@@ -118,45 +115,11 @@ vae <- nn_module(
 
 model <- vae(latent_dim = 2)$to(device = device)
 
-# TBD replace by Adam
-optimizer <- optim_sgd(model$parameters, lr = 0.00001)
+optimizer <- optim_adam(model$parameters, lr = 0.001)
 
 num_epochs <- 5
 
 img_list <- vector(mode = "list")
-
-for (epoch in 1:num_epochs) {
-
-    batchnum <- 0
-    for (b in enumerate(dl)) {
-
-        batchnum <- batchnum + 1
-        input <- b[[1]]$to(device = device)
-        optimizer$zero_grad()
-        c(reconstruction, input, mean, log_var) %<-% model(input)
-        c(loss, reconstruction_loss, kl_loss) %<-% model$loss_function(reconstruction, input, mean, log_var)
-
-        if(batchnum %% 50 == 0) {
-            cat("Epoch: ", epoch,
-                "    batch: ", batchnum,
-                "    loss: ", as.numeric(loss$cpu()),
-                "    recon loss: ", as.numeric(reconstruction_loss$cpu()),
-                "    KL loss: ", as.numeric(kl_loss$cpu()),
-                "\n")
-            with_no_grad({
-                generated <- model$sample(64, device)
-                grid <- make_grid(normalize(generated))
-                img_list[[epoch]] <- as_array(grid$to(device = "cpu"))
-            })
-
-        }
-        loss$backward()
-        optimizer$step()
-
-    }
-
-
-}
 
 normalize <- function(x) {
     min = x$min()$item()
@@ -192,6 +155,38 @@ make_grid <- function(tensor, num_rows = 8, padding = 2, pad_value = 0) {
     grid
 }
 
+for (epoch in 1:num_epochs) {
+
+    batchnum <- 0
+    for (b in enumerate(dl)) {
+
+        batchnum <- batchnum + 1
+        input <- b[[1]]$to(device = device)
+        optimizer$zero_grad()
+        c(reconstruction, input, mean, log_var) %<-% model(input)
+        c(loss, reconstruction_loss, kl_loss) %<-% model$loss_function(reconstruction, input, mean, log_var)
+
+        if(batchnum %% 50 == 0) {
+            cat("Epoch: ", epoch,
+                "    batch: ", batchnum,
+                "    loss: ", as.numeric(loss$cpu()),
+                "    recon loss: ", as.numeric(reconstruction_loss$cpu()),
+                "    KL loss: ", as.numeric(kl_loss$cpu()),
+                "\n")
+            with_no_grad({
+                generated <- model$sample(64, device)
+                grid <- make_grid(normalize(generated))
+                img_list[[epoch]] <- as_array(grid$to(device = "cpu"))
+            })
+
+        }
+        loss$backward()
+        optimizer$step()
+
+    }
+
+
+}
 
 index <- seq(1, length(img_list), length.out = 16)
 # size is 1 x 242 x 242
