@@ -133,7 +133,7 @@ for (epoch in 1:num_epochs) {
         batchnum <- batchnum + 1
         input <- b[[1]]$to(device = device)
         optimizer$zero_grad()
-        c(reconstruction, input, mean, log_var) %<-% model$forward(input)
+        c(reconstruction, input, mean, log_var) %<-% model(input)
         c(loss, reconstruction_loss, kl_loss) %<-% model$loss_function(reconstruction, input, mean, log_var)
 
         if(batchnum %% 50 == 0) {
