@@ -1,6 +1,7 @@
 ## TBD ###
 
 # use KMNIST
+# init weights
 
 library(torch)
 
@@ -17,7 +18,7 @@ kmnist <- mnist_dataset(
         x[newaxis,..]
     }
 )
-dl <- dataloader(kmnist, batch_size = batch_size, shuffle = TRUE)
+dl <- dataloader(kmnist, batch_size = batch_size, shuffle = TRUE, drop_last = TRUE)
 
 device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
 
@@ -81,6 +82,18 @@ discriminator <- nn_module(
 )
 
 disc <- discriminator()$to(device = device)
+
+init_weights <- function(m) {
+    print(m)
+    # if classname.find('Conv') != -1:
+    #   nn.init.normal_(m.weight.data, 0.0, 0.02)
+    # elif classname.find('BatchNorm') != -1:
+    #   nn.init.normal_(m.weight.data, 1.0, 0.02)
+    # nn.init.constant_(m.bias.data, 0)
+}
+
+gen$.apply(init_weights)
+disc$.apply(init_weights)
 
 criterion <- nn_bce_loss()
 
