@@ -297,236 +297,251 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1><span class="header-section-number">12</span> Variational autoencoders</h1>
 <p>Now we look at the other – as of this writing – main type of architecture used for self-supervised learning: <em>Variational
 Autoencoders</em> (VAEs). VAEs are autoencoders, in that they compress their input and, starting from a compressed representation,
-aim for a faithful reconstruction. But in addition, there is constraint on that compressed representation: It is regularized
+aim for a faithful reconstruction. But in addition, there is a constraint on that compressed representation: It is regularized
 so as to deviate as little as possible from a prior distribution, often (but not necessarily) a multivariate normal. The
 rationale behind this regularization is that we are looking for an informative <em>latent space</em> of hidden variables, whose
 expression to various degrees should create the range of “phenotypes” observed.</p>
-<p>Thus, where GANs are designed solely for good generative performance, VAEs incorporate the additional aspiration to allow for
-a meaningful representation of the domain modeled. Of course, what counts as a meaningful representation is open for debate.
+<p>Thus, where GANs are designed solely for good generative performance, VAEs embody the additional aspiration to allow for a
+meaningful representation of the domain modeled. Of course, what counts as a meaningful representation is open for debate.
 Often in introductory articles, the latent space is chosen to consist of just two variables, which can then be drawn from at
 random and passed through the decoder. In two dimensions, we can then nicely plot the artifacts in a grid, and visually try to
 infer “what a dimension does”. However, as soon as the domain modeled requires more than just two dimensions, the latent space
 itself has to undergo dimensionality reduction in order to be plotted, resulting in loss of information and, most
 problematically, ambiguity.</p>
 <p>In our sample application, we compare, for a given dataset, modeling with latent space dimensionalities of 2 and 128,
-respectively, and in the former case, take a look at the two-dimensional grid of artifacts.</p>
+respectively. In the former case, we also take a look at the two-dimensional grid of artifacts.</p>
 <div id="dataset" class="section level2" number="12.1">
 <h2><span class="header-section-number">12.1</span> Dataset</h2>
 <p>For comparability with the GAN model shown in the last chapter, we use the same dataset, Kuzushiji-MNIST.</p>
-<div class="sourceCode" id="cb203"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb203-1"><a href="vaes.html#cb203-1"></a><span class="im">import</span> torch</span>
-<span id="cb203-2"><a href="vaes.html#cb203-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
-<span id="cb203-3"><a href="vaes.html#cb203-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
-<span id="cb203-4"><a href="vaes.html#cb203-4"></a><span class="im">from</span> torch.nn <span class="im">import</span> functional <span class="im">as</span> F</span>
-<span id="cb203-5"><a href="vaes.html#cb203-5"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb203-6"><a href="vaes.html#cb203-6"></a><span class="im">import</span> torchvision</span>
-<span id="cb203-7"><a href="vaes.html#cb203-7"></a><span class="im">from</span> torchvision <span class="im">import</span> transforms, datasets, utils</span>
-<span id="cb203-8"><a href="vaes.html#cb203-8"></a><span class="im">import</span> os</span>
-<span id="cb203-9"><a href="vaes.html#cb203-9"></a></span>
-<span id="cb203-10"><a href="vaes.html#cb203-10"></a>transform <span class="op">=</span> transforms.Compose([transforms.ToTensor()])</span>
-<span id="cb203-11"><a href="vaes.html#cb203-11"></a></span>
-<span id="cb203-12"><a href="vaes.html#cb203-12"></a>kmnist <span class="op">=</span> torchvision.datasets.KMNIST(<span class="st">&quot;data/kmnist&quot;</span>, train <span class="op">=</span> <span class="va">True</span>, transform <span class="op">=</span> transform, download <span class="op">=</span> <span class="va">True</span>)</span>
-<span id="cb203-13"><a href="vaes.html#cb203-13"></a></span>
-<span id="cb203-14"><a href="vaes.html#cb203-14"></a>dataloader <span class="op">=</span> torch.utils.data.DataLoader(kmnist, batch_size<span class="op">=</span><span class="dv">128</span>, shuffle <span class="op">=</span> <span class="va">True</span>, num_workers <span class="op">=</span> <span class="dv">8</span>)</span>
-<span id="cb203-15"><a href="vaes.html#cb203-15"></a></span>
-<span id="cb203-16"><a href="vaes.html#cb203-16"></a>device <span class="op">=</span> torch.device(<span class="st">&quot;cuda:0&quot;</span> <span class="cf">if</span> torch.cuda.is_available()  <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb203"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb203-1"><a href="vaes.html#cb203-1"></a><span class="kw">library</span>(zeallot)</span>
+<span id="cb203-2"><a href="vaes.html#cb203-2"></a></span>
+<span id="cb203-3"><a href="vaes.html#cb203-3"></a>kmnist &lt;-<span class="st"> </span><span class="kw">kmnist_dataset</span>(</span>
+<span id="cb203-4"><a href="vaes.html#cb203-4"></a>    dir,</span>
+<span id="cb203-5"><a href="vaes.html#cb203-5"></a>    <span class="dt">download =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb203-6"><a href="vaes.html#cb203-6"></a>    <span class="dt">transform =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb203-7"><a href="vaes.html#cb203-7"></a>        x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">to</span>(<span class="dt">dtype =</span> <span class="kw">torch_float</span>())<span class="op">/</span><span class="dv">256</span></span>
+<span id="cb203-8"><a href="vaes.html#cb203-8"></a>        x[newaxis,..]</span>
+<span id="cb203-9"><a href="vaes.html#cb203-9"></a>    }</span>
+<span id="cb203-10"><a href="vaes.html#cb203-10"></a>)</span>
+<span id="cb203-11"><a href="vaes.html#cb203-11"></a>dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(kmnist, <span class="dt">batch_size =</span> <span class="dv">128</span>, <span class="dt">shuffle =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb203-12"><a href="vaes.html#cb203-12"></a></span>
+<span id="cb203-13"><a href="vaes.html#cb203-13"></a>device &lt;-<span class="st"> </span><span class="cf">if</span> (<span class="kw">cuda_is_available</span>()) <span class="kw">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span></code></pre></div>
 </div>
 <div id="model" class="section level2" number="12.2">
 <h2><span class="header-section-number">12.2</span> Model</h2>
 <p>This time, for illustrative purposes, we encapsulate all functionality in a custom <code>VAE</code> module comprises encoder and decoder
-submodules that are called, in order, from the <code>forward</code> method. Also contained in the module are the loss function and a
+submodules which are called, in order, from the <code>forward</code> method. Also contained in the module are the loss function and a
 utility function to sample images.</p>
 <p>The model uses the famous <em>reparameterization trick</em> <span class="citation">(Kingma and Welling <a href="#ref-kingma2013autoencoding" role="doc-biblioref">2013</a>)</span> to reduce variance during optimization. Instead
 of sampling directly from the latent space, using its mean and variance, we introduce a new standard-normal random variable
 <span class="math inline">\(\epsilon\)</span> and transform this into non-standard normals using the learned means and standard deviations from latent space.</p>
-<div class="sourceCode" id="cb204"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb204-1"><a href="vaes.html#cb204-1"></a>image_size <span class="op">=</span> <span class="dv">28</span></span>
+<div class="sourceCode" id="cb204"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb204-1"><a href="vaes.html#cb204-1"></a>image_size &lt;-<span class="st"> </span><span class="dv">28</span></span>
 <span id="cb204-2"><a href="vaes.html#cb204-2"></a></span>
-<span id="cb204-3"><a href="vaes.html#cb204-3"></a><span class="kw">class</span> View(nn.Module):</span>
-<span id="cb204-4"><a href="vaes.html#cb204-4"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, shape):</span>
-<span id="cb204-5"><a href="vaes.html#cb204-5"></a>        <span class="bu">super</span>(View, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb204-6"><a href="vaes.html#cb204-6"></a>        <span class="va">self</span>.shape <span class="op">=</span> shape</span>
-<span id="cb204-7"><a href="vaes.html#cb204-7"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
-<span id="cb204-8"><a href="vaes.html#cb204-8"></a>        <span class="cf">return</span> x.view(<span class="op">*</span><span class="va">self</span>.shape)</span>
-<span id="cb204-9"><a href="vaes.html#cb204-9"></a></span>
-<span id="cb204-10"><a href="vaes.html#cb204-10"></a><span class="kw">class</span> VAE(nn.Module):</span>
-<span id="cb204-11"><a href="vaes.html#cb204-11"></a></span>
-<span id="cb204-12"><a href="vaes.html#cb204-12"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, latent_dim):</span>
-<span id="cb204-13"><a href="vaes.html#cb204-13"></a>        <span class="bu">super</span>(VAE, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb204-14"><a href="vaes.html#cb204-14"></a>        <span class="va">self</span>.latent_dim <span class="op">=</span> latent_dim</span>
-<span id="cb204-15"><a href="vaes.html#cb204-15"></a>        </span>
-<span id="cb204-16"><a href="vaes.html#cb204-16"></a>        <span class="co"># encoder module</span></span>
-<span id="cb204-17"><a href="vaes.html#cb204-17"></a>        <span class="va">self</span>.encoder <span class="op">=</span> nn.Sequential(</span>
-<span id="cb204-18"><a href="vaes.html#cb204-18"></a>            nn.Conv2d(<span class="dv">1</span>, image_size, kernel_size<span class="op">=</span> <span class="dv">3</span>, stride<span class="op">=</span> <span class="dv">2</span>, padding  <span class="op">=</span> <span class="dv">1</span>),</span>
-<span id="cb204-19"><a href="vaes.html#cb204-19"></a>            nn.BatchNorm2d(image_size),</span>
-<span id="cb204-20"><a href="vaes.html#cb204-20"></a>            nn.LeakyReLU(),</span>
-<span id="cb204-21"><a href="vaes.html#cb204-21"></a>            nn.Conv2d(image_size, image_size <span class="op">*</span> <span class="dv">2</span>, kernel_size<span class="op">=</span> <span class="dv">3</span>, stride<span class="op">=</span> <span class="dv">2</span>, padding  <span class="op">=</span> <span class="dv">1</span>),</span>
-<span id="cb204-22"><a href="vaes.html#cb204-22"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">2</span>),</span>
-<span id="cb204-23"><a href="vaes.html#cb204-23"></a>            nn.LeakyReLU(),</span>
-<span id="cb204-24"><a href="vaes.html#cb204-24"></a>            nn.Conv2d(image_size <span class="op">*</span> <span class="dv">2</span>, image_size <span class="op">*</span> <span class="dv">4</span>, kernel_size<span class="op">=</span> <span class="dv">3</span>, stride<span class="op">=</span> <span class="dv">2</span>, padding  <span class="op">=</span> <span class="dv">1</span>),</span>
-<span id="cb204-25"><a href="vaes.html#cb204-25"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">4</span>),</span>
-<span id="cb204-26"><a href="vaes.html#cb204-26"></a>            nn.LeakyReLU(),</span>
-<span id="cb204-27"><a href="vaes.html#cb204-27"></a>            nn.Conv2d(image_size <span class="op">*</span> <span class="dv">4</span>, image_size <span class="op">*</span> <span class="dv">8</span>, kernel_size<span class="op">=</span> <span class="dv">3</span>, stride<span class="op">=</span> <span class="dv">2</span>, padding  <span class="op">=</span> <span class="dv">1</span>),</span>
-<span id="cb204-28"><a href="vaes.html#cb204-28"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">8</span>),</span>
-<span id="cb204-29"><a href="vaes.html#cb204-29"></a>            nn.LeakyReLU()</span>
-<span id="cb204-30"><a href="vaes.html#cb204-30"></a>        )</span>
-<span id="cb204-31"><a href="vaes.html#cb204-31"></a>        </span>
-<span id="cb204-32"><a href="vaes.html#cb204-32"></a>        <span class="co"># latent space means and (log) variances</span></span>
-<span id="cb204-33"><a href="vaes.html#cb204-33"></a>        <span class="va">self</span>.latent_mean <span class="op">=</span> nn.Linear(<span class="dv">896</span>, latent_dim)</span>
-<span id="cb204-34"><a href="vaes.html#cb204-34"></a>        <span class="va">self</span>.latent_log_var <span class="op">=</span> nn.Linear(<span class="dv">896</span>, latent_dim)</span>
-<span id="cb204-35"><a href="vaes.html#cb204-35"></a>        </span>
-<span id="cb204-36"><a href="vaes.html#cb204-36"></a>        <span class="co"># decoder module</span></span>
-<span id="cb204-37"><a href="vaes.html#cb204-37"></a>        <span class="va">self</span>.decoder <span class="op">=</span> nn.Sequential(</span>
-<span id="cb204-38"><a href="vaes.html#cb204-38"></a>            nn.Linear(latent_dim, image_size <span class="op">*</span> <span class="dv">8</span>),</span>
-<span id="cb204-39"><a href="vaes.html#cb204-39"></a>            View((<span class="op">-</span><span class="dv">1</span>, image_size <span class="op">*</span> <span class="dv">8</span>, <span class="dv">1</span>, <span class="dv">1</span>)),</span>
-<span id="cb204-40"><a href="vaes.html#cb204-40"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">8</span>, image_size <span class="op">*</span> <span class="dv">4</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">1</span>, padding <span class="op">=</span> <span class="dv">0</span>),</span>
-<span id="cb204-41"><a href="vaes.html#cb204-41"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">4</span>),</span>
-<span id="cb204-42"><a href="vaes.html#cb204-42"></a>            nn.LeakyReLU(),</span>
-<span id="cb204-43"><a href="vaes.html#cb204-43"></a>            <span class="co"># 8 * 8</span></span>
-<span id="cb204-44"><a href="vaes.html#cb204-44"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">4</span>, image_size <span class="op">*</span> <span class="dv">2</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">1</span>),</span>
-<span id="cb204-45"><a href="vaes.html#cb204-45"></a>            nn.BatchNorm2d(image_size <span class="op">*</span> <span class="dv">2</span>),</span>
-<span id="cb204-46"><a href="vaes.html#cb204-46"></a>            nn.LeakyReLU(),</span>
-<span id="cb204-47"><a href="vaes.html#cb204-47"></a>            <span class="co"># 16 x 16</span></span>
-<span id="cb204-48"><a href="vaes.html#cb204-48"></a>            nn.ConvTranspose2d(image_size <span class="op">*</span> <span class="dv">2</span>, image_size, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">2</span>),</span>
-<span id="cb204-49"><a href="vaes.html#cb204-49"></a>            nn.BatchNorm2d(image_size),</span>
-<span id="cb204-50"><a href="vaes.html#cb204-50"></a>            nn.LeakyReLU(),</span>
-<span id="cb204-51"><a href="vaes.html#cb204-51"></a>            <span class="co"># 28 x 28</span></span>
-<span id="cb204-52"><a href="vaes.html#cb204-52"></a>            nn.ConvTranspose2d(image_size, <span class="dv">1</span>, kernel_size <span class="op">=</span> <span class="dv">4</span>, stride <span class="op">=</span> <span class="dv">2</span>, padding <span class="op">=</span> <span class="dv">1</span>),</span>
-<span id="cb204-53"><a href="vaes.html#cb204-53"></a>            nn.Sigmoid()</span>
-<span id="cb204-54"><a href="vaes.html#cb204-54"></a>        )</span>
-<span id="cb204-55"><a href="vaes.html#cb204-55"></a>        </span>
-<span id="cb204-56"><a href="vaes.html#cb204-56"></a>    <span class="kw">def</span> encode(<span class="va">self</span>, <span class="bu">input</span>): </span>
-<span id="cb204-57"><a href="vaes.html#cb204-57"></a>        result <span class="op">=</span> <span class="va">self</span>.encoder(<span class="bu">input</span>)</span>
-<span id="cb204-58"><a href="vaes.html#cb204-58"></a>        result <span class="op">=</span> torch.flatten(result, start_dim <span class="op">=</span> <span class="dv">1</span>)</span>
-<span id="cb204-59"><a href="vaes.html#cb204-59"></a>        mean <span class="op">=</span> <span class="va">self</span>.latent_mean(result)</span>
-<span id="cb204-60"><a href="vaes.html#cb204-60"></a>        log_var <span class="op">=</span> <span class="va">self</span>.latent_log_var(result)</span>
-<span id="cb204-61"><a href="vaes.html#cb204-61"></a>        <span class="cf">return</span> [mean, log_var]</span>
-<span id="cb204-62"><a href="vaes.html#cb204-62"></a>        </span>
-<span id="cb204-63"><a href="vaes.html#cb204-63"></a>    <span class="kw">def</span> decode(<span class="va">self</span>, z):</span>
-<span id="cb204-64"><a href="vaes.html#cb204-64"></a>        result <span class="op">=</span> <span class="va">self</span>.decoder(z)</span>
-<span id="cb204-65"><a href="vaes.html#cb204-65"></a>        <span class="cf">return</span> result</span>
-<span id="cb204-66"><a href="vaes.html#cb204-66"></a>        </span>
-<span id="cb204-67"><a href="vaes.html#cb204-67"></a>    <span class="kw">def</span> reparameterize(<span class="va">self</span>, mean, logvar):</span>
-<span id="cb204-68"><a href="vaes.html#cb204-68"></a>        std <span class="op">=</span> torch.exp(<span class="fl">0.5</span> <span class="op">*</span> logvar)</span>
-<span id="cb204-69"><a href="vaes.html#cb204-69"></a>        eps <span class="op">=</span> torch.randn_like(std)</span>
-<span id="cb204-70"><a href="vaes.html#cb204-70"></a>        <span class="cf">return</span> eps <span class="op">*</span> std <span class="op">+</span> mean</span>
-<span id="cb204-71"><a href="vaes.html#cb204-71"></a>        </span>
-<span id="cb204-72"><a href="vaes.html#cb204-72"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, <span class="bu">input</span>):</span>
-<span id="cb204-73"><a href="vaes.html#cb204-73"></a>        mean, log_var <span class="op">=</span> <span class="va">self</span>.encode(<span class="bu">input</span>)</span>
-<span id="cb204-74"><a href="vaes.html#cb204-74"></a>        z <span class="op">=</span> <span class="va">self</span>.reparameterize(mean, log_var)</span>
-<span id="cb204-75"><a href="vaes.html#cb204-75"></a>        <span class="cf">return</span> [<span class="va">self</span>.decode(z), <span class="bu">input</span>, mean, log_var]</span>
-<span id="cb204-76"><a href="vaes.html#cb204-76"></a>        </span>
-<span id="cb204-77"><a href="vaes.html#cb204-77"></a>    <span class="kw">def</span> loss_function(<span class="va">self</span>, reconstruction, <span class="bu">input</span>, mean, log_var):</span>
-<span id="cb204-78"><a href="vaes.html#cb204-78"></a>        reconstruction_loss <span class="op">=</span> F.binary_cross_entropy(reconstruction, <span class="bu">input</span>, reduction<span class="op">=</span><span class="st">&#39;sum&#39;</span>)</span>
-<span id="cb204-79"><a href="vaes.html#cb204-79"></a>        kl_loss <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> torch.<span class="bu">sum</span>(<span class="dv">1</span> <span class="op">+</span> log_var <span class="op">-</span> mean <span class="op">**</span> <span class="dv">2</span> <span class="op">-</span> log_var.exp())</span>
-<span id="cb204-80"><a href="vaes.html#cb204-80"></a>        loss <span class="op">=</span> reconstruction_loss <span class="op">+</span> kl_loss</span>
-<span id="cb204-81"><a href="vaes.html#cb204-81"></a>        <span class="cf">return</span> loss, reconstruction_loss, kl_loss</span>
-<span id="cb204-82"><a href="vaes.html#cb204-82"></a>        </span>
-<span id="cb204-83"><a href="vaes.html#cb204-83"></a>    <span class="kw">def</span> sample(<span class="va">self</span>, num_samples, current_device):</span>
-<span id="cb204-84"><a href="vaes.html#cb204-84"></a>        z <span class="op">=</span> torch.randn(num_samples, <span class="va">self</span>.latent_dim)</span>
-<span id="cb204-85"><a href="vaes.html#cb204-85"></a>        z <span class="op">=</span> z.to(current_device)</span>
-<span id="cb204-86"><a href="vaes.html#cb204-86"></a>        samples <span class="op">=</span> <span class="va">self</span>.decode(z)</span>
-<span id="cb204-87"><a href="vaes.html#cb204-87"></a>        <span class="cf">return</span> samples</span>
-<span id="cb204-88"><a href="vaes.html#cb204-88"></a></span>
-<span id="cb204-89"><a href="vaes.html#cb204-89"></a>model <span class="op">=</span> VAE(latent_dim <span class="op">=</span> <span class="dv">128</span>).to(device)</span></code></pre></div>
+<span id="cb204-3"><a href="vaes.html#cb204-3"></a>view &lt;-<span class="st"> </span><span class="kw">nn_module</span>(</span>
+<span id="cb204-4"><a href="vaes.html#cb204-4"></a>    <span class="st">&quot;View&quot;</span>,</span>
+<span id="cb204-5"><a href="vaes.html#cb204-5"></a>    <span class="dt">initialize =</span> <span class="cf">function</span>(shape) {</span>
+<span id="cb204-6"><a href="vaes.html#cb204-6"></a>        self<span class="op">$</span>shape &lt;-<span class="st"> </span>shape</span>
+<span id="cb204-7"><a href="vaes.html#cb204-7"></a>    },</span>
+<span id="cb204-8"><a href="vaes.html#cb204-8"></a>    <span class="dt">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb204-9"><a href="vaes.html#cb204-9"></a>        x<span class="op">$</span><span class="kw">view</span>(self<span class="op">$</span>shape)</span>
+<span id="cb204-10"><a href="vaes.html#cb204-10"></a>    }</span>
+<span id="cb204-11"><a href="vaes.html#cb204-11"></a>)</span>
+<span id="cb204-12"><a href="vaes.html#cb204-12"></a></span>
+<span id="cb204-13"><a href="vaes.html#cb204-13"></a>vae &lt;-<span class="st"> </span><span class="kw">nn_module</span>(</span>
+<span id="cb204-14"><a href="vaes.html#cb204-14"></a>    <span class="st">&quot;VAE&quot;</span>,</span>
+<span id="cb204-15"><a href="vaes.html#cb204-15"></a></span>
+<span id="cb204-16"><a href="vaes.html#cb204-16"></a>    <span class="dt">initialize =</span> <span class="cf">function</span>(latent_dim) {</span>
+<span id="cb204-17"><a href="vaes.html#cb204-17"></a>        self<span class="op">$</span>latent_dim &lt;-<span class="st"> </span>latent_dim</span>
+<span id="cb204-18"><a href="vaes.html#cb204-18"></a>        self<span class="op">$</span>latent_mean &lt;-<span class="st"> </span><span class="kw">nn_linear</span>(<span class="dv">896</span>, latent_dim)</span>
+<span id="cb204-19"><a href="vaes.html#cb204-19"></a>        self<span class="op">$</span>latent_log_var &lt;-<span class="st"> </span><span class="kw">nn_linear</span>(<span class="dv">896</span>, latent_dim)</span>
+<span id="cb204-20"><a href="vaes.html#cb204-20"></a></span>
+<span id="cb204-21"><a href="vaes.html#cb204-21"></a>        self<span class="op">$</span>encoder &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
+<span id="cb204-22"><a href="vaes.html#cb204-22"></a>            <span class="kw">nn_conv2d</span>(<span class="dv">1</span>, image_size, <span class="dt">kernel_size=</span> <span class="dv">3</span>, <span class="dt">stride=</span> <span class="dv">2</span>, <span class="dt">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb204-23"><a href="vaes.html#cb204-23"></a>            <span class="kw">nn_batch_norm2d</span>(image_size),</span>
+<span id="cb204-24"><a href="vaes.html#cb204-24"></a>            <span class="kw">nn_leaky_relu</span>(),</span>
+<span id="cb204-25"><a href="vaes.html#cb204-25"></a>            <span class="kw">nn_conv2d</span>(image_size, image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">kernel_size=</span> <span class="dv">3</span>, <span class="dt">stride=</span> <span class="dv">2</span>, <span class="dt">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb204-26"><a href="vaes.html#cb204-26"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>),</span>
+<span id="cb204-27"><a href="vaes.html#cb204-27"></a>            <span class="kw">nn_leaky_relu</span>(),</span>
+<span id="cb204-28"><a href="vaes.html#cb204-28"></a>            <span class="kw">nn_conv2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dt">kernel_size=</span> <span class="dv">3</span>, <span class="dt">stride=</span> <span class="dv">2</span>, <span class="dt">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb204-29"><a href="vaes.html#cb204-29"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>),</span>
+<span id="cb204-30"><a href="vaes.html#cb204-30"></a>            <span class="kw">nn_leaky_relu</span>(),</span>
+<span id="cb204-31"><a href="vaes.html#cb204-31"></a>            <span class="kw">nn_conv2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">8</span>, <span class="dt">kernel_size=</span> <span class="dv">3</span>, <span class="dt">stride=</span> <span class="dv">2</span>, <span class="dt">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb204-32"><a href="vaes.html#cb204-32"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">8</span>),</span>
+<span id="cb204-33"><a href="vaes.html#cb204-33"></a>            <span class="kw">nn_leaky_relu</span>()</span>
+<span id="cb204-34"><a href="vaes.html#cb204-34"></a>        )</span>
+<span id="cb204-35"><a href="vaes.html#cb204-35"></a></span>
+<span id="cb204-36"><a href="vaes.html#cb204-36"></a>        self<span class="op">$</span>decoder &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
+<span id="cb204-37"><a href="vaes.html#cb204-37"></a>            <span class="kw">nn_linear</span>(latent_dim, image_size <span class="op">*</span><span class="st"> </span><span class="dv">8</span>),</span>
+<span id="cb204-38"><a href="vaes.html#cb204-38"></a>            <span class="kw">view</span>(<span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">8</span>, <span class="dv">1</span>, <span class="dv">1</span>)),</span>
+<span id="cb204-39"><a href="vaes.html#cb204-39"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">8</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dt">kernel_size =</span> <span class="dv">4</span>, <span class="dt">stride =</span> <span class="dv">1</span>, <span class="dt">padding =</span> <span class="dv">0</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb204-40"><a href="vaes.html#cb204-40"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>),</span>
+<span id="cb204-41"><a href="vaes.html#cb204-41"></a>            <span class="kw">nn_leaky_relu</span>(),</span>
+<span id="cb204-42"><a href="vaes.html#cb204-42"></a>            <span class="co"># 8 * 8</span></span>
+<span id="cb204-43"><a href="vaes.html#cb204-43"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">kernel_size =</span> <span class="dv">4</span>, <span class="dt">stride =</span> <span class="dv">2</span>, <span class="dt">padding =</span> <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb204-44"><a href="vaes.html#cb204-44"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>),</span>
+<span id="cb204-45"><a href="vaes.html#cb204-45"></a>            <span class="kw">nn_leaky_relu</span>(),</span>
+<span id="cb204-46"><a href="vaes.html#cb204-46"></a>            <span class="co"># 16 x 16</span></span>
+<span id="cb204-47"><a href="vaes.html#cb204-47"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, image_size, <span class="dt">kernel_size =</span> <span class="dv">4</span>, <span class="dt">stride =</span> <span class="dv">2</span>, <span class="dt">padding =</span> <span class="dv">2</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb204-48"><a href="vaes.html#cb204-48"></a>            <span class="kw">nn_batch_norm2d</span>(image_size),</span>
+<span id="cb204-49"><a href="vaes.html#cb204-49"></a>            <span class="kw">nn_leaky_relu</span>(),</span>
+<span id="cb204-50"><a href="vaes.html#cb204-50"></a>            <span class="co"># 28 x 28</span></span>
+<span id="cb204-51"><a href="vaes.html#cb204-51"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size, <span class="dv">1</span>, <span class="dt">kernel_size =</span> <span class="dv">4</span>, <span class="dt">stride =</span> <span class="dv">2</span>, <span class="dt">padding =</span> <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb204-52"><a href="vaes.html#cb204-52"></a>            <span class="kw">nn_sigmoid</span>()</span>
+<span id="cb204-53"><a href="vaes.html#cb204-53"></a>        )</span>
+<span id="cb204-54"><a href="vaes.html#cb204-54"></a>    },</span>
+<span id="cb204-55"><a href="vaes.html#cb204-55"></a></span>
+<span id="cb204-56"><a href="vaes.html#cb204-56"></a>    <span class="dt">encode =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb204-57"><a href="vaes.html#cb204-57"></a>        result &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">encoder</span>(x) <span class="op">%&gt;%</span></span>
+<span id="cb204-58"><a href="vaes.html#cb204-58"></a><span class="st">            </span><span class="kw">torch_flatten</span>(<span class="dt">start_dim =</span> <span class="dv">1</span>)</span>
+<span id="cb204-59"><a href="vaes.html#cb204-59"></a>        mean &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">latent_mean</span>(result)</span>
+<span id="cb204-60"><a href="vaes.html#cb204-60"></a>        log_var &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">latent_log_var</span>(result)</span>
+<span id="cb204-61"><a href="vaes.html#cb204-61"></a>        <span class="kw">list</span>(mean, log_var)</span>
+<span id="cb204-62"><a href="vaes.html#cb204-62"></a>    },</span>
+<span id="cb204-63"><a href="vaes.html#cb204-63"></a></span>
+<span id="cb204-64"><a href="vaes.html#cb204-64"></a>    <span class="dt">decode =</span> <span class="cf">function</span>(z) {</span>
+<span id="cb204-65"><a href="vaes.html#cb204-65"></a>        self<span class="op">$</span><span class="kw">decoder</span>(z)</span>
+<span id="cb204-66"><a href="vaes.html#cb204-66"></a>    },</span>
+<span id="cb204-67"><a href="vaes.html#cb204-67"></a></span>
+<span id="cb204-68"><a href="vaes.html#cb204-68"></a>    <span class="dt">reparameterize =</span> <span class="cf">function</span>(mean, logvar) {</span>
+<span id="cb204-69"><a href="vaes.html#cb204-69"></a>        std &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="fl">0.5</span>, <span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="op">*</span><span class="st"> </span>logvar</span>
+<span id="cb204-70"><a href="vaes.html#cb204-70"></a>        eps &lt;-<span class="st"> </span><span class="kw">torch_randn_like</span>(std)</span>
+<span id="cb204-71"><a href="vaes.html#cb204-71"></a>        eps <span class="op">*</span><span class="st"> </span>std <span class="op">+</span><span class="st"> </span>mean</span>
+<span id="cb204-72"><a href="vaes.html#cb204-72"></a>    },</span>
+<span id="cb204-73"><a href="vaes.html#cb204-73"></a></span>
+<span id="cb204-74"><a href="vaes.html#cb204-74"></a>    <span class="dt">loss_function =</span> <span class="cf">function</span>(reconstruction, input, mean, log_var) {</span>
+<span id="cb204-75"><a href="vaes.html#cb204-75"></a>        reconstruction_loss &lt;-<span class="st"> </span><span class="kw">nnf_binary_cross_entropy</span>(reconstruction, input, <span class="dt">reduction =</span> <span class="st">&quot;sum&quot;</span>)</span>
+<span id="cb204-76"><a href="vaes.html#cb204-76"></a>        kl_loss &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="op">-</span><span class="fl">0.5</span>, <span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="op">*</span><span class="st"> </span><span class="kw">torch_sum</span>(<span class="kw">torch_tensor</span>(<span class="dv">1</span>, <span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="op">+</span><span class="st"> </span>log_var <span class="op">-</span><span class="st"> </span>mean<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span>log_var<span class="op">$</span><span class="kw">exp</span>())</span>
+<span id="cb204-77"><a href="vaes.html#cb204-77"></a>        loss &lt;-<span class="st"> </span>reconstruction_loss <span class="op">+</span><span class="st"> </span>kl_loss</span>
+<span id="cb204-78"><a href="vaes.html#cb204-78"></a>        <span class="kw">list</span>(loss, reconstruction_loss, kl_loss)</span>
+<span id="cb204-79"><a href="vaes.html#cb204-79"></a>    },</span>
+<span id="cb204-80"><a href="vaes.html#cb204-80"></a></span>
+<span id="cb204-81"><a href="vaes.html#cb204-81"></a>    <span class="dt">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb204-82"><a href="vaes.html#cb204-82"></a>        <span class="kw">c</span>(mean, log_var) <span class="op">%&lt;-%</span><span class="st"> </span>self<span class="op">$</span><span class="kw">encode</span>(x)</span>
+<span id="cb204-83"><a href="vaes.html#cb204-83"></a>        z &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">reparameterize</span>(mean, log_var)</span>
+<span id="cb204-84"><a href="vaes.html#cb204-84"></a>        <span class="kw">list</span> (self<span class="op">$</span><span class="kw">decode</span>(z), x, mean, log_var)</span>
+<span id="cb204-85"><a href="vaes.html#cb204-85"></a>    },</span>
+<span id="cb204-86"><a href="vaes.html#cb204-86"></a></span>
+<span id="cb204-87"><a href="vaes.html#cb204-87"></a>    <span class="dt">sample =</span> <span class="cf">function</span>(num_samples, current_device) {</span>
+<span id="cb204-88"><a href="vaes.html#cb204-88"></a>        z &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(num_samples, self<span class="op">$</span>latent_dim)</span>
+<span id="cb204-89"><a href="vaes.html#cb204-89"></a>        z &lt;-<span class="st"> </span>z<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> current_device)</span>
+<span id="cb204-90"><a href="vaes.html#cb204-90"></a>        samples &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">decode</span>(z)</span>
+<span id="cb204-91"><a href="vaes.html#cb204-91"></a>        samples</span>
+<span id="cb204-92"><a href="vaes.html#cb204-92"></a>    }</span>
+<span id="cb204-93"><a href="vaes.html#cb204-93"></a></span>
+<span id="cb204-94"><a href="vaes.html#cb204-94"></a></span>
+<span id="cb204-95"><a href="vaes.html#cb204-95"></a></span>
+<span id="cb204-96"><a href="vaes.html#cb204-96"></a>model &lt;-<span class="st"> </span><span class="kw">vae</span>(<span class="dt">latent_dim =</span> <span class="dv">128</span>)<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
 </div>
 <div id="training-the-vae" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Training the VAE</h2>
 <p>We train the model for 3 epochs. Training code is just a few lines, as the model itself contains all the logic.</p>
-<div class="sourceCode" id="cb205"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb205-1"><a href="vaes.html#cb205-1"></a>optimizer <span class="op">=</span> optim.Adam(model.parameters(), lr <span class="op">=</span> <span class="fl">1e-3</span>)</span>
+<p>TBD: change make_grid and normalize once they’re available.</p>
+<div class="sourceCode" id="cb205"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb205-1"><a href="vaes.html#cb205-1"></a>optimizer &lt;-<span class="st"> </span><span class="kw">optim_adam</span>(model<span class="op">$</span>parameters, <span class="dt">lr =</span> <span class="fl">0.001</span>)</span>
 <span id="cb205-2"><a href="vaes.html#cb205-2"></a></span>
-<span id="cb205-3"><a href="vaes.html#cb205-3"></a>num_epochs <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb205-3"><a href="vaes.html#cb205-3"></a>num_epochs &lt;-<span class="st"> </span><span class="dv">3</span></span>
 <span id="cb205-4"><a href="vaes.html#cb205-4"></a></span>
-<span id="cb205-5"><a href="vaes.html#cb205-5"></a>img_list  <span class="op">=</span> []</span>
-<span id="cb205-6"><a href="vaes.html#cb205-6"></a></span>
-<span id="cb205-7"><a href="vaes.html#cb205-7"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
-<span id="cb205-8"><a href="vaes.html#cb205-8"></a>    <span class="cf">for</span> i, data <span class="kw">in</span> <span class="bu">enumerate</span>(dataloader, <span class="dv">0</span>):</span>
-<span id="cb205-9"><a href="vaes.html#cb205-9"></a>        data <span class="op">=</span> data[<span class="dv">0</span>].to(device)</span>
-<span id="cb205-10"><a href="vaes.html#cb205-10"></a>        optimizer.zero_grad()</span>
-<span id="cb205-11"><a href="vaes.html#cb205-11"></a>        reconstruction, <span class="bu">input</span>, mean, log_var <span class="op">=</span> model(data)</span>
-<span id="cb205-12"><a href="vaes.html#cb205-12"></a>        loss, reconstruction_loss, kl_loss <span class="op">=</span> model.loss_function(reconstruction, <span class="bu">input</span>, mean, log_var)</span>
-<span id="cb205-13"><a href="vaes.html#cb205-13"></a>        loss.backward()</span>
-<span id="cb205-14"><a href="vaes.html#cb205-14"></a>        optimizer.step()</span>
-<span id="cb205-15"><a href="vaes.html#cb205-15"></a>        <span class="co"># Output training stats</span></span>
-<span id="cb205-16"><a href="vaes.html#cb205-16"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">50</span> <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb205-17"><a href="vaes.html#cb205-17"></a>            <span class="bu">print</span>(<span class="st">&#39;[</span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st">][</span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st">]</span><span class="ch">\t</span><span class="st">Loss: </span><span class="sc">%.2f</span><span class="ch">\t</span><span class="st">Reconstruction: </span><span class="sc">%.2f</span><span class="ch">\t</span><span class="st">KL: </span><span class="sc">%.2f</span><span class="st">&#39;</span></span>
-<span id="cb205-18"><a href="vaes.html#cb205-18"></a>                  <span class="op">%</span> (epoch, num_epochs, i, <span class="bu">len</span>(dataloader),</span>
-<span id="cb205-19"><a href="vaes.html#cb205-19"></a>                     loss.item(), reconstruction_loss.item(), kl_loss.item()))</span>
-<span id="cb205-20"><a href="vaes.html#cb205-20"></a>            <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb205-21"><a href="vaes.html#cb205-21"></a>              generated <span class="op">=</span> model.sample(<span class="dv">64</span>, device)</span>
-<span id="cb205-22"><a href="vaes.html#cb205-22"></a>              img_list.append(utils.make_grid(generated, padding<span class="op">=</span><span class="dv">2</span>, normalize<span class="op">=</span><span class="va">True</span>))</span></code></pre></div>
+<span id="cb205-5"><a href="vaes.html#cb205-5"></a>img_num &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb205-6"><a href="vaes.html#cb205-6"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>num_epochs) {</span>
+<span id="cb205-7"><a href="vaes.html#cb205-7"></a></span>
+<span id="cb205-8"><a href="vaes.html#cb205-8"></a>    batchnum &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb205-9"><a href="vaes.html#cb205-9"></a>    <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(dl)) {</span>
+<span id="cb205-10"><a href="vaes.html#cb205-10"></a></span>
+<span id="cb205-11"><a href="vaes.html#cb205-11"></a>        batchnum &lt;-<span class="st"> </span>batchnum <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb205-12"><a href="vaes.html#cb205-12"></a>        input &lt;-<span class="st"> </span>b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span>
+<span id="cb205-13"><a href="vaes.html#cb205-13"></a>        optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb205-14"><a href="vaes.html#cb205-14"></a>        <span class="kw">c</span>(reconstruction, input, mean, log_var) <span class="op">%&lt;-%</span><span class="st"> </span><span class="kw">model</span>(input)</span>
+<span id="cb205-15"><a href="vaes.html#cb205-15"></a>        <span class="kw">c</span>(loss, reconstruction_loss, kl_loss) <span class="op">%&lt;-%</span><span class="st"> </span>model<span class="op">$</span><span class="kw">loss_function</span>(reconstruction, input, mean, log_var)</span>
+<span id="cb205-16"><a href="vaes.html#cb205-16"></a></span>
+<span id="cb205-17"><a href="vaes.html#cb205-17"></a>        <span class="cf">if</span>(batchnum <span class="op">%%</span><span class="st"> </span><span class="dv">50</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) {</span>
+<span id="cb205-18"><a href="vaes.html#cb205-18"></a>            img_num &lt;-<span class="st"> </span>img_num <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb205-19"><a href="vaes.html#cb205-19"></a>            <span class="kw">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, epoch,</span>
+<span id="cb205-20"><a href="vaes.html#cb205-20"></a>                <span class="st">&quot;    batch: &quot;</span>, batchnum,</span>
+<span id="cb205-21"><a href="vaes.html#cb205-21"></a>                <span class="st">&quot;    loss: &quot;</span>, <span class="kw">as.numeric</span>(loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
+<span id="cb205-22"><a href="vaes.html#cb205-22"></a>                <span class="st">&quot;    recon loss: &quot;</span>, <span class="kw">as.numeric</span>(reconstruction_loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
+<span id="cb205-23"><a href="vaes.html#cb205-23"></a>                <span class="st">&quot;    KL loss: &quot;</span>, <span class="kw">as.numeric</span>(kl_loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
+<span id="cb205-24"><a href="vaes.html#cb205-24"></a>                <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb205-25"><a href="vaes.html#cb205-25"></a>            <span class="kw">with_no_grad</span>({</span>
+<span id="cb205-26"><a href="vaes.html#cb205-26"></a>                generated &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">sample</span>(<span class="dv">64</span>, device)</span>
+<span id="cb205-27"><a href="vaes.html#cb205-27"></a>                grid &lt;-<span class="st"> </span><span class="kw">make_grid</span>(<span class="kw">normalize</span>(generated))</span>
+<span id="cb205-28"><a href="vaes.html#cb205-28"></a>                img_list[[img_num]] &lt;-<span class="st"> </span><span class="kw">as_array</span>(grid<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
+<span id="cb205-29"><a href="vaes.html#cb205-29"></a>            })</span>
+<span id="cb205-30"><a href="vaes.html#cb205-30"></a></span>
+<span id="cb205-31"><a href="vaes.html#cb205-31"></a>        }</span>
+<span id="cb205-32"><a href="vaes.html#cb205-32"></a>        loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb205-33"><a href="vaes.html#cb205-33"></a>        optimizer<span class="op">$</span><span class="kw">step</span>()</span>
+<span id="cb205-34"><a href="vaes.html#cb205-34"></a>    }</span>
+<span id="cb205-35"><a href="vaes.html#cb205-35"></a>}</span></code></pre></div>
 <p>Above, we chose a latent dimension of 128 for the VAE. This is how generated images look as training progresses:</p>
-<div class="sourceCode" id="cb206"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb206-1"><a href="vaes.html#cb206-1"></a><span class="kw">library</span>(reticulate)</span>
-<span id="cb206-2"><a href="vaes.html#cb206-2"></a><span class="kw">library</span>(dplyr)</span>
+<div class="sourceCode" id="cb206"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb206-1"><a href="vaes.html#cb206-1"></a>index &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(img_list), <span class="dt">length.out =</span> <span class="dv">16</span>)</span>
+<span id="cb206-2"><a href="vaes.html#cb206-2"></a>images &lt;-<span class="st"> </span>img_list[index]</span>
 <span id="cb206-3"><a href="vaes.html#cb206-3"></a></span>
-<span id="cb206-4"><a href="vaes.html#cb206-4"></a>index &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(py<span class="op">$</span>img_list), <span class="dt">length.out =</span> <span class="dv">16</span>)</span>
-<span id="cb206-5"><a href="vaes.html#cb206-5"></a><span class="co"># these have 3 channels! (probably due to torchvision.utils.make_grid)</span></span>
-<span id="cb206-6"><a href="vaes.html#cb206-6"></a><span class="co"># size is 3 x 242 x 242</span></span>
-<span id="cb206-7"><a href="vaes.html#cb206-7"></a>images &lt;-<span class="st"> </span>py<span class="op">$</span>img_list[index]</span>
-<span id="cb206-8"><a href="vaes.html#cb206-8"></a></span>
-<span id="cb206-9"><a href="vaes.html#cb206-9"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
-<span id="cb206-10"><a href="vaes.html#cb206-10"></a>rasterize &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
-<span id="cb206-11"><a href="vaes.html#cb206-11"></a>     x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">numpy</span>()</span>
-<span id="cb206-12"><a href="vaes.html#cb206-12"></a>     x &lt;-<span class="st"> </span><span class="kw">aperm</span>(x, <span class="dt">perm =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>))</span>
-<span id="cb206-13"><a href="vaes.html#cb206-13"></a>     <span class="kw">as.raster</span>(x)</span>
-<span id="cb206-14"><a href="vaes.html#cb206-14"></a>}</span>
-<span id="cb206-15"><a href="vaes.html#cb206-15"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb206-16"><a href="vaes.html#cb206-16"></a><span class="st">   </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
-<span id="cb206-17"><a href="vaes.html#cb206-17"></a><span class="st">   </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
-<p>For comparison, let’s re-run training with a latent space dimensionality of 2. This is how artifacts over time look now:</p>
+<span id="cb206-4"><a href="vaes.html#cb206-4"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
+<span id="cb206-5"><a href="vaes.html#cb206-5"></a>rasterize &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb206-6"><a href="vaes.html#cb206-6"></a>    <span class="kw">as.raster</span>(x[<span class="dv">1</span>, , ])</span>
+<span id="cb206-7"><a href="vaes.html#cb206-7"></a>}</span>
+<span id="cb206-8"><a href="vaes.html#cb206-8"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb206-9"><a href="vaes.html#cb206-9"></a><span class="st">    </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
+<span id="cb206-10"><a href="vaes.html#cb206-10"></a><span class="st">    </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
 <div class="sourceCode" id="cb207"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb207-1"><a href="vaes.html#cb207-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/vae_128.png&quot;</span>)</span></code></pre></div>
-<p>On the other hand, we can now visualize the latent space.</p>
+<p>For comparison, let’s re-run training with a latent space dimensionality of 2. This is how artifacts over time look now:</p>
+<div class="sourceCode" id="cb208"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb208-1"><a href="vaes.html#cb208-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/vae_2.png&quot;</span>)</span></code></pre></div>
+<p>Not surprisingly, latent space size significantly affects artifact quality. On the other hand, we can now visualize the latent
+space.</p>
 </div>
 <div id="latent-space" class="section level2" number="12.4">
 <h2><span class="header-section-number">12.4</span> Latent space</h2>
-<div class="sourceCode" id="cb208"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb208-1"><a href="vaes.html#cb208-1"></a>kmnist_test <span class="op">=</span> torchvision.datasets.KMNIST(<span class="st">&quot;data/kmnist&quot;</span>, train <span class="op">=</span> <span class="va">False</span>, transform <span class="op">=</span> transform)</span>
-<span id="cb208-2"><a href="vaes.html#cb208-2"></a>test_loader <span class="op">=</span> torch.utils.data.DataLoader(kmnist_test, batch_size<span class="op">=</span><span class="dv">10000</span>, shuffle <span class="op">=</span> <span class="va">False</span>, num_workers <span class="op">=</span> <span class="dv">8</span>)</span>
-<span id="cb208-3"><a href="vaes.html#cb208-3"></a></span>
-<span id="cb208-4"><a href="vaes.html#cb208-4"></a>model.<span class="bu">eval</span>()</span>
-<span id="cb208-5"><a href="vaes.html#cb208-5"></a><span class="bu">print</span>(model.training)</span>
-<span id="cb208-6"><a href="vaes.html#cb208-6"></a></span>
-<span id="cb208-7"><a href="vaes.html#cb208-7"></a><span class="cf">with</span> torch.no_grad():</span>
-<span id="cb208-8"><a href="vaes.html#cb208-8"></a>  inputs, labels <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(test_loader))</span>
-<span id="cb208-9"><a href="vaes.html#cb208-9"></a>  inputs <span class="op">=</span> inputs.to(device)</span>
-<span id="cb208-10"><a href="vaes.html#cb208-10"></a>  encoded <span class="op">=</span> model.encode(inputs)</span>
-<span id="cb208-11"><a href="vaes.html#cb208-11"></a>  </span>
-<span id="cb208-12"><a href="vaes.html#cb208-12"></a>labels <span class="op">=</span> labels.cpu().numpy()</span>
-<span id="cb208-13"><a href="vaes.html#cb208-13"></a>encoded <span class="op">=</span> encoded[<span class="dv">1</span>].cpu().numpy()</span></code></pre></div>
-<div class="sourceCode" id="cb209"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb209-1"><a href="vaes.html#cb209-1"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb209-2"><a href="vaes.html#cb209-2"></a><span class="kw">library</span>(dplyr)</span>
-<span id="cb209-3"><a href="vaes.html#cb209-3"></a><span class="kw">library</span>(reticulate)</span>
-<span id="cb209-4"><a href="vaes.html#cb209-4"></a></span>
-<span id="cb209-5"><a href="vaes.html#cb209-5"></a>encoded &lt;-<span class="st"> </span>py<span class="op">$</span>encoded</span>
-<span id="cb209-6"><a href="vaes.html#cb209-6"></a>labels &lt;-<span class="st"> </span>py<span class="op">$</span>labels</span>
-<span id="cb209-7"><a href="vaes.html#cb209-7"></a></span>
-<span id="cb209-8"><a href="vaes.html#cb209-8"></a>encoded <span class="op">%&gt;%</span></span>
-<span id="cb209-9"><a href="vaes.html#cb209-9"></a><span class="st">   </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb209-10"><a href="vaes.html#cb209-10"></a><span class="st">   </span><span class="kw">mutate</span>(<span class="dt">class =</span> <span class="kw">as.factor</span>(labels)) <span class="op">%&gt;%</span></span>
-<span id="cb209-11"><a href="vaes.html#cb209-11"></a><span class="st">   </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> V1, <span class="dt">y =</span> V2, <span class="dt">colour =</span> class)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
-<span id="cb209-12"><a href="vaes.html#cb209-12"></a><span class="st">   </span><span class="kw">coord_fixed</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">8</span>, <span class="fl">-1.5</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">8</span>, <span class="fl">-1.5</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb210"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb210-1"><a href="vaes.html#cb210-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/vae_2_latent.png&quot;</span>)</span></code></pre></div>
-<p>Unfortunately, with a latent space dimensionality of 2, both dimensions end up strongly correlated, which is not something we
-would want. That notwithstanding, let’s see how we would explore transitions in that latent space.</p>
-<div class="sourceCode" id="cb211"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb211-1"><a href="vaes.html#cb211-1"></a>torch &lt;-<span class="st"> </span><span class="kw">import</span>(<span class="st">&quot;torch&quot;</span>)</span>
-<span id="cb211-2"><a href="vaes.html#cb211-2"></a>n &lt;-<span class="st"> </span><span class="dv">8</span>  </span>
-<span id="cb211-3"><a href="vaes.html#cb211-3"></a>digit_size &lt;-<span class="st"> </span><span class="dv">28</span></span>
-<span id="cb211-4"><a href="vaes.html#cb211-4"></a></span>
-<span id="cb211-5"><a href="vaes.html#cb211-5"></a>grid_x &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="dt">length.out =</span> n)</span>
-<span id="cb211-6"><a href="vaes.html#cb211-6"></a>grid_y &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="dt">length.out =</span> n)</span>
-<span id="cb211-7"><a href="vaes.html#cb211-7"></a></span>
-<span id="cb211-8"><a href="vaes.html#cb211-8"></a>py<span class="op">$</span>model<span class="op">$</span><span class="kw">eval</span>()</span>
-<span id="cb211-9"><a href="vaes.html#cb211-9"></a>py<span class="op">$</span>model<span class="op">$</span>training</span>
-<span id="cb211-10"><a href="vaes.html#cb211-10"></a></span>
-<span id="cb211-11"><a href="vaes.html#cb211-11"></a>rows &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
-<span id="cb211-12"><a href="vaes.html#cb211-12"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(grid_x)){</span>
-<span id="cb211-13"><a href="vaes.html#cb211-13"></a>  column &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
-<span id="cb211-14"><a href="vaes.html#cb211-14"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(grid_y)){</span>
-<span id="cb211-15"><a href="vaes.html#cb211-15"></a>    z_sample &lt;-<span class="st"> </span>torch<span class="op">$</span><span class="kw">tensor</span>(<span class="kw">list</span>(grid_x[i], grid_y[j]), <span class="dt">dtype =</span> torch<span class="op">$</span>float32)<span class="op">$</span><span class="kw">cuda</span>()</span>
-<span id="cb211-16"><a href="vaes.html#cb211-16"></a>    column &lt;-<span class="st"> </span><span class="kw">rbind</span>(column, py<span class="op">$</span>model<span class="op">$</span><span class="kw">decode</span>(z_sample)<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">detach</span>()<span class="op">$</span><span class="kw">numpy</span>()[<span class="dv">1</span>, <span class="dv">1</span>, , ] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> digit_size))</span>
-<span id="cb211-17"><a href="vaes.html#cb211-17"></a>  }</span>
-<span id="cb211-18"><a href="vaes.html#cb211-18"></a>  rows &lt;-<span class="st"> </span><span class="kw">cbind</span>(rows, column)</span>
-<span id="cb211-19"><a href="vaes.html#cb211-19"></a>}</span>
-<span id="cb211-20"><a href="vaes.html#cb211-20"></a>rows <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.raster</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">plot</span>()</span></code></pre></div>
-<div class="sourceCode" id="cb212"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb212-1"><a href="vaes.html#cb212-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/vae_2_grid.png&quot;</span>)</span></code></pre></div>
-<p>Not too bad, though, for a latent dimensionality of 2 and a pretty complex dataset.</p>
+<div class="sourceCode" id="cb209"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb209-1"><a href="vaes.html#cb209-1"></a>kmnist_test &lt;-<span class="st"> </span><span class="kw">kmnist_dataset</span>(</span>
+<span id="cb209-2"><a href="vaes.html#cb209-2"></a>    dir,</span>
+<span id="cb209-3"><a href="vaes.html#cb209-3"></a>    <span class="dt">train =</span> <span class="ot">FALSE</span>,</span>
+<span id="cb209-4"><a href="vaes.html#cb209-4"></a>    <span class="dt">download =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb209-5"><a href="vaes.html#cb209-5"></a>    <span class="dt">transform =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb209-6"><a href="vaes.html#cb209-6"></a>        x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">to</span>(<span class="dt">dtype =</span> <span class="kw">torch_float</span>())<span class="op">/</span><span class="dv">256</span></span>
+<span id="cb209-7"><a href="vaes.html#cb209-7"></a>        x[newaxis,..]</span>
+<span id="cb209-8"><a href="vaes.html#cb209-8"></a>    }</span>
+<span id="cb209-9"><a href="vaes.html#cb209-9"></a>)</span>
+<span id="cb209-10"><a href="vaes.html#cb209-10"></a></span>
+<span id="cb209-11"><a href="vaes.html#cb209-11"></a>dl_test &lt;-<span class="st"> </span><span class="kw">dataloader</span>(kmnist_test, <span class="dt">batch_size =</span> <span class="dv">10000</span>, <span class="dt">shuffle =</span> <span class="ot">FALSE</span>)</span>
+<span id="cb209-12"><a href="vaes.html#cb209-12"></a></span>
+<span id="cb209-13"><a href="vaes.html#cb209-13"></a>model<span class="op">$</span><span class="kw">eval</span>()</span>
+<span id="cb209-14"><a href="vaes.html#cb209-14"></a></span>
+<span id="cb209-15"><a href="vaes.html#cb209-15"></a><span class="kw">with_no_grad</span>({</span>
+<span id="cb209-16"><a href="vaes.html#cb209-16"></a>    <span class="kw">c</span>(inputs, labels) <span class="op">%&lt;-%</span><span class="st"> </span>dl_test<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.next</span>()</span>
+<span id="cb209-17"><a href="vaes.html#cb209-17"></a>    inputs &lt;-<span class="st"> </span>inputs<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span>
+<span id="cb209-18"><a href="vaes.html#cb209-18"></a>    encoded &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">encode</span>(inputs)</span>
+<span id="cb209-19"><a href="vaes.html#cb209-19"></a>})</span></code></pre></div>
+<div class="sourceCode" id="cb210"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb210-1"><a href="vaes.html#cb210-1"></a><span class="kw">library</span>(ggplot2)</span>
+<span id="cb210-2"><a href="vaes.html#cb210-2"></a><span class="kw">library</span>(dplyr)</span>
+<span id="cb210-3"><a href="vaes.html#cb210-3"></a></span>
+<span id="cb210-4"><a href="vaes.html#cb210-4"></a>encoded &lt;-<span class="st"> </span>encoded[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">cpu</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_array</span>()</span>
+<span id="cb210-5"><a href="vaes.html#cb210-5"></a><span class="co"># </span><span class="al">TBD</span><span class="co"> remove dtype conversion when #149 works</span></span>
+<span id="cb210-6"><a href="vaes.html#cb210-6"></a>labels &lt;-<span class="st"> </span><span class="kw">as.integer</span>(labels<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">to</span>(<span class="dt">dtype =</span> <span class="kw">torch_int32</span>()))</span>
+<span id="cb210-7"><a href="vaes.html#cb210-7"></a></span>
+<span id="cb210-8"><a href="vaes.html#cb210-8"></a>encoded <span class="op">%&gt;%</span></span>
+<span id="cb210-9"><a href="vaes.html#cb210-9"></a><span class="st">    </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></span>
+<span id="cb210-10"><a href="vaes.html#cb210-10"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">class =</span> <span class="kw">as.factor</span>(labels)) <span class="op">%&gt;%</span></span>
+<span id="cb210-11"><a href="vaes.html#cb210-11"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> V1, <span class="dt">y =</span> V2, <span class="dt">colour =</span> class)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
+<span id="cb210-12"><a href="vaes.html#cb210-12"></a><span class="st">    </span><span class="kw">coord_fixed</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>, <span class="dv">4</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>, <span class="dv">4</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb211"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb211-1"><a href="vaes.html#cb211-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/vae_2_latent.png&quot;</span>)</span></code></pre></div>
+<p>As we see, classes are nicely clustered together. Finally, we can also explore transitions in latent space.</p>
+<div class="sourceCode" id="cb212"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb212-1"><a href="vaes.html#cb212-1"></a>n &lt;-<span class="st"> </span><span class="dv">8</span>  </span>
+<span id="cb212-2"><a href="vaes.html#cb212-2"></a></span>
+<span id="cb212-3"><a href="vaes.html#cb212-3"></a>grid_x &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="dt">length.out =</span> n)</span>
+<span id="cb212-4"><a href="vaes.html#cb212-4"></a>grid_y &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="dt">length.out =</span> n)</span>
+<span id="cb212-5"><a href="vaes.html#cb212-5"></a></span>
+<span id="cb212-6"><a href="vaes.html#cb212-6"></a>model<span class="op">$</span><span class="kw">eval</span>()</span>
+<span id="cb212-7"><a href="vaes.html#cb212-7"></a></span>
+<span id="cb212-8"><a href="vaes.html#cb212-8"></a>rows &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
+<span id="cb212-9"><a href="vaes.html#cb212-9"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(grid_x)){</span>
+<span id="cb212-10"><a href="vaes.html#cb212-10"></a>  column &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
+<span id="cb212-11"><a href="vaes.html#cb212-11"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(grid_y)){</span>
+<span id="cb212-12"><a href="vaes.html#cb212-12"></a>    z_sample &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(<span class="kw">c</span>(grid_x[i], grid_y[j]))<span class="op">$</span><span class="kw">cuda</span>()</span>
+<span id="cb212-13"><a href="vaes.html#cb212-13"></a>    column &lt;-<span class="st"> </span><span class="kw">rbind</span>(column, <span class="kw">as_array</span>(model<span class="op">$</span><span class="kw">decode</span>(z_sample)<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">detach</span>()[<span class="dv">1</span>, <span class="dv">1</span>, , ]))</span>
+<span id="cb212-14"><a href="vaes.html#cb212-14"></a>  }</span>
+<span id="cb212-15"><a href="vaes.html#cb212-15"></a>  rows &lt;-<span class="st"> </span><span class="kw">cbind</span>(rows, column)</span>
+<span id="cb212-16"><a href="vaes.html#cb212-16"></a>}</span>
+<span id="cb212-17"><a href="vaes.html#cb212-17"></a>rows <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.raster</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">plot</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb213"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb213-1"><a href="vaes.html#cb213-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/vae_2_grid.png&quot;</span>)</span></code></pre></div>
+<p>Not too bad, for a latent dimensionality of 2 and a pretty complex dataset!</p>
 
 </div>
 </div>

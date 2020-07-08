@@ -129,7 +129,7 @@ optimizer <- optim_adam(model$parameters, lr = 0.001)
 
 num_epochs <- 3
 
-img_list <- vector(mode = "list")
+img_list <- vector(mode = "list", length = num_epochs * trunc(dl$.iter()$.length()/50))
 
 normalize <- function(x) {
     min = x$min()$item()
@@ -165,6 +165,7 @@ make_grid <- function(tensor, num_rows = 8, padding = 2, pad_value = 0) {
     grid
 }
 
+img_num <- 0
 for (epoch in 1:num_epochs) {
 
     batchnum <- 0
@@ -177,6 +178,7 @@ for (epoch in 1:num_epochs) {
         c(loss, reconstruction_loss, kl_loss) %<-% model$loss_function(reconstruction, input, mean, log_var)
 
         if(batchnum %% 50 == 0) {
+            img_num <- img_num + 1
             cat("Epoch: ", epoch,
                 "    batch: ", batchnum,
                 "    loss: ", as.numeric(loss$cpu()),
@@ -186,7 +188,7 @@ for (epoch in 1:num_epochs) {
             with_no_grad({
                 generated <- model$sample(64, device)
                 grid <- make_grid(normalize(generated))
-                img_list[[epoch]] <- as_array(grid$to(device = "cpu"))
+                img_list[[img_num]] <- as_array(grid$to(device = "cpu"))
             })
 
         }
@@ -239,7 +241,6 @@ library(ggplot2)
 library(dplyr)
 
 encoded <- encoded[[1]]$cpu() %>% as_array()
-# TBD remove dtype conversion when #149 works
 labels <- as.integer(labels$cpu()$to(dtype = torch_int32()))
 encoded %>%
     as.data.frame() %>%
