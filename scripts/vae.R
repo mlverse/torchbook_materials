@@ -1,13 +1,13 @@
-## TBD ###
-
-# use KMNIST
-
 library(torch)
 library(zeallot)
 
+
+# Load data ---------------------------------------------------------------
+
+
 dir <- "/tmp"
 
-kmnist <- mnist_dataset(
+kmnist <- kmnist_dataset(
     dir,
     download = TRUE,
     transform = function(x) {
@@ -16,6 +16,11 @@ kmnist <- mnist_dataset(
     }
 )
 dl <- dataloader(kmnist, batch_size = 128, shuffle = TRUE)
+
+
+
+# Model definition --------------------------------------------------------
+
 
 device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
 
@@ -116,6 +121,10 @@ vae <- nn_module(
 
 model <- vae(latent_dim = 2)$to(device = device)
 
+
+# Train -------------------------------------------------------------------
+
+
 optimizer <- optim_adam(model$parameters, lr = 0.001)
 
 num_epochs <- 3
@@ -186,8 +195,12 @@ for (epoch in 1:num_epochs) {
     }
 }
 
+
+
+# Plot artifacts over time ------------------------------------------------
+
+
 index <- seq(1, length(img_list), length.out = 16)
-# size is 1 x 242 x 242
 images <- img_list[index]
 
 par(mfrow = c(4,4), mar = rep(0.2, 4))
@@ -197,3 +210,61 @@ rasterize <- function(x) {
 images %>%
     purrr::map(rasterize) %>%
     purrr::iwalk(~{plot(.x)})
+
+
+
+# Visualize latent space --------------------------------------------------
+
+kmnist_test <- kmnist_dataset(
+    dir,
+    train = FALSE,
+    download = TRUE,
+    transform = function(x) {
+        x <- x$to(dtype = torch_float())/256
+        x[newaxis,..]
+    }
+)
+
+dl_test <- dataloader(kmnist_test, batch_size = 10000, shuffle = FALSE)
+
+model$eval()
+
+with_no_grad({
+    c(inputs, labels) %<-% dl_test$.iter()$.next()
+    inputs <- inputs$to(device = device)
+    encoded <- model$encode(inputs)
+})
+
+library(ggplot2)
+library(dplyr)
+
+encoded <- encoded[[1]]$cpu() %>% as_array()
+# TBD remove dtype conversion when #149 works
+labels <- as.integer(labels$cpu()$to(dtype = torch_int32()))
+encoded %>%
+    as.data.frame() %>%
+    mutate(class = as.factor(labels)) %>%
+    ggplot(aes(x = V1, y = V2, colour = class)) + geom_point() +
+    coord_fixed(xlim = c(-4, 4), ylim = c(-4, 4))
+
+
+# Visualize transitions ---------------------------------------------------
+
+n <- 8
+
+grid_x <- seq(-8, 8, length.out = n)
+grid_y <- seq(-8, 8, length.out = n)
+
+model$eval()
+
+rows <- NULL
+for(i in 1:length(grid_x)){
+    column <- NULL
+    for(j in 1:length(grid_y)){
+        z_sample <- torch_tensor(c(grid_x[i], grid_y[j]))$cuda()
+        column <- rbind(column, as_array(model$decode(z_sample)$cpu()$detach()[1, 1, , ]))
+    }
+    rows <- cbind(rows, column)
+}
+rows %>% as.raster() %>% plot()
+
