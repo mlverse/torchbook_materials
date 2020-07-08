@@ -16,42 +16,30 @@ For this task, we use [Kuzushiji-MNIST](https://github.com/rois-codh/kmnist) [@c
 drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided
 into 10 classes.
 
-We can use torch for loading it. With an unsupervised learning task such as this one, we only need the training set:
+We can use `torch` for loading it. With an unsupervised learning task such as this one, we only need the training set:
 
-```{python}
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
-import torchvision
-from torchvision import transforms, datasets, utils
-import os
+```{r}
+library(torch)
 
-transform = transforms.Compose([transforms.ToTensor()])
+batch_size <- 128
 
-kmnist = torchvision.datasets.KMNIST("data/kmnist", train = True, transform = transform, download = True)
-
-dataloader = torch.utils.data.DataLoader(kmnist, batch_size=128, shuffle = True, num_workers = 8)
+kmnist <- kmnist_dataset(
+    dir,
+    download = TRUE,
+    transform = function(x) {
+        x <- x$to(dtype = torch_float())/256
+        x[newaxis,..]
+    }
+)
+dl <- dataloader(kmnist, batch_size = batch_size, shuffle = TRUE)
 
 ```
 
-Let's view a few of those. Here are the first 128 images:
-
-```{python}
-images = next(iter(dataloader))[0].cpu()
-images.device
-```
-
-... of which, let's plot the first 16:
+Let's view a few of those. Here are the initial 16 images, taken from the very first batch:
 
 ```{r, fig.asp=1, fig.width=8}
-library(reticulate)
-library(dplyr)
-
-index <- 1:16
-images <- py$images$numpy()[index,,,] 
-
-par(mfrow = c(4,4), mar = rep(0.2, 4))
+images <- dl$.iter()$.next()[[1]][1:16, 1, , ] 
+images <- normalize(images) %>% as_array()
 images %>%
   purrr::array_tree(1) %>%
   purrr::map(as.raster) %>%
@@ -64,7 +52,7 @@ knitr::include_graphics("images/gan_real.png")
 
 ## Model
 
-The model, in the abstract sense, consists of the interplay of two models, in the concrete sense -- two torch *modules*. The
+The model, in the abstract sense, consists of the interplay of two models, in the concrete sense -- two `torch` *modules*. The
 *generator* produces fake artifacts -- fake Kuzushiji digits, in our case -- in the hope of getting better and better at it;
 the *discriminator* is tasked with telling actual from fake images. (Its task should, if all goes well, get more difficult
 over time.)
@@ -73,56 +61,62 @@ Let's start with the generator.
 
 ### Generator
 
-The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution). Its main tool is
-repeated application of *transposed convolutions* that upsample from a resolution of 1x1 to the required resolution of 28x28.
+The generator is given a random noise vector (1d), and has to produce images (2d, of a given resolution). Its main mode of
+action is repeated application of *transposed convolutions* that upsample from a resolution of `1x1` to the required
+resolution of `28x28`.
 
-Following the DCGAN paper, the generator's `ConvTranspose2d` and `BatchNorm2d` layers are initialized according to a normal
-distribution with mean 0 and standard deviation 0.02.
+Following the DCGAN paper, the generator's `nn_conv_transpose2d` and `nn_batch_norm2d` layers are initialized according to a
+normal distribution with mean 0 and standard deviation 0.02.
 
-```{python}
-device = torch.device("cuda:0" if torch.cuda.is_available()  else "cpu")
+```{r}
+device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
 
-# size of generator input
-latent_input_size = 100
+latent_input_size <- 100
+image_size <- 28
 
-image_size = 28
-
-class Generator(nn.Module):
-    def __init__(self):
-        super(Generator, self).__init__()
-        self.main = nn.Sequential(
+generator <- nn_module(
+    "generator",
+    initialize = function() {
+        self$main = nn_sequential(
+            # nn_conv_transpose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=TRUE, dilation=1, padding_mode='zeros')
             # h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1
-            # h_out = (  1  - 1) *   1    - 2 *    0    +     1    * (      4     - 1) +        0       + 1
+            # (1 - 1) * 1 - 2 * 0 + 1 * (4 -1 ) + 0 + 1
             # 4 x 4
-            nn.ConvTranspose2d(latent_input_size, image_size * 4, kernel_size = 4, stride = 1, padding = 0, bias = False),
-            nn.BatchNorm2d(image_size * 4),
-            nn.ReLU(True),
+            nn_conv_transpose2d(latent_input_size, image_size * 4, 4, 1, 0, bias = FALSE),
+            nn_batch_norm2d(image_size * 4),
+            nn_relu(),
             # 8 * 8
-            nn.ConvTranspose2d(image_size * 4, image_size * 2, kernel_size = 4, stride = 2, padding = 1, bias = False),
-            nn.BatchNorm2d(image_size * 2),
-            nn.ReLU(True),
+            nn_conv_transpose2d(image_size * 4, image_size * 2, 4, 2, 1, bias = FALSE),
+            nn_batch_norm2d(image_size * 2),
+            nn_relu(),
             # 16 x 16
-            nn.ConvTranspose2d(image_size * 2, image_size, kernel_size = 4, stride = 2, padding = 2, bias = False),
-            nn.BatchNorm2d(image_size),
-            nn.ReLU(True),
+            nn_conv_transpose2d(image_size * 2, image_size, 4, 2, 2, bias = FALSE),
+            nn_batch_norm2d(image_size),
+            nn_relu(),
             # 28 x 28
-            nn.ConvTranspose2d(image_size, 1, kernel_size = 4, stride = 2, padding = 1, bias = False),
-            nn.Tanh()
+            nn_conv_transpose2d(image_size, 1, 4, 2, 1, bias = FALSE),
+            nn_tanh()
         )
-    def forward(self, input):
-        return self.main(input)
+    },
+    forward = function(x) {
+        self$main(x)
+    }
+)
 
-generator = Generator().to(device)
+gen <- generator()
 
-def weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        nn.init.normal_(m.weight.data, 0.0, 0.02)
-    elif classname.find('BatchNorm') != -1:
-        nn.init.normal_(m.weight.data, 1.0, 0.02)
-        nn.init.constant_(m.bias.data, 0)
-        
-generator.apply(weights_init)
+init_weights <- function(m) {
+    if (grepl("conv", m$.classes[[1]])) {
+        nn_init_normal_(m$weight$data(), 0.0, 0.02)
+    } else if (grepl("batch_norm", m$.classes[[1]])) {
+        nn_init_normal_(m$weight$data(), 1.0, 0.02)
+        nn_init_constant_(m$bias$data(), 0)
+    }
+}
+
+gen[[1]]$apply(init_weights)
+
+disc$to(device = device)
 
 ```
 
@@ -130,160 +124,147 @@ generator.apply(weights_init)
 
 The discriminator is a pretty conventional convnet. Its layers' weights are initialized in the same way as the generator's.
 
-```{python}
-class Discriminator(nn.Module):
-    def __init__(self):
-        super(Discriminator, self).__init__()
-        self.main = nn.Sequential(
+```{r}
+discriminator <- nn_module(
+    "discriminator",
+    initialize = function() {
+        self$main = nn_sequential(
             # 14 x 14
-            nn.Conv2d(1, image_size, 4, 2, 1, bias=False),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn_conv2d(1, image_size, 4, 2, 1, bias = FALSE),
+            nn_leaky_relu(0.2, inplace = TRUE),
             # 7 x 7
-            nn.Conv2d(image_size, image_size * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(image_size * 2),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn_conv2d(image_size, image_size * 2, 4, 2, 1,  bias = FALSE),
+            nn_batch_norm2d(image_size * 2),
+            nn_leaky_relu(0.2, inplace = TRUE),
             # 3 x 3
-            nn.Conv2d(image_size * 2, image_size * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(image_size * 4),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn_conv2d(image_size * 2, image_size * 4, 4, 2, 1,  bias = FALSE),
+            nn_batch_norm2d(image_size * 4),
+            nn_leaky_relu(0.2, inplace = TRUE),
             # 1 x 1
-            nn.Conv2d(image_size * 4, 1, 4, 2, 1, bias=False),
-            nn.Sigmoid()
+            nn_conv2d(image_size * 4, 1, 4, 2, 1,  bias = FALSE),
+            nn_sigmoid()
         )
-    def forward(self, input):
-        return self.main(input)
+    },
+    forward = function(x) {
+        self$main(x)
+    }
+)
 
+disc <- discriminator()
 
-discriminator = Discriminator().to(device)
+disc[[1]]$apply(init_weights)
 
-discriminator.apply(weights_init)
+disc$to(device = device)
 
 ```
 
 ### Optimizers and loss function
 
-While generator and discriminator have each their own losses, mathematically both use the same calculation, namely, binary
-crossentropy:
+While generator and discriminator each need to account for their own losses, mathematically both use the same calculation,
+namely, binary crossentropy:
 
-```{python}
-criterion = nn.BCELoss()
+```{r}
+criterion <- nn_bce_loss()
 ```
 
 They each have their own optimizer:
 
-```{python}
-lr = 0.0002
-beta1 = 0.5
+```{r}
+learning_rate <- 0.0002
 
-disc_optimizer = optim.Adam(discriminator.parameters(), lr = lr, betas = (beta1, 0.999))
-gen_optimizer = optim.Adam(generator.parameters(), lr = lr, betas = (beta1, 0.999))
+disc_optimizer <- optim_adam(disc$parameters, lr = learning_rate, betas = c(0.5, 0.999))
+gen_optimizer <- optim_adam(gen$parameters, lr = learning_rate, betas = c(0.5, 0.999))
 ```
 
 ## Training loop
 
-In every epoch, the training loop consists of three parts.
+Each epoch, the training loop consists of three parts.
 
-First, the discriminator is trained. This is a two-stage procedure: - In stage (1), it is given the real images, together with
-labels (fabricated on the fly) that say "these are real images". Binary cross entropy will be minimized when all those images
-are, in fact, classified as real by the discriminator. - In stage (2), first the generator is asked to generate some images,
-and then the discriminator is asked to rate them. Again, binary cross entropy is calculated, but this time, it will be minimal
-if all images are characterized as fake.
+First, the discriminator is trained. This, logically, is a two-step procedure (with no time dependencies between steps). In
+step 1, it is given the real images, together with labels (fabricated on the fly) that say "these are real images". Binary
+cross entropy will be minimized when all those images are, in fact, classified as real by the discriminator. In stage 2, first
+the generator is asked to generate some images, and then the discriminator is asked to rate them. Again, binary cross entropy
+is calculated, but this time, it will be minimal if all images are characterized as fake. Once gradients have been obtained
+for both computations, the discriminator's weights are updated.
 
-Once gradients have been obtained in both computations, the discriminator's weights are updated. Then it's the generator's
-turn. We pass the newly generated fakes to the discriminator again; only this time, the desired verdict is "no fake", so the
-labels are set to "real". The binary cross entropy loss then reflects the generator's performance, not that of the
-discriminator.
+Then it's the generator's turn -- although in an indirect way. We pass the newly generated fakes to the *discriminator* again;
+only this time, the desired verdict is "no fake", so the labels are set to "real". The binary cross entropy loss then reflects
+the *generator's* performance, not that of the discriminator.
 
-```{python}
-# random noise - input for generator
-fixed_noise = torch.randn(64, latent_input_size, 1, 1, device = device)
+```{r}
+fixed_noise <- torch_randn(c(64, latent_input_size, 1, 1), device = device)
+num_epochs <- 5
 
-real_label = 1
-fake_label = 0
+img_list <- vector(mode = "list", length = num_epochs * trunc(dl$.iter()$.length()/50))
+gen_losses <- c()
+disc_losses <- c()
 
-img_list = []
-generator_losses = []
-discriminator_losses = []
-discriminator_outputs_fake = []
-discriminator_outputs_real = []
+img_num <- 0
+for (epoch in 1:num_epochs) {
 
-num_epochs = 5
+    batchnum <- 0
+    for (b in enumerate(dl)) {
 
-for epoch in range(num_epochs):
+        batchnum <- batchnum + 1
 
-    for i, data in enumerate(dataloader, 0):
-    
-        # (1) Train discriminator
-        
-        ## Train with all-real batch
+        y_real <- torch_ones(b[[1]]$size()[1], device = device)
+        y_fake <- torch_zeros(b[[1]]$size()[1], device = device)
 
-        discriminator.zero_grad()
-        real_cpu = data[0].to(device)
-        b_size = real_cpu.size(0)
-        label = torch.full((b_size,), real_label, device=device)
-        output = discriminator(real_cpu).view(-1)
-        discriminator_loss_real = criterion(output, label)
-        discriminator_loss_real.backward()
-        discriminator_output_real = output.mean().item()
-        
-        ## Train with all-fake batch
+        noise <- torch_randn(b[[1]]$size()[1], latent_input_size, 1, 1, device = device)
+        fake <- gen(noise)
+        img <- b[[1]]$to(device = device)
 
-        noise = torch.randn(b_size, latent_input_size, 1, 1, device=device)
-        fake = generator(noise)
-        label.fill_(fake_label)
-        output = discriminator(fake.detach()).view(-1)
-        discriminator_loss_fake = criterion(output, label)
-        discriminator_loss_fake.backward()
-    
-        # Update discriminator weights
-    
-        discriminator_loss = discriminator_loss_real + discriminator_loss_fake    
-        disc_optimizer.step()
+        # update discriminator
+        disc_loss <- criterion(disc(img), y_real) + criterion(disc(fake$detach()), y_fake)
 
-        # (2) Train generator
+        disc_optimizer$zero_grad()
+        disc_loss$backward()
+        disc_optimizer$step()
 
-        generator.zero_grad()
-        label.fill_(real_label)  
-        output = discriminator(fake).view(-1)
-        generator_loss = criterion(output, label)
-        generator_loss.backward()
-        discriminator_output_fake = output.mean().item()
+        # update generator
+        gen_loss <- criterion(disc(fake), y_real)
 
-        # Update generator weights
-        gen_optimizer.step()
+        gen_optimizer$zero_grad()
+        gen_loss$backward()
+        gen_optimizer$step()
 
-        # Output training stats
-        if i % 50 == 0:
-            print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f '
-                  % (epoch, num_epochs, i, len(dataloader),
-                     discriminator_loss.item(), generator_loss.item(), discriminator_output_real, discriminator_output_fake))
-            generator_losses.append(generator_loss.item())
-            discriminator_losses.append(discriminator_loss.item())
-            discriminator_outputs_fake.append(discriminator_output_fake)
-            discriminator_outputs_real.append(discriminator_output_real)
-            with torch.no_grad():
-              fake = generator(fixed_noise).detach().cpu()
-              img_list.append(utils.make_grid(fake, padding=2, normalize=True))
+        disc_losses <- c(disc_losses, disc_loss$cpu()$item())
+        gen_losses <- c(gen_losses, gen_loss$cpu()$item())
 
+        if (batchnum %% 50 == 0) {
+            img_num <- img_num + 1
+            cat("Epoch: ", epoch,
+                "    batch: ", batchnum,
+                "    disc loss: ", as.numeric(disc_loss$cpu()),
+                "    gen loss: ", as.numeric(gen_loss$cpu()),
+                "\n")
+            with_no_grad({
+                generated <- gen(fixed_noise)
+                grid <- make_grid(normalize(generated))
+                img_list[[img_num]] <- as_array(grid$to(device = "cpu"))
+            })
+        }
+
+    }
+}
 ```
 
-Now let's see samples of generated images, spread out over training time:
+
+## Artifacts
+
+Now let's see a few samples of generated images, spread out over training time:
 
 ```{r,  fig.asp=1, fig.width=8}
-index <- seq(1, length(py$img_list), length.out = 16)
-# these have 3 channels! (probably due to torchvision.utils.make_grid)
-# size is 3 x 242 x 242
-images <- py$img_list[index]
+index <- seq(1, length(img_list), length.out = 16)
+images <- img_list[index]
 
 par(mfrow = c(4,4), mar = rep(0.2, 4))
 rasterize <- function(x) {
-     x <- x$numpy()
-     x <- aperm(x, perm = c(2, 3, 1))
-     as.raster(x)
+    as.raster(x[1, , ])
 }
 images %>%
-   purrr::map(rasterize) %>%
-   purrr::iwalk(~{plot(.x)})
+    purrr::map(rasterize) %>%
+    purrr::iwalk(~{plot(.x)})
 ```
 
 ```{r}
@@ -292,24 +273,18 @@ knitr::include_graphics("images/gan_over_time.png")
 
 To my (untrained) eyes, the final results look pretty good! Let's generate a fresh batch:
 
-```{python}
-new = generator(fixed_noise).cpu().detach().numpy()
-```
-
 ```{r, fig.asp=1, fig.width=8}
-# dim 64 x 28 x 28 because drop 
-images <- py$new[,1,,] 
-images[images < 0] <- 0
+new <- gen(fixed_noise)$cpu()$detach()[1:16, , , ]
 
-par(mfrow = c(8,8), mar = rep(0.2, 4))
-images %>%
+new %>% normalize() %>%
+  as_array() %>%
   purrr::array_tree(1) %>%
-  purrr::map(as.raster) %>%
+  purrr::map(rasterize) %>%
   purrr::iwalk(~{plot(.x)})
 ```
 
 ```{r}
-knitr::include_graphics("images/gan_over_time.png")
+# knitr::include_graphics("images/gan_over_time.png")
 ```
 
 We can also inspect how the respective losses developed over time:
@@ -318,32 +293,16 @@ We can also inspect how the respective losses developed over time:
 library(ggplot2)
 library(tidyr)
 
-generator_losses <- py$generator_losses
-discriminator_losses <- py$discriminator_losses
-iterations <- 1:length(discriminator_losses)
+iterations <- 1:length(disc_losses)
 
-df <- data.frame(iteration = iterations, discriminator = discriminator_losses, generator = generator_losses)
+df <- data.frame(iteration = iterations, discriminator = disc_losses, generator = gen_losses)
 df %>%
   gather(module, loss, discriminator, generator) %>%
-    ggplot(aes(x = iteration, y = loss, colour = module)) +
-    geom_line()
+  ggplot(aes(x = iteration, y = loss, colour = module)) +
+  geom_line()
+
 ```
 
-As well as find out what proportion of real images was classified as real by the discriminator (green line), contrasting this
-with the proportion of fake images the discriminator thought were real. Ideally, we would hope for both lines to close to 0.5
-(and thus, close to each other), which obviously isn't the case here. This means there is still room for improvement.
-
 ```{r}
-library(ggplot2)
-library(tidyr)
-
-discriminator_outputs_fake <- py$discriminator_outputs_fake
-discriminator_outputs_real <- py$discriminator_outputs_real
-iterations <- 1:length(discriminator_outputs_real)
-
-df <- data.frame(iteration = iterations, real = discriminator_outputs_real, fake = discriminator_outputs_fake)
-df %>%
-  gather(images, ratio_accepted, real, fake) %>%
-    ggplot(aes(x = iteration, y = ratio_accepted, colour = images)) +
-    geom_line()
+knitr::include_graphics("images/gan_losses.png")
 ```

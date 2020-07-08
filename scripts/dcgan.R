@@ -1,24 +1,27 @@
-## TBD ###
-
-# use KMNIST
-# init weights
-
 library(torch)
+
+
+# Data loading ------------------------------------------------------------
 
 
 dir <- "/tmp"
 
 batch_size <- 128
 
-kmnist <- mnist_dataset(
+kmnist <- kmnist_dataset(
     dir,
     download = TRUE,
     transform = function(x) {
         x <- x$to(dtype = torch_float())/256
+        x <- 2*(x - 0.5)
         x[newaxis,..]
     }
 )
-dl <- dataloader(kmnist, batch_size = batch_size, shuffle = TRUE, drop_last = TRUE)
+dl <- dataloader(kmnist, batch_size = batch_size, shuffle = TRUE)
+
+
+# Model -------------------------------------------------------------------
+
 
 device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
 
@@ -54,7 +57,7 @@ generator <- nn_module(
     }
 )
 
-gen <- generator()$to(device = device)
+gen <- generator()
 
 discriminator <- nn_module(
     "discriminator",
@@ -81,19 +84,27 @@ discriminator <- nn_module(
     }
 )
 
-disc <- discriminator()$to(device = device)
+disc <- discriminator()
 
 init_weights <- function(m) {
-    print(m)
-    # if classname.find('Conv') != -1:
-    #   nn.init.normal_(m.weight.data, 0.0, 0.02)
-    # elif classname.find('BatchNorm') != -1:
-    #   nn.init.normal_(m.weight.data, 1.0, 0.02)
-    # nn.init.constant_(m.bias.data, 0)
+    if (grepl("conv", m$.classes[[1]])) {
+        nn_init_normal_(m$weight$data(), 0.0, 0.02)
+    } else if (grepl("batch_norm", m$.classes[[1]])) {
+        nn_init_normal_(m$weight$data(), 1.0, 0.02)
+        nn_init_constant_(m$bias$data(), 0)
+    }
 }
 
-gen$.apply(init_weights)
-disc$.apply(init_weights)
+gen[[1]]$apply(init_weights)
+
+disc[[1]]$apply(init_weights)
+
+gen$to(device = device)
+disc$to(device = device)
+
+
+# Training ----------------------------------------------------------------
+
 
 criterion <- nn_bce_loss()
 
@@ -105,7 +116,7 @@ gen_optimizer <- optim_adam(gen$parameters, lr = learning_rate, betas = c(0.5, 0
 fixed_noise <- torch_randn(c(64, latent_input_size, 1, 1), device = device)
 num_epochs <- 5
 
-img_list <- vector(mode = "list")
+img_list <- vector(mode = "list", length = num_epochs * trunc(dl$.iter()$.length()/50))
 gen_losses <- c()
 disc_losses <- c()
 
@@ -143,7 +154,7 @@ make_grid <- function(tensor, num_rows = 8, padding = 2, pad_value = 0) {
     grid
 }
 
-
+img_num <- 0
 for (epoch in 1:num_epochs) {
 
     batchnum <- 0
@@ -151,10 +162,10 @@ for (epoch in 1:num_epochs) {
 
         batchnum <- batchnum + 1
 
-        y_real <- torch_ones(batch_size, device = device)
-        y_fake <- torch_zeros(batch_size, device = device)
+        y_real <- torch_ones(b[[1]]$size()[1], device = device)
+        y_fake <- torch_zeros(b[[1]]$size()[1], device = device)
 
-        noise <- torch_randn(batch_size, latent_input_size, 1, 1, device = device)
+        noise <- torch_randn(b[[1]]$size()[1], latent_input_size, 1, 1, device = device)
         fake <- gen(noise)
         img <- b[[1]]$to(device = device)
 
@@ -176,6 +187,7 @@ for (epoch in 1:num_epochs) {
         gen_losses <- c(gen_losses, gen_loss$cpu()$item())
 
         if (batchnum %% 50 == 0) {
+            img_num <- img_num + 1
             cat("Epoch: ", epoch,
                 "    batch: ", batchnum,
                 "    disc loss: ", as.numeric(disc_loss$cpu()),
@@ -184,12 +196,16 @@ for (epoch in 1:num_epochs) {
             with_no_grad({
                 generated <- gen(fixed_noise)
                 grid <- make_grid(normalize(generated))
-                img_list[[epoch]] <- as_array(grid$to(device = "cpu"))
+                img_list[[img_num]] <- as_array(grid$to(device = "cpu"))
             })
         }
 
     }
 }
+
+
+# Visualize artifacts over time -------------------------------------------
+
 
 index <- seq(1, length(img_list), length.out = 16)
 images <- img_list[index]
@@ -201,4 +217,5 @@ rasterize <- function(x) {
 images %>%
     purrr::map(rasterize) %>%
     purrr::iwalk(~{plot(.x)})
+
 
