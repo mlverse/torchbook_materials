@@ -154,8 +154,6 @@ model <- vae(latent_dim = 128)$to(device = device)
 
 We train the model for 3 epochs. Training code is just a few lines, as the model itself contains all the logic.
 
-TBD: change make\_grid and normalize once they're available.
-
 ```{r}
 optimizer <- optim_adam(model$parameters, lr = 0.001)
 
@@ -183,7 +181,7 @@ for (epoch in 1:num_epochs) {
                 "\n")
             with_no_grad({
                 generated <- model$sample(64, device)
-                grid <- make_grid(normalize(generated))
+                grid <- vision_make_grid(generated)
                 img_list[[img_num]] <- as_array(grid$to(device = "cpu"))
             })
 

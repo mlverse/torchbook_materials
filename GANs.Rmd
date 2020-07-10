@@ -240,7 +240,7 @@ for (epoch in 1:num_epochs) {
                 "\n")
             with_no_grad({
                 generated <- gen(fixed_noise)
-                grid <- make_grid(normalize(generated))
+                grid <- vision_make_grid(generated)
                 img_list[[img_num]] <- as_array(grid$to(device = "cpu"))
             })
         }
