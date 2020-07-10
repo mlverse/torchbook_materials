@@ -124,7 +124,7 @@ n <- 100
 # create random data
 x <- torch_randn(n, d_in)
 y <-
-  x[, 0, NULL] * 0.2 - x[, 1, NULL] * 1.3 - x[, 2, NULL] * 0.5 + torch_randn(n, 1)
+  x[, 1, NULL] * 0.2 - x[, 2, NULL] * 1.3 - x[, 3, NULL] * 0.5 + torch_randn(n, 1)
 
 
 ### initialize weights ---------------------------------------------------------

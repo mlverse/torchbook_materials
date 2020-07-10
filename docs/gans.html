@@ -501,7 +501,7 @@ the <em>generator’s</em> performance, not that of the discriminator.</p>
 <span id="cb194-46"><a href="gans.html#cb194-46"></a>                <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb194-47"><a href="gans.html#cb194-47"></a>            <span class="kw">with_no_grad</span>({</span>
 <span id="cb194-48"><a href="gans.html#cb194-48"></a>                generated &lt;-<span class="st"> </span><span class="kw">gen</span>(fixed_noise)</span>
-<span id="cb194-49"><a href="gans.html#cb194-49"></a>                grid &lt;-<span class="st"> </span><span class="kw">make_grid</span>(<span class="kw">normalize</span>(generated))</span>
+<span id="cb194-49"><a href="gans.html#cb194-49"></a>                grid &lt;-<span class="st"> </span><span class="kw">vision_make_grid</span>(generated)</span>
 <span id="cb194-50"><a href="gans.html#cb194-50"></a>                img_list[[img_num]] &lt;-<span class="st"> </span><span class="kw">as_array</span>(grid<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
 <span id="cb194-51"><a href="gans.html#cb194-51"></a>            })</span>
 <span id="cb194-52"><a href="gans.html#cb194-52"></a>        }</span>

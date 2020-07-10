@@ -324,7 +324,7 @@ way.</p>
 <span id="cb10-13"><a href="simple-net-tensors.html#cb10-13"></a><span class="co"># create random data</span></span>
 <span id="cb10-14"><a href="simple-net-tensors.html#cb10-14"></a>x &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(n, d_in)</span>
 <span id="cb10-15"><a href="simple-net-tensors.html#cb10-15"></a>y &lt;-</span>
-<span id="cb10-16"><a href="simple-net-tensors.html#cb10-16"></a><span class="st">  </span>x[, <span class="dv">0</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.2</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">1</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">1.3</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">2</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="kw">torch_randn</span>(n, <span class="dv">1</span>)</span>
+<span id="cb10-16"><a href="simple-net-tensors.html#cb10-16"></a><span class="st">  </span>x[, <span class="dv">1</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.2</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">2</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">1.3</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">3</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="kw">torch_randn</span>(n, <span class="dv">1</span>)</span>
 <span id="cb10-17"><a href="simple-net-tensors.html#cb10-17"></a></span>
 <span id="cb10-18"><a href="simple-net-tensors.html#cb10-18"></a></span>
 <span id="cb10-19"><a href="simple-net-tensors.html#cb10-19"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
@@ -376,26 +376,24 @@ way.</p>
 <span id="cb10-65"><a href="simple-net-tensors.html#cb10-65"></a>  <span class="co"># gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)</span></span>
 <span id="cb10-66"><a href="simple-net-tensors.html#cb10-66"></a>  grad_h &lt;-<span class="st"> </span>grad_h_relu<span class="op">$</span><span class="kw">clone</span>()</span>
 <span id="cb10-67"><a href="simple-net-tensors.html#cb10-67"></a>  </span>
-<span id="cb10-68"><a href="simple-net-tensors.html#cb10-68"></a>  <span class="co">###TBD###</span></span>
-<span id="cb10-69"><a href="simple-net-tensors.html#cb10-69"></a>  <span class="co"># grad_h[h &lt; 0, ] &lt;- 0</span></span>
-<span id="cb10-70"><a href="simple-net-tensors.html#cb10-70"></a>  grad_h &lt;-<span class="st"> </span>h <span class="op">*</span><span class="st"> </span>(h <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
-<span id="cb10-71"><a href="simple-net-tensors.html#cb10-71"></a>  </span>
-<span id="cb10-72"><a href="simple-net-tensors.html#cb10-72"></a>  <span class="co"># gradient of loss w.r.t. b2 (shape: ())</span></span>
-<span id="cb10-73"><a href="simple-net-tensors.html#cb10-73"></a>  grad_b2 &lt;-<span class="st"> </span>grad_y_pred<span class="op">$</span><span class="kw">sum</span>()</span>
-<span id="cb10-74"><a href="simple-net-tensors.html#cb10-74"></a>  </span>
-<span id="cb10-75"><a href="simple-net-tensors.html#cb10-75"></a>  <span class="co"># gradient of loss w.r.t. w1 (dim: 3 x 32)</span></span>
-<span id="cb10-76"><a href="simple-net-tensors.html#cb10-76"></a>  grad_w1 &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">t</span>()<span class="op">$</span><span class="kw">mm</span>(grad_h)</span>
-<span id="cb10-77"><a href="simple-net-tensors.html#cb10-77"></a>  <span class="co"># gradient of loss w.r.t. b1 (shape: (32, ))</span></span>
-<span id="cb10-78"><a href="simple-net-tensors.html#cb10-78"></a>  grad_b1 &lt;-<span class="st"> </span>grad_h<span class="op">$</span><span class="kw">sum</span>(<span class="dt">dim =</span> <span class="dv">0</span>)</span>
+<span id="cb10-68"><a href="simple-net-tensors.html#cb10-68"></a>  grad_h[h <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb10-69"><a href="simple-net-tensors.html#cb10-69"></a>  </span>
+<span id="cb10-70"><a href="simple-net-tensors.html#cb10-70"></a>  <span class="co"># gradient of loss w.r.t. b2 (shape: ())</span></span>
+<span id="cb10-71"><a href="simple-net-tensors.html#cb10-71"></a>  grad_b2 &lt;-<span class="st"> </span>grad_y_pred<span class="op">$</span><span class="kw">sum</span>()</span>
+<span id="cb10-72"><a href="simple-net-tensors.html#cb10-72"></a>  </span>
+<span id="cb10-73"><a href="simple-net-tensors.html#cb10-73"></a>  <span class="co"># gradient of loss w.r.t. w1 (dim: 3 x 32)</span></span>
+<span id="cb10-74"><a href="simple-net-tensors.html#cb10-74"></a>  grad_w1 &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">t</span>()<span class="op">$</span><span class="kw">mm</span>(grad_h)</span>
+<span id="cb10-75"><a href="simple-net-tensors.html#cb10-75"></a>  <span class="co"># gradient of loss w.r.t. b1 (shape: (32, ))</span></span>
+<span id="cb10-76"><a href="simple-net-tensors.html#cb10-76"></a>  grad_b1 &lt;-<span class="st"> </span>grad_h<span class="op">$</span><span class="kw">sum</span>(<span class="dt">dim =</span> <span class="dv">0</span>)</span>
+<span id="cb10-77"><a href="simple-net-tensors.html#cb10-77"></a>  </span>
+<span id="cb10-78"><a href="simple-net-tensors.html#cb10-78"></a>  <span class="co">### -------- Update weights --------</span></span>
 <span id="cb10-79"><a href="simple-net-tensors.html#cb10-79"></a>  </span>
-<span id="cb10-80"><a href="simple-net-tensors.html#cb10-80"></a>  <span class="co">### -------- Update weights --------</span></span>
-<span id="cb10-81"><a href="simple-net-tensors.html#cb10-81"></a>  </span>
-<span id="cb10-82"><a href="simple-net-tensors.html#cb10-82"></a>  w2 &lt;-<span class="st"> </span>w2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w2</span>
-<span id="cb10-83"><a href="simple-net-tensors.html#cb10-83"></a>  b2 &lt;-<span class="st"> </span>b2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b2</span>
-<span id="cb10-84"><a href="simple-net-tensors.html#cb10-84"></a>  w1 &lt;-<span class="st"> </span>w1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w1</span>
-<span id="cb10-85"><a href="simple-net-tensors.html#cb10-85"></a>  b1 &lt;-<span class="st"> </span>b1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b1</span>
-<span id="cb10-86"><a href="simple-net-tensors.html#cb10-86"></a>  </span>
-<span id="cb10-87"><a href="simple-net-tensors.html#cb10-87"></a>}</span></code></pre></div>
+<span id="cb10-80"><a href="simple-net-tensors.html#cb10-80"></a>  w2 &lt;-<span class="st"> </span>w2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w2</span>
+<span id="cb10-81"><a href="simple-net-tensors.html#cb10-81"></a>  b2 &lt;-<span class="st"> </span>b2 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b2</span>
+<span id="cb10-82"><a href="simple-net-tensors.html#cb10-82"></a>  w1 &lt;-<span class="st"> </span>w1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w1</span>
+<span id="cb10-83"><a href="simple-net-tensors.html#cb10-83"></a>  b1 &lt;-<span class="st"> </span>b1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b1</span>
+<span id="cb10-84"><a href="simple-net-tensors.html#cb10-84"></a>  </span>
+<span id="cb10-85"><a href="simple-net-tensors.html#cb10-85"></a>}</span></code></pre></div>
 </div>
 <div id="more-on-tensors" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> More on tensors</h2>

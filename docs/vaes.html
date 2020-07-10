@@ -436,7 +436,6 @@ of sampling directly from the latent space, using its mean and variance, we intr
 <div id="training-the-vae" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Training the VAE</h2>
 <p>We train the model for 3 epochs. Training code is just a few lines, as the model itself contains all the logic.</p>
-<p>TBD: change make_grid and normalize once they’re available.</p>
 <div class="sourceCode" id="cb203"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb203-1"><a href="vaes.html#cb203-1"></a>optimizer &lt;-<span class="st"> </span><span class="kw">optim_adam</span>(model<span class="op">$</span>parameters, <span class="dt">lr =</span> <span class="fl">0.001</span>)</span>
 <span id="cb203-2"><a href="vaes.html#cb203-2"></a></span>
 <span id="cb203-3"><a href="vaes.html#cb203-3"></a>num_epochs &lt;-<span class="st"> </span><span class="dv">3</span></span>
@@ -463,7 +462,7 @@ of sampling directly from the latent space, using its mean and variance, we intr
 <span id="cb203-24"><a href="vaes.html#cb203-24"></a>                <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb203-25"><a href="vaes.html#cb203-25"></a>            <span class="kw">with_no_grad</span>({</span>
 <span id="cb203-26"><a href="vaes.html#cb203-26"></a>                generated &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">sample</span>(<span class="dv">64</span>, device)</span>
-<span id="cb203-27"><a href="vaes.html#cb203-27"></a>                grid &lt;-<span class="st"> </span><span class="kw">make_grid</span>(<span class="kw">normalize</span>(generated))</span>
+<span id="cb203-27"><a href="vaes.html#cb203-27"></a>                grid &lt;-<span class="st"> </span><span class="kw">vision_make_grid</span>(generated)</span>
 <span id="cb203-28"><a href="vaes.html#cb203-28"></a>                img_list[[img_num]] &lt;-<span class="st"> </span><span class="kw">as_array</span>(grid<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
 <span id="cb203-29"><a href="vaes.html#cb203-29"></a>            })</span>
 <span id="cb203-30"><a href="vaes.html#cb203-30"></a></span>
