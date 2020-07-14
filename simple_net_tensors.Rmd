@@ -301,15 +301,14 @@ Zero-copy methods are used whenever possible. A special case, often seen in prac
 dimension. `torch::unsqueeze()` adds a dimension of size `1` at a position specified by `dim`:
 
 ```{r}
-###TBD### change dim numbering
 t1 <- torch_randint(low = 3, high = 7, size = c(3, 3, 3))
 t1
 
-t2 <- t1$unsqueeze(dim = 0)
+t2 <- t1$unsqueeze(dim = 1)
 t2$size()
 t2
 
-t3 = t1$unsqueeze(dim = 1)
+t3 <- t1$unsqueeze(dim = 2)
 t3$size()
 t3
 ```
