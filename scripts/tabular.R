@@ -118,21 +118,19 @@ net <- nn_module(
     self$region_embedding <-
       nn_embedding(num_regions, region_emb_dim)
     self$fc1 <- nn_linear(num_numeric, fc1_dim)
-    self$fc2 <-
-      nn_linear(fc1_dim + country_emb_dim + region_emb_dim, fc2_dim)
-    self$output <- nn_linear(fc2_dim, 3)
+    self$fc2 <- nn_linear(fc1_dim + country_emb_dim + region_emb_dim, fc2_dim)
+    self$output <- nn_linear(fc2_dim, 1)
   },
   forward = function(x) {
-    x_country_emb <- self$country_embedding(x[, 1, drop = FALSE]) %>%
+    x_country_emb <- self$country_embedding(x[ , 1, drop = FALSE]) %>%
       nnf_relu()
-    x_region_emb <- self$region_embedding(x[, 2, drop = FALSE]) %>%
+    x_region_emb <- self$region_embedding(x[ , 2, drop = FALSE]) %>%
       nnf_relu()
-    x_numeric <- self$fc1(x[, 3:-1]) %>%
+    x_numeric <- self$fc1(x[ , 3:-1]) %>%
       nnf_relu()
     self$fc2(torch_cat(x_country_emb, x_region_emb, x_numeric)) %>%
       nnf_relu() %>%
-      self$output() %>%
-      nnf_log_softmax(dim = 1)
+      self$output()
   }
 )
 
@@ -144,12 +142,29 @@ num_numeric <- 8
 fc1_dim <- 64
 fc2_dim <- 64
 
-model <- net(
-  num_countries,
-  num_regions,
-  country_emb_dim,
-  region_emb_dim,
-  num_numeric,
-  fc1_dim,
-  fc2_dim
-)
+model <- net(num_countries,
+             num_regions,
+             country_emb_dim,
+             region_emb_dim,
+             num_numeric,
+             fc1_dim,
+             fc2_dim)
+
+optimizer <- optim_adam(model$parameters)
+
+for (epoch in 1:10) {
+
+  l <- c()
+
+  for (b in enumerate(dl)) {
+    optimizer$zero_grad()
+    output <- model(b[[1]])
+    loss <- nnf_nll_loss(output, b[[2]])
+    loss$backward()
+    optimizer$step()
+    l <- c(l, loss$item())
+  }
+
+  cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(l)))
+}
+
