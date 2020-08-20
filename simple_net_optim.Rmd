@@ -24,7 +24,7 @@ data <- torch_randn(1, 3)
 On creation, an optimizer is told what parameters to work on:
 
 ```{r}
-opt <- optim_sgd(model$parameters(), lr = 0.01)
+opt <- optim_sgd(model$parameters, lr = 0.01)
 opt
 ```
 
