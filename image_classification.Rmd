@@ -1,77 +1,75 @@
 # Classifying images {#image_classification}
 
-Our image classification example will differentiate ... not dogs and cats, not different dog breeds, but ...different species
-of birds. We start from a model pretrained on [ImageNet](http://www.image-net.org/), which contains abundantly many photos of
-birds (and other animals you wouldn't know even existed).
+Our image classification example will differentiate ... not dogs and cats, not different dog breeds, but ...different species of birds. We start from a model pre-trained on [ImageNet](http://www.image-net.org/), which contains abundantly many photos of birds (and other animals you wouldn't know even existed).
 
-Concretely, for the pretrained model we'll use a Resnet, one of several classic computer vision models provided by
-`torchvision`, and attach our own classification layer on top. If you are looking for how to code a convolutional neural
-network from scratch, you can pick up related information in the following chapter on image segmentation, as well as that on
-generative adversarial networks GANs).
+Concretely, for the pre-trained model we'll use a Resnet, one of several classic computer vision models provided by `torchvision`, and attach our own classification layer on top. If you are looking for how to code a convolutional neural network from scratch, you can pick up related information in the following chapter on image segmentation, as well as that on generative adversarial networks (GANs).
 
 ## Data loading and transformation
 
-The example dataset used here is available on Kaggle (<https://www.kaggle.com/gpiosenka/100-bird-species/data>). It is very
-"un-noisy", which is why, the number of classes notwithstanding (130!), accuracy will turn out to be very good.
+The example dataset used here is available on Kaggle (<https://www.kaggle.com/gpiosenka/100-bird-species/data>). It is very "non-noisy", which is why, the number of classes notwithstanding (130!), accuracy will turn out to be very good.
 
-```{python}
-import torch
-import numpy as np
-import torchvision
-from torchvision import transforms, datasets, models
-import os
+```{r}
+library(torch)
+library(torchvision)
+library(dplyr)
 ```
 
-```{python}
-# https://www.kaggle.com/gpiosenka/100-bird-species/data
+```{r}
+# from: https://www.kaggle.com/gpiosenka/100-bird-species/data
 data_dir = 'data/bird_species'
 ```
 
-The data set being so clean, we'll want to introduce random noise (*data augmentation*) on the training set to enhance model
-resiliency.
+The data set being so clean, we'll want to introduce random noise (*data augmentation*) on the training set to enhance model resiliency.
 
-In torchvision, data augmentation steps are added as part of an *image processing pipeline* that also takes care of resizing /
-cropping images, converting them to torch tensors, and possibly, normalizing them according to the model's expectations. Here
-they are, deterministic on validation and test sets, but including random components for the training set:
+In `torchvision`, data augmentation steps are added as part of an *image processing pipeline* that also takes care of resizing and/or cropping images, converting them to `torch` tensors, and possibly, normalizing them according to the model's expectations. Here they are, deterministic on validation and test sets, but including random components for the training set:
 
-```{python}
-data_transforms = {
-    'train': transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.ColorJitter(),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-    'valid': transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-    'test': transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
+```{r}
+train_transforms <- function(img) {
+  img %>%
+    transform_to_tensor() %>%
+    transform_random_resized_crop(size = c(224, 224)) %>%
+    transform_color_jitter() %>%
+    transform_random_horizontal_flip() %>%
+    transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
-data_transforms
+valid_transforms <- function(img) {
+  img %>%
+    transform_to_tensor() %>%
+    transform_resize(256) %>%
+    transform_center_crop(224) %>%
+    transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
+}
+
+test_transforms <- valid_transforms
+
+# TBD remove later
+target_transform = function(x) {
+  x <- torch_tensor(x, dtype = torch_long())
+  x$squeeze(1)
+}
 ```
 
-`ImageFolder` is a subtype of dataset that encapsulates information about where the images reside, and what transformations to
-apply. Here, we create such a dataset for each of training, validation and test set:
+`image_folder_dataset` is a subtype of dataset that encapsulates information about where the images reside, and what transformations to apply. Here, we create such a dataset for each of training, validation and test set:
 
-```{python}
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-                                          data_transforms[x])
-                  for x in ['train', 'valid', 'test']}
-image_datasets
+```{r}
+train_ds <- image_folder_dataset(
+  file.path(data_dir, "train"),
+  transform = train_transforms,
+  target_transform = target_transform)
+
+valid_ds <- image_folder_dataset(
+  file.path(data_dir, "valid"),
+  transform = valid_transforms,
+  target_transform = target_transform)
+
+test_ds <- image_folder_dataset(
+  file.path(data_dir, "test"),
+  transform = test_transforms)
+
 ```
 
-`ImageFolder` objects expect the different classes of images to reside each in their own folder. In our example, this is in
-fact the case; for example, here is the directory layout for the first three classes in the test set:
+`image_folder_dataset` objects expect the different classes of images to reside each in their own folder. In our example, this is in fact the case; for example, here is the directory layout for the first three classes in the test set:
 
     data/test/ALBATROSS/
      - data/test/ALBATROSS/1.jpg
@@ -94,35 +92,32 @@ fact the case; for example, here is the directory layout for the first three cla
      - data/test/'AMERICAN BITTERN'/4.jpg
      - data/test/'AMERICAN BITTERN'/5.jpg
 
-From those specifications, `DataLoaders` are created. These objects, in addition to what to load and which transformations to
-apply, know things like: many items to load in a batch, whether they should be shuffled, and whether to parallelize the
-transformations.
+From those specifications, `dataloaders` are created. These objects, in addition to *what* to load and which transformations to apply, know things like: how many items to load per batch, whether they should be shuffled, and whether to parallelize the transformations.
 
-```{python}
-dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=16,
-                                             shuffle=True, num_workers=8)
-              for x in ['train', 'valid', 'test']}
-dataloaders
+```{r}
+train_dl <- dataloader(train_ds, batch_size = 16, shuffle = TRUE)
+valid_dl <- dataloader(valid_ds, batch_size = 16)
+test_dl <- dataloader(test_ds, batch_size = 16)
 ```
 
 How many items are there in each set?
 
-```{python}
-dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'valid', 'test']}
-dataset_sizes
+```{r}
+train_dl$.length() # 1065
+valid_dl$.length() # 41
+test_dl$.length()  # 41
 ```
 
 Datasets know what classes there are:
 
-```{python}
-class_names = image_datasets['train'].classes
+```{r}
+class_names <- train_ds$classes
 class_names
 ```
 
-Next, let's view a few images from the test set. We can retrieve the first batch -- images and corresponding classes -- by
-calling `next()` on a dataset's iterator:
+Next, let's view a few images from the test set. We can retrieve the first batch -- images and corresponding classes -- by calling `next()` on a dataset's iterator:
 
-```{python}
+```{r}
 inputs, classes = next(iter(dataloaders['test']))
 inputs.shape
 ```
@@ -164,7 +159,7 @@ images %>%
   purrr::iwalk(~{plot(.x); title(.y)})
 ```
 
-```{r}
+```{r, eval = TRUE}
 knitr::include_graphics("images/image_classif_birds.png")
 ```
 
@@ -177,11 +172,7 @@ model = models.resnet18(pretrained=True)
 model
 ```
 
-We will modify the model's output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it
-was trained for. This means we only need to train a single layer -- the one we're going to add. We *could* perform
-backpropagation through the complete model, trying to fine-tune Resnet's weights as well, but that would have a significant
-effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet's weights, those located iin the
-layers directly preceding the output -- you might want to experiment with this at home.)
+We will modify the model's output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it was trained for. This means we only need to train a single layer -- the one we're going to add. We *could* perform backpropagation through the complete model, trying to fine-tune Resnet's weights as well, but that would have a significant effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet's weights, those located iin the layers directly preceding the output -- you might want to experiment with this at home.)
 
 ```{python}
 for param in model.parameters():
@@ -206,16 +197,9 @@ criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
 ```
 
-We set the learning rate to 0.1, but that was just a formality. As became widely known to [fast.ai's deep learning
-lectures](), it always makes sense to spend some time upfront to determine a good learning rate, and then during training,
-evolve the learning rate according to some proven algorithm. While out-of-the-box, torch does not provide a tool like
-fast.ai's learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger's blog.
-Algorithms like one-cycle learning [@abs-1708-07120], cyclical learning rates [@Smith15a], or cosine annealing with warm
-restarts [@LoshchilovH16a] are, however, implemented in torch, and we'll make use of `lr_scheduler.OneCycleLR` once we've
-determined an appropriate value for the required parameter `max_lr`.
+We set the learning rate to 0.1, but that was just a formality. As became widely known to [fast.ai's deep learning lectures](), it always makes sense to spend some time upfront to determine a good learning rate, and then during training, evolve the learning rate according to some proven algorithm. While out-of-the-box, torch does not provide a tool like fast.ai's learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger's blog. Algorithms like one-cycle learning [@abs-1708-07120], cyclical learning rates [@Smith15a], or cosine annealing with warm restarts [@LoshchilovH16a] are, however, implemented in torch, and we'll make use of `lr_scheduler.OneCycleLR` once we've determined an appropriate value for the required parameter `max_lr`.
 
-Here is how to find a good learning rate, from [Sylvain
-Gugger](https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html):
+Here is how to find a good learning rate, from [Sylvain Gugger](https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html):
 
 ```{python}
 # from: https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html
@@ -269,20 +253,16 @@ library(ggplot2)
 ggplot(df, aes(logs, losses)) + geom_point()
 ```
 
-The best learning rate is not the exact one where loss is at a minimum, instead, it should be picked somewhat earlier on the
-curve, while loss still decreases. We'll try 0.05 here.
+The best learning rate is not the exact one where loss is at a minimum, instead, it should be picked somewhat earlier on the curve, while loss still decreases. We'll try 0.05 here.
 
-`OneCycleLR` will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the
-whole training period:
+`OneCycleLR` will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the whole training period:
 
 ```{python}
 num_epochs = 10
 lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr = 0.05, epochs = num_epochs, steps_per_epoch=len(dataloaders['train']))
 ```
 
-Now we train for ten epochs. In every epoch, we iterate over both training and validation sets; performing optimization on the
-training set while just calculating accuracy on the test set. Note that `lr_scheduler.step()` has to be called explicitly
-after each batch, and it has to be called *after* `optimizer.step()`.
+Now we train for ten epochs. In every epoch, we iterate over both training and validation sets; performing optimization on the training set while just calculating accuracy on the test set. Note that `lr_scheduler.step()` has to be called explicitly after each batch, and it has to be called *after* `optimizer.step()`.
 
 ```{python}
 
