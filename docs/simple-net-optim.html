@@ -311,7 +311,7 @@ the model on.</p>
 <span id="cb91-3"><a href="simple-net-optim.html#cb91-3"></a></span>
 <span id="cb91-4"><a href="simple-net-optim.html#cb91-4"></a>data &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(<span class="dv">1</span>, <span class="dv">3</span>)</span></code></pre></div>
 <p>On creation, an optimizer is told what parameters to work on:</p>
-<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="simple-net-optim.html#cb92-1"></a>opt &lt;-<span class="st"> </span><span class="kw">optim_sgd</span>(model<span class="op">$</span><span class="kw">parameters</span>(), <span class="dt">lr =</span> <span class="fl">0.01</span>)</span>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="simple-net-optim.html#cb92-1"></a>opt &lt;-<span class="st"> </span><span class="kw">optim_sgd</span>(model<span class="op">$</span>parameters, <span class="dt">lr =</span> <span class="fl">0.01</span>)</span>
 <span id="cb92-2"><a href="simple-net-optim.html#cb92-2"></a>opt</span></code></pre></div>
 <p>At any time, we can inspect those parameters:</p>
 <div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="simple-net-optim.html#cb93-1"></a>opt<span class="op">$</span>param_groups[[<span class="dv">1</span>]]<span class="op">$</span>params</span></code></pre></div>

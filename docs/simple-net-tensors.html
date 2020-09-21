@@ -529,17 +529,16 @@ reshaping operation does or does not copy data.</p>
 <h4><span class="header-section-number">3.2.4.1</span> Zero-copy reshaping</h4>
 <p>Zero-copy methods are used whenever possible. A special case, often seen in practice, is adding or removing a singleton
 dimension. <code>torch::unsqueeze()</code> adds a dimension of size <code>1</code> at a position specified by <code>dim</code>:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="simple-net-tensors.html#cb26-1"></a><span class="co">###TBD### change dim numbering</span></span>
-<span id="cb26-2"><a href="simple-net-tensors.html#cb26-2"></a>t1 &lt;-<span class="st"> </span><span class="kw">torch_randint</span>(<span class="dt">low =</span> <span class="dv">3</span>, <span class="dt">high =</span> <span class="dv">7</span>, <span class="dt">size =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>))</span>
-<span id="cb26-3"><a href="simple-net-tensors.html#cb26-3"></a>t1</span>
-<span id="cb26-4"><a href="simple-net-tensors.html#cb26-4"></a></span>
-<span id="cb26-5"><a href="simple-net-tensors.html#cb26-5"></a>t2 &lt;-<span class="st"> </span>t1<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dt">dim =</span> <span class="dv">0</span>)</span>
-<span id="cb26-6"><a href="simple-net-tensors.html#cb26-6"></a>t2<span class="op">$</span><span class="kw">size</span>()</span>
-<span id="cb26-7"><a href="simple-net-tensors.html#cb26-7"></a>t2</span>
-<span id="cb26-8"><a href="simple-net-tensors.html#cb26-8"></a></span>
-<span id="cb26-9"><a href="simple-net-tensors.html#cb26-9"></a>t3 =<span class="st"> </span>t1<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dt">dim =</span> <span class="dv">1</span>)</span>
-<span id="cb26-10"><a href="simple-net-tensors.html#cb26-10"></a>t3<span class="op">$</span><span class="kw">size</span>()</span>
-<span id="cb26-11"><a href="simple-net-tensors.html#cb26-11"></a>t3</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="simple-net-tensors.html#cb26-1"></a>t1 &lt;-<span class="st"> </span><span class="kw">torch_randint</span>(<span class="dt">low =</span> <span class="dv">3</span>, <span class="dt">high =</span> <span class="dv">7</span>, <span class="dt">size =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>))</span>
+<span id="cb26-2"><a href="simple-net-tensors.html#cb26-2"></a>t1</span>
+<span id="cb26-3"><a href="simple-net-tensors.html#cb26-3"></a></span>
+<span id="cb26-4"><a href="simple-net-tensors.html#cb26-4"></a>t2 &lt;-<span class="st"> </span>t1<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dt">dim =</span> <span class="dv">1</span>)</span>
+<span id="cb26-5"><a href="simple-net-tensors.html#cb26-5"></a>t2<span class="op">$</span><span class="kw">size</span>()</span>
+<span id="cb26-6"><a href="simple-net-tensors.html#cb26-6"></a>t2</span>
+<span id="cb26-7"><a href="simple-net-tensors.html#cb26-7"></a></span>
+<span id="cb26-8"><a href="simple-net-tensors.html#cb26-8"></a>t3 &lt;-<span class="st"> </span>t1<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dt">dim =</span> <span class="dv">2</span>)</span>
+<span id="cb26-9"><a href="simple-net-tensors.html#cb26-9"></a>t3<span class="op">$</span><span class="kw">size</span>()</span>
+<span id="cb26-10"><a href="simple-net-tensors.html#cb26-10"></a>t3</span></code></pre></div>
 <p>Conversely, <code>torch::squeeze()</code> removes singleton dimensions:</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="simple-net-tensors.html#cb27-1"></a>t4 &lt;-<span class="st"> </span>t3<span class="op">$</span><span class="kw">squeeze</span>()</span>
 <span id="cb27-2"><a href="simple-net-tensors.html#cb27-2"></a>t4<span class="op">$</span><span class="kw">size</span>()</span>
