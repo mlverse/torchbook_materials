@@ -4,18 +4,18 @@ library(dplyr)
 
 train_transforms <- function(img) {
   img %>%
-    transform_to_tensor() %>%
     transform_random_resized_crop(size = c(224, 224)) %>%
     transform_color_jitter() %>%
     transform_random_horizontal_flip() %>%
+    transform_to_tensor() %>%
     transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
 valid_transforms <- function(img) {
   img %>%
-    transform_to_tensor() %>%
     transform_resize(256) %>%
     transform_center_crop(224) %>%
+    transform_to_tensor() %>%
     transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
@@ -51,8 +51,7 @@ train_dl$.length()
 valid_dl$.length()
 test_dl$.length()
 
-# TBD change to test
-batch <- train_dl$.iter()$.next()
+batch <-train_dl$.iter()$.next()
 batch[[1]]$size()
 batch[[2]]$size()
 
@@ -80,8 +79,6 @@ model$parameters %>% purrr::walk(function(param) param$requires_grad <- FALSE)
 
 num_features <- model$fc$in_features
 
-
-# TBD
 model$fc <- nn_linear(in_features = num_features, out_features = length(class_names))
 
 device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"

@@ -26,18 +26,18 @@ In `torchvision`, data augmentation steps are added as part of an *image process
 ```{r}
 train_transforms <- function(img) {
   img %>%
-    transform_to_tensor() %>%
     transform_random_resized_crop(size = c(224, 224)) %>%
     transform_color_jitter() %>%
     transform_random_horizontal_flip() %>%
+    transform_to_tensor() %>%
     transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
 valid_transforms <- function(img) {
   img %>%
-    transform_to_tensor() %>%
     transform_resize(256) %>%
     transform_center_crop(224) %>%
+    transform_to_tensor() %>%
     transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
@@ -260,7 +260,7 @@ knitr::include_graphics("images/image_classif_birds.png")
 
 The backbone of our model is a pre-trained instance of Resnet.
 
-```{python}
+```{r}
 model <- model_resnet18(pretrained = TRUE)
 ```
 
