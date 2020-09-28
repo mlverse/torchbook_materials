@@ -299,7 +299,7 @@ optimizer <- optim_sgd(model$parameters, lr = 0.001, momentum = 0.9)
 
 We set the learning rate to 0.1, but that is just a formality. As became widely known due to [fast.ai's deep learning lectures](), it always makes sense to spend some time upfront to determine a good learning rate, and then during training, evolve the learning rate according to some established algorithm. While out-of-the-box, `torch` does not provide a tool like fast.ai's learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger's blog.
 
-Algorithms like one-cycle learning [@abs-1708-07120], cyclical learning rates [@Smith15a], or cosine annealing with warm restarts [@LoshchilovH16a] are, however, implemented in `torch`, and we'll make use of `lr_scheduler.OneCycleLR` once we've determined an appropriate value for the required parameter `max_lr`.
+Algorithms like one-cycle learning [@abs-1708-07120], cyclical learning rates [@Smith15a], or cosine annealing with warm restarts [@LoshchilovH16a] are, however, implemented in `torch`, and we'll make use of `lr_one_cycle` once we've determined an appropriate value for the required parameter `max_lr`.
 
 Here is how to find a good learning rate, translated to R from [Sylvain Gugger's post](https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html):
 
@@ -362,11 +362,11 @@ The best learning rate is not the exact one where loss is at a minimum, instead,
 
 ```{r}
 num_epochs = 10
-# TBD
-lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr = 0.05, epochs = num_epochs, steps_per_epoch=len(dataloaders['train']))
+scheduler <- optimizer %>%
+  lr_one_cycle(max_lr = 0.05, epochs = num_epochs, steps_per_epoch = train_dl$.length())
 ```
 
-Now we train for ten epochs. Every epoch, we iterate over both training and validation sets, performing optimization on the training set while just calculating accuracy on the test set. Note that `lr_scheduler$step()` has to be called explicitly after each batch, and it has to be called *after* `optimizer$step()`.
+Now we train for ten epochs. Every epoch, we iterate over both training and validation sets, performing optimization on the training set while just calculating accuracy on the test set. Note that `scheduler$step()` has to be called explicitly after each batch, and it has to be called *after* `optimizer$step()`.
 
 ```{r}
 for (epoch in 1:num_epochs) {
@@ -380,10 +380,8 @@ for (epoch in 1:num_epochs) {
     loss <- criterion(output, b[[2]]$to(device = "cuda"))
     loss$backward()
     optimizer$step()
-    # tbd
     scheduler$step()
     train_losses <- c(train_losses, loss$item())
-    print(loss)
   }
 
   model$eval()

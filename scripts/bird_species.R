@@ -43,9 +43,10 @@ test_ds <-
 class_names <- train_ds$classes
 class_names
 
-train_dl <- dataloader(train_ds, batch_size = 16, shuffle = TRUE)
-valid_dl <- dataloader(valid_ds, batch_size = 16)
-test_dl <- dataloader(test_ds, batch_size = 16)
+batch_size <- 32
+train_dl <- dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
+valid_dl <- dataloader(valid_ds, batch_size = batch_size)
+test_dl <- dataloader(test_ds, batch_size = batch_size)
 
 train_dl$.length()
 valid_dl$.length()
@@ -135,15 +136,16 @@ find_lr <- function(init_value = 1e-8, final_value = 10, beta = 0.98) {
   }
 }
 
-find_lr()
+# find_lr()
 
 df <- data.frame(log_lrs = log_lrs, losses = losses)
 library(ggplot2)
 ggplot(df, aes(log_lrs, losses)) + geom_point(size = 1)
 
 num_epochs <- 10
-# TBD
-# exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+
+scheduler <- optimizer %>%
+  lr_one_cycle(max_lr = 0.05, epochs = num_epochs, steps_per_epoch = train_dl$.length())
 
 for (epoch in 1:num_epochs) {
 
@@ -156,10 +158,9 @@ for (epoch in 1:num_epochs) {
     loss <- criterion(output, b[[2]]$to(device = "cuda"))
     loss$backward()
     optimizer$step()
-    # tbd
     scheduler$step()
     train_losses <- c(train_losses, loss$item())
-    print(loss)
+    #print(optimizer$param_groups[[1]]$lr)
   }
 
   model$eval()
