@@ -323,8 +323,8 @@ find_lr <- function(init_value = 1e-8, final_value = 10, beta = 0.98) {
 
     batch_num <- batch_num + 1
     optimizer$zero_grad()
-    output <- model(b[[1]]$to(device = "cuda"))
-    loss <- criterion(output, b[[2]]$to(device = "cuda"))
+    output <- model(b[[1]]$to(device = devcie))
+    loss <- criterion(output, b[[2]]$to(device = device))
 
     #Compute the smoothed loss
     avg_loss <- beta * avg_loss + (1-beta) * loss$item()
@@ -376,8 +376,8 @@ for (epoch in 1:num_epochs) {
 
   for (b in enumerate(train_dl)) {
     optimizer$zero_grad()
-    output <- model(b[[1]]$to(device = "cuda"))
-    loss <- criterion(output, b[[2]]$to(device = "cuda"))
+    output <- model(b[[1]]$to(device = device))
+    loss <- criterion(output, b[[2]]$to(device = device))
     loss$backward()
     optimizer$step()
     scheduler$step()
@@ -389,7 +389,7 @@ for (epoch in 1:num_epochs) {
 
   for (b in enumerate(valid_dl)) {
     output <- model(b[[1]])
-    loss <- criterion(output, b[[2]]$to(device = "cuda"))
+    loss <- criterion(output, b[[2]]$to(device = device))
     valid_losses <- c(valid_losses, loss$item())
   }
 
@@ -409,7 +409,7 @@ total <- 0
 correct <- 0
 
 for (b in enumerate(test_dl)) {
-  output <- model(b[[1]]$to(device = "cuda"))
+  output <- model(b[[1]]$to(device = device))
   labels <- b[[2]]$to(device = "cuda")
   loss <- criterion(output, labels)
   test_losses <- c(test_losses, loss$item())
