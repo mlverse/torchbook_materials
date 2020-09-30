@@ -323,7 +323,7 @@ find_lr <- function(init_value = 1e-8, final_value = 10, beta = 0.98) {
 
     batch_num <- batch_num + 1
     optimizer$zero_grad()
-    output <- model(b[[1]]$to(device = devcie))
+    output <- model(b[[1]]$to(device = device))
     loss <- criterion(output, b[[2]]$to(device = device))
 
     #Compute the smoothed loss
@@ -410,7 +410,7 @@ correct <- 0
 
 for (b in enumerate(test_dl)) {
   output <- model(b[[1]]$to(device = device))
-  labels <- b[[2]]$to(device = "cuda")
+  labels <- b[[2]]$to(device = device)
   loss <- criterion(output, labels)
   test_losses <- c(test_losses, loss$item())
   # torch_max returns a list, with position 1 containing the values
