@@ -153,7 +153,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
 <li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
 </ul></li>
-<li class="chapter" data-level="2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>2.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
 <ul>
@@ -171,9 +170,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
 <ul>
-<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
-<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
-<li class="chapter" data-level="4.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>4.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with <em>autograd</em></a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using <em>autograd</em></a></li>
+<li class="chapter" data-level="4.3" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#outlook"><i class="fa fa-check"></i><b>4.3</b> Outlook</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
 <ul>
@@ -183,13 +182,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
-<li class="chapter" data-level="5.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="5.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
 <ul>
 <li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
 <li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>optim</code></a></li>
-<li class="chapter" data-level="6.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="part"><span><b>II Image Recognition</b></span></li>
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
@@ -302,48 +301,48 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="gradient-descent" class="section level3" number="2.1.1">
 <h3><span class="header-section-number">2.1.1</span> Gradient descent</h3>
 <p>If we had to, we could do linear regression</p>
-<p><span class="math display" id="eq:linreg">\[\begin{equation*} 
- \mathbf{X} \boldsymbol{\beta} = \mathbf{y}
- \tag{2.1}
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+\mathbf{X} \boldsymbol{\beta} = \mathbf{y}
+(\#eq:linreg)
+\end{equation*}</p>
 <p>from scratch in R. Not necessarily using the <em>normal equations</em> (as those imply invertibility of the covariance matrix):</p>
-<p><span class="math display" id="eq:normaleqs">\[\begin{equation*} 
- \hat{\boldsymbol{\beta}} = \mathbf{{(X^t X)}^{-1} X^t y}
- \tag{2.2}
-\end{equation*}\]</span></p>
-<p>but iteratively, doing <em>gradient descent</em>. We start with a guess of the weight vector <span class="math inline">\(\boldsymbol{\beta}\)</span>, <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>. Then in each iteration, we compute how far we are from our objective, that is, from correctly solving equation <a href="simple-net-R.html#eq:linreg">(2.1)</a>. Most often in regression, for this we’d calculate <em>the sum of squared errors</em>:</p>
-<p><span class="math display" id="eq:mse">\[\begin{equation*} 
- \mathcal{L} = \sum{{(\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{\ y})}^2}
- \tag{2.3}
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+\hat{\boldsymbol{\beta}} = \mathbf{{(X^t X)}^{-1} X^t y}
+(\#eq:normaleqs)
+\end{equation*}</p>
+<p>but iteratively, doing <em>gradient descent</em>. We start with a guess of the weight vector <span class="math inline">\(\boldsymbol{\beta}\)</span>, <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>. Then in each iteration, we compute how far we are from our objective, that is, from correctly solving equation <a href="#eq:linreg">(<strong>??</strong>)</a>. Most often in regression, for this we’d calculate <em>the sum of squared errors</em>:</p>
+<p>\begin{equation*}
+\mathcal{L} = \sum{{(\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{\ y})}^2}
+(\#eq:mse)
+\end{equation*}</p>
 <p>This is our <em>loss function</em>. For that loss to go down, we need to update <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span> in the right direction. How the loss changes with <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span> is given by its <em>gradient</em> with respect to the same:</p>
-<p><span class="math display" id="eq:gradlosswrtbeta">\[\begin{equation*} 
- \nabla_{\hat{\boldsymbol{\beta}}} \mathcal{L} = 2 \mathbf{X}^t (\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{y})
- \tag{2.4}
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+\nabla_{\hat{\boldsymbol{\beta}}} \mathcal{L} = 2 \mathbf{X}^t (\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{y})
+(\#eq:gradlosswrtbeta)
+\end{equation*}</p>
 <p>Substracting a fraction of that gradient from <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span> – “descending” the gradient of the loss – will make it go down. This can be seen by looking at the first-order Taylor approximation of a function <span class="math inline">\(f\)</span> (choosing a single-variable function for simplicity):</p>
-<p><span class="math display" id="eq:euler">\[\begin{equation*} 
- f(x + \delta x) \approx f(x) + f&#39;(x) \delta x
- \tag{2.5}
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+f(x + \delta x) \approx f(x) + f’(x) \delta x
+(\#eq:euler)
+\end{equation*}</p>
 <p>If we set <span class="math inline">\(\delta x\)</span> to a multiple of the derivative of <span class="math inline">\(f\)</span> at <span class="math inline">\(x\)</span>, <span class="math inline">\(\delta = \eta f&#39;(x)\)</span>, we get</p>
-<p><span class="math display">\[\begin{equation*} 
- f(x - \eta f&#39;(x)) \approx f(x) - \eta f&#39;(x) f&#39;(x)) 
-\end{equation*}\]</span></p>
-<p><span class="math display" id="eq:euler">\[\begin{equation*} 
- f(x - \eta f&#39;(x)) \approx f(x) - \eta (f&#39;(x))^2
- \tag{2.5}
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+f(x - \eta f’(x)) \approx f(x) - \eta f’(x) f’(x))
+\end{equation*}</p>
+<p>\begin{equation*}
+f(x - \eta f’(x)) \approx f(x) - \eta (f’(x))^2
+(\#eq:euler)
+\end{equation*}</p>
 <p>This new value <span class="math inline">\(f(x - \eta f&#39;(x))\)</span> is smaller than <span class="math inline">\(f(x)\)</span> because on the right side, a positive value is subtracted.</p>
 <p>Ported to our task of loss minimization, where loss <span class="math inline">\(\mathcal(L)\)</span> depends on a vector parameter <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>, this would be</p>
-<p><span class="math display" id="eq:euler">\[\begin{equation*} 
- \mathcal{L}(\hat{\boldsymbol{\beta}} + \Delta \hat{\boldsymbol{\beta}}) \approx \mathcal{L}(\hat{\boldsymbol{\beta}}) + {\Delta \hat{\boldsymbol{\beta}}}^t  \nabla \hat{\boldsymbol{\beta}}
- \tag{2.5}
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+\mathcal{L}(\hat{\boldsymbol{\beta}} + \Delta \hat{\boldsymbol{\beta}}) \approx \mathcal{L}(\hat{\boldsymbol{\beta}}) + {\Delta \hat{\boldsymbol{\beta}}}^t \nabla \hat{\boldsymbol{\beta}}
+(\#eq:euler)
+\end{equation*}</p>
 <p>Now, again, subtracting a fraction of the gradient, <span class="math inline">\(- \eta \nabla \hat{\boldsymbol{\beta}}\)</span>, we have</p>
-<p><span class="math display">\[\begin{equation*} 
- \mathcal{L}(\hat{\boldsymbol{\beta}} - \eta \nabla \hat{\boldsymbol{\beta}}) \approx  \mathcal{L}(\hat{\boldsymbol{\beta}}) - \eta {\nabla \hat{\boldsymbol{\beta}}}^t \nabla \hat{\boldsymbol{\beta}} 
-\end{equation*}\]</span></p>
+<p>\begin{equation*}
+\mathcal{L}(\hat{\boldsymbol{\beta}} - \eta \nabla \hat{\boldsymbol{\beta}}) \approx \mathcal{L}(\hat{\boldsymbol{\beta}}) - \eta {\nabla \hat{\boldsymbol{\beta}}}^t \nabla \hat{\boldsymbol{\beta}}
+\end{equation*}</p>
 <p>where again the new loss value is lower than the old one.</p>
 <p>Iterating this process, we successively approach better estimates of <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>. The scale parameter, <span class="math inline">\(\eta\)</span>, used to multiply the gradient is called the <em>learning rate</em>.</p>
 <p>The process is analogous if we have a simple network. The main difference is that instead of one weight vector <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>, we have several layers, each with their own weights that have to be updated.</p>
@@ -453,8 +452,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">2.2.3</span> Training loop</h3>
 <p>Now for the training loop proper. The training loop here <em>is</em> the network.</p>
 <p>The forward pass computes intermediate activations (also applying <em>ReLU</em> activation), actual predictions, and the loss.</p>
-<p>The backward pass starts from the output and, making use of the chain rule, calculates the gradients of the loss with respect to <span class="math inline">\(w2\)</span>, <span class="math inline">\(b2\)</span>, <span class="math inline">\(w1\)</span> und <span class="math inline">\(b1\)</span>.
-It then uses the gradients to update the parameters.</p>
+<p>The backward pass starts from the output and, making use of the chain rule, calculates the gradients of the loss with respect to <span class="math inline">\(w2\)</span>, <span class="math inline">\(b2\)</span>, <span class="math inline">\(w1\)</span> und <span class="math inline">\(b1\)</span>. It then uses the gradients to update the parameters.</p>
 <p>If you’re just starting out with neural networks, don’t worry too much about the details of matrix shapes and operations – all this will become <em>a lot</em> easier when we use full-flegded torch. Just try to develop an understanding of what this code does overall.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="simple-net-R.html#cb7-1"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">1e-4</span></span>
 <span id="cb7-2"><a href="simple-net-R.html#cb7-2"></a></span>
@@ -581,87 +579,8 @@ It then uses the gradients to update the parameters.</p>
 <span id="cb8-75"><a href="simple-net-R.html#cb8-75"></a>    w1 &lt;-<span class="st"> </span>w1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_w1</span>
 <span id="cb8-76"><a href="simple-net-R.html#cb8-76"></a>    b1 &lt;-<span class="st"> </span>b1 <span class="op">-</span><span class="st"> </span>learning_rate <span class="op">*</span><span class="st"> </span>grad_b1</span>
 <span id="cb8-77"><a href="simple-net-R.html#cb8-77"></a>}</span></code></pre></div>
-</div>
-</div>
-<div id="appendix-python-code" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Appendix: Python code</h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="simple-net-R.html#cb9-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb9-2"><a href="simple-net-R.html#cb9-2"></a></span>
-<span id="cb9-3"><a href="simple-net-R.html#cb9-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
-<span id="cb9-4"><a href="simple-net-R.html#cb9-4"></a></span>
-<span id="cb9-5"><a href="simple-net-R.html#cb9-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
-<span id="cb9-6"><a href="simple-net-R.html#cb9-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb9-7"><a href="simple-net-R.html#cb9-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
-<span id="cb9-8"><a href="simple-net-R.html#cb9-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb9-9"><a href="simple-net-R.html#cb9-9"></a><span class="co"># number of observations in training set</span></span>
-<span id="cb9-10"><a href="simple-net-R.html#cb9-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb9-11"><a href="simple-net-R.html#cb9-11"></a></span>
-<span id="cb9-12"><a href="simple-net-R.html#cb9-12"></a><span class="co"># create random data</span></span>
-<span id="cb9-13"><a href="simple-net-R.html#cb9-13"></a>x <span class="op">=</span> np.random.randn(n, d_in) </span>
-<span id="cb9-14"><a href="simple-net-R.html#cb9-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, np.newaxis] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, np.newaxis] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, np.newaxis] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> np.random.randn(n, <span class="dv">1</span>)</span>
-<span id="cb9-15"><a href="simple-net-R.html#cb9-15"></a></span>
-<span id="cb9-16"><a href="simple-net-R.html#cb9-16"></a></span>
-<span id="cb9-17"><a href="simple-net-R.html#cb9-17"></a><span class="co">### initialize weights ---------------------------------------------------------</span></span>
-<span id="cb9-18"><a href="simple-net-R.html#cb9-18"></a></span>
-<span id="cb9-19"><a href="simple-net-R.html#cb9-19"></a><span class="co"># dimensionality of hidden layer</span></span>
-<span id="cb9-20"><a href="simple-net-R.html#cb9-20"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb9-21"><a href="simple-net-R.html#cb9-21"></a><span class="co"># weights connecting input to hidden layer</span></span>
-<span id="cb9-22"><a href="simple-net-R.html#cb9-22"></a>w1 <span class="op">=</span> np.random.randn(d_in, d_hidden)</span>
-<span id="cb9-23"><a href="simple-net-R.html#cb9-23"></a><span class="co"># weights connecting hidden to output layer</span></span>
-<span id="cb9-24"><a href="simple-net-R.html#cb9-24"></a>w2 <span class="op">=</span> np.random.randn(d_hidden, d_out)</span>
-<span id="cb9-25"><a href="simple-net-R.html#cb9-25"></a></span>
-<span id="cb9-26"><a href="simple-net-R.html#cb9-26"></a><span class="co"># hidden layer bias</span></span>
-<span id="cb9-27"><a href="simple-net-R.html#cb9-27"></a>b1 <span class="op">=</span> np.zeros((<span class="dv">1</span>, d_hidden))</span>
-<span id="cb9-28"><a href="simple-net-R.html#cb9-28"></a><span class="co"># output layer bias</span></span>
-<span id="cb9-29"><a href="simple-net-R.html#cb9-29"></a>b2 <span class="op">=</span> np.zeros((<span class="dv">1</span>, d_out))</span>
-<span id="cb9-30"><a href="simple-net-R.html#cb9-30"></a></span>
-<span id="cb9-31"><a href="simple-net-R.html#cb9-31"></a><span class="co">### network parameters----------------------------------------------------------</span></span>
-<span id="cb9-32"><a href="simple-net-R.html#cb9-32"></a></span>
-<span id="cb9-33"><a href="simple-net-R.html#cb9-33"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
-<span id="cb9-34"><a href="simple-net-R.html#cb9-34"></a></span>
-<span id="cb9-35"><a href="simple-net-R.html#cb9-35"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
-<span id="cb9-36"><a href="simple-net-R.html#cb9-36"></a></span>
-<span id="cb9-37"><a href="simple-net-R.html#cb9-37"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
-<span id="cb9-38"><a href="simple-net-R.html#cb9-38"></a>    </span>
-<span id="cb9-39"><a href="simple-net-R.html#cb9-39"></a>    <span class="co">### -------- Forward pass -------- </span></span>
-<span id="cb9-40"><a href="simple-net-R.html#cb9-40"></a>    </span>
-<span id="cb9-41"><a href="simple-net-R.html#cb9-41"></a>    <span class="co"># compute pre-activations of hidden layers (dim: 100 x 32)</span></span>
-<span id="cb9-42"><a href="simple-net-R.html#cb9-42"></a>    h <span class="op">=</span> x.dot(w1) <span class="op">+</span> b1</span>
-<span id="cb9-43"><a href="simple-net-R.html#cb9-43"></a>    <span class="co"># apply activation function (dim: 100 x 32)</span></span>
-<span id="cb9-44"><a href="simple-net-R.html#cb9-44"></a>    h_relu <span class="op">=</span> np.maximum(h, <span class="dv">0</span>)</span>
-<span id="cb9-45"><a href="simple-net-R.html#cb9-45"></a>    <span class="co"># compute output (dim: 100 x 1)</span></span>
-<span id="cb9-46"><a href="simple-net-R.html#cb9-46"></a>    y_pred <span class="op">=</span> h_relu.dot(w2) <span class="op">+</span> b2</span>
-<span id="cb9-47"><a href="simple-net-R.html#cb9-47"></a></span>
-<span id="cb9-48"><a href="simple-net-R.html#cb9-48"></a>    <span class="co">### -------- compute loss -------- </span></span>
-<span id="cb9-49"><a href="simple-net-R.html#cb9-49"></a>    loss <span class="op">=</span> np.square(y_pred <span class="op">-</span> y).<span class="bu">sum</span>()</span>
-<span id="cb9-50"><a href="simple-net-R.html#cb9-50"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss)</span>
-<span id="cb9-51"><a href="simple-net-R.html#cb9-51"></a></span>
-<span id="cb9-52"><a href="simple-net-R.html#cb9-52"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
-<span id="cb9-53"><a href="simple-net-R.html#cb9-53"></a>    </span>
-<span id="cb9-54"><a href="simple-net-R.html#cb9-54"></a>    <span class="co"># gradient of loss w.r.t. prediction (dim: 100 x 1)</span></span>
-<span id="cb9-55"><a href="simple-net-R.html#cb9-55"></a>    grad_y_pred <span class="op">=</span> <span class="fl">2.0</span> <span class="op">*</span> (y_pred <span class="op">-</span> y)</span>
-<span id="cb9-56"><a href="simple-net-R.html#cb9-56"></a>    <span class="co"># gradient of loss w.r.t. w2 (dim: 32 x 1)</span></span>
-<span id="cb9-57"><a href="simple-net-R.html#cb9-57"></a>    grad_w2 <span class="op">=</span> h_relu.T.dot(grad_y_pred)</span>
-<span id="cb9-58"><a href="simple-net-R.html#cb9-58"></a>    <span class="co"># gradient of loss w.r.t. hidden activation (dim: 100 x 32)</span></span>
-<span id="cb9-59"><a href="simple-net-R.html#cb9-59"></a>    grad_h_relu <span class="op">=</span> grad_y_pred.dot(w2.T)</span>
-<span id="cb9-60"><a href="simple-net-R.html#cb9-60"></a>    <span class="co"># gradient of loss w.r.t. hidden pre-activation (dim: 100 x 32)</span></span>
-<span id="cb9-61"><a href="simple-net-R.html#cb9-61"></a>    grad_h <span class="op">=</span> grad_h_relu.copy()</span>
-<span id="cb9-62"><a href="simple-net-R.html#cb9-62"></a>    grad_h[h <span class="op">&lt;</span> <span class="dv">0</span>] <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb9-63"><a href="simple-net-R.html#cb9-63"></a>    <span class="co"># gradient of loss w.r.t. b2 (shape: ())</span></span>
-<span id="cb9-64"><a href="simple-net-R.html#cb9-64"></a>    grad_b2 <span class="op">=</span> grad_y_pred.<span class="bu">sum</span>()</span>
-<span id="cb9-65"><a href="simple-net-R.html#cb9-65"></a>    </span>
-<span id="cb9-66"><a href="simple-net-R.html#cb9-66"></a>    <span class="co"># gradient of loss w.r.t. w1 (dim: 3 x 32)</span></span>
-<span id="cb9-67"><a href="simple-net-R.html#cb9-67"></a>    grad_w1 <span class="op">=</span> x.T.dot(grad_h)</span>
-<span id="cb9-68"><a href="simple-net-R.html#cb9-68"></a>    <span class="co"># gradient of loss w.r.t. b1 (shape: (32, ))</span></span>
-<span id="cb9-69"><a href="simple-net-R.html#cb9-69"></a>    grad_b1 <span class="op">=</span> grad_h.<span class="bu">sum</span>(axis <span class="op">=</span> <span class="dv">0</span>)</span>
-<span id="cb9-70"><a href="simple-net-R.html#cb9-70"></a></span>
-<span id="cb9-71"><a href="simple-net-R.html#cb9-71"></a>    <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb9-72"><a href="simple-net-R.html#cb9-72"></a>    </span>
-<span id="cb9-73"><a href="simple-net-R.html#cb9-73"></a>    w2 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_w2</span>
-<span id="cb9-74"><a href="simple-net-R.html#cb9-74"></a>    b2 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_b2</span>
-<span id="cb9-75"><a href="simple-net-R.html#cb9-75"></a>    w1 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_w1</span>
-<span id="cb9-76"><a href="simple-net-R.html#cb9-76"></a>    b1 <span class="op">-=</span> learning_rate <span class="op">*</span> grad_b1</span></code></pre></div>
 
+</div>
 </div>
 </div>
 <div class="footnotes">

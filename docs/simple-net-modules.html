@@ -153,7 +153,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
 <li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
 </ul></li>
-<li class="chapter" data-level="2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>2.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
 <ul>
@@ -171,9 +170,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
 <ul>
-<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
-<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
-<li class="chapter" data-level="4.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>4.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with <em>autograd</em></a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using <em>autograd</em></a></li>
+<li class="chapter" data-level="4.3" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#outlook"><i class="fa fa-check"></i><b>4.3</b> Outlook</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
 <ul>
@@ -183,13 +182,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
-<li class="chapter" data-level="5.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="5.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
 <ul>
 <li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
 <li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>optim</code></a></li>
-<li class="chapter" data-level="6.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="part"><span><b>II Image Recognition</b></span></li>
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
@@ -306,25 +305,25 @@ replacing our manual function calls with <code>torch</code> <em>modules</em>.</p
 <p>For example, instead of writing out an affine operation by hand – say <code>x$mm(w1) + b1</code>, as we’ve been doing so far – we can
 create a linear module. This line creates a linear layer that expects an input with three features, and outputs a single
 output per observation:</p>
-<div class="sourceCode" id="cb115"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb115-1"><a href="simple-net-modules.html#cb115-1"></a>l &lt;-<span class="st"> </span><span class="kw">nn_linear</span>(<span class="dv">3</span>, <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb129"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb129-1"><a href="simple-net-modules.html#cb129-1"></a>l &lt;-<span class="st"> </span><span class="kw">nn_linear</span>(<span class="dv">3</span>, <span class="dv">1</span>)</span></code></pre></div>
 <p>It has two parameters, “weight” and “bias”:</p>
-<div class="sourceCode" id="cb116"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb116-1"><a href="simple-net-modules.html#cb116-1"></a>l<span class="op">$</span>parameters</span></code></pre></div>
+<div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="simple-net-modules.html#cb130-1"></a>l<span class="op">$</span>parameters</span></code></pre></div>
 <p>Both parameters have automatically been initialized for us.</p>
 <p>Modules are callable; calling a module runs its <code>forward()</code> method, which for a linear layer just matrix-multiplies the input
 with the weights and adds the bias.</p>
 <p>Let’s try this:</p>
-<div class="sourceCode" id="cb117"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb117-1"><a href="simple-net-modules.html#cb117-1"></a>data  &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(<span class="dv">10</span>, <span class="dv">3</span>)</span>
-<span id="cb117-2"><a href="simple-net-modules.html#cb117-2"></a>out &lt;-<span class="st"> </span><span class="kw">l</span>(data)</span></code></pre></div>
+<div class="sourceCode" id="cb131"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb131-1"><a href="simple-net-modules.html#cb131-1"></a>data  &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(<span class="dv">10</span>, <span class="dv">3</span>)</span>
+<span id="cb131-2"><a href="simple-net-modules.html#cb131-2"></a>out &lt;-<span class="st"> </span><span class="kw">l</span>(data)</span></code></pre></div>
 <p>The output is a tensor that not just contains data</p>
-<div class="sourceCode" id="cb118"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb118-1"><a href="simple-net-modules.html#cb118-1"></a><span class="co">###TBD###</span></span>
-<span id="cb118-2"><a href="simple-net-modules.html#cb118-2"></a>out<span class="op">$</span><span class="kw">data</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="simple-net-modules.html#cb132-1"></a><span class="co">###TBD###</span></span>
+<span id="cb132-2"><a href="simple-net-modules.html#cb132-2"></a>out<span class="op">$</span><span class="kw">data</span>()</span></code></pre></div>
 <p>but also, knows what has to be done to obtain gradients:</p>
-<div class="sourceCode" id="cb119"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb119-1"><a href="simple-net-modules.html#cb119-1"></a>out<span class="op">$</span>grad_fn</span></code></pre></div>
+<div class="sourceCode" id="cb133"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb133-1"><a href="simple-net-modules.html#cb133-1"></a>out<span class="op">$</span>grad_fn</span></code></pre></div>
 <p>At this point, we have done a forward pass, but as we haven’t called <code>backward(),</code> no gradients have yet been calculated:</p>
-<div class="sourceCode" id="cb120"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb120-1"><a href="simple-net-modules.html#cb120-1"></a>l<span class="op">$</span>weight<span class="op">$</span>grad</span>
-<span id="cb120-2"><a href="simple-net-modules.html#cb120-2"></a>l<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
+<div class="sourceCode" id="cb134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb134-1"><a href="simple-net-modules.html#cb134-1"></a>l<span class="op">$</span>weight<span class="op">$</span>grad</span>
+<span id="cb134-2"><a href="simple-net-modules.html#cb134-2"></a>l<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
 <p>Let’s change this:</p>
-<div class="sourceCode" id="cb121"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb121-1"><a href="simple-net-modules.html#cb121-1"></a>out$backward()</span></code></pre></div>
+<div class="sourceCode" id="cb135"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb135-1"><a href="simple-net-modules.html#cb135-1"></a>out$backward()</span></code></pre></div>
 <p>Autograd expects the output tensor to be a scalar, while in our example, we have a tensor of size <code>(10, 1)</code>. This error won’t
 happen in our “real example” below, where we’ll work with <em>batches</em> of inputs (or rather, a single batch, for simplicity). But
 still, it’s interesting to see how to resolve this.</p>
@@ -336,10 +335,10 @@ mean were taken, its gradient with respect to <code>l$weight</code> would be obt
 \end{equation*}\]</span></p>
 <p>Of the quantities on the right side, we’re interested in the second. We need to provide the first one, the way it would look
 <em>if really we were taking the mean</em>:</p>
-<div class="sourceCode" id="cb122"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb122-1"><a href="simple-net-modules.html#cb122-1"></a>out<span class="op">$</span><span class="kw">backward</span>(<span class="dt">gradient =</span> <span class="kw">torch_tensor</span>(<span class="dv">10</span>)<span class="op">$</span><span class="st">`</span><span class="dt">repeat</span><span class="st">`</span>(<span class="dv">10</span>)<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dv">0</span>)<span class="op">$</span><span class="kw">t</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb136-1"><a href="simple-net-modules.html#cb136-1"></a>out<span class="op">$</span><span class="kw">backward</span>(<span class="dt">gradient =</span> <span class="kw">torch_tensor</span>(<span class="dv">10</span>)<span class="op">$</span><span class="st">`</span><span class="dt">repeat</span><span class="st">`</span>(<span class="dv">10</span>)<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dv">0</span>)<span class="op">$</span><span class="kw">t</span>())</span></code></pre></div>
 <p>Now, <code>l$weight$grad</code> and <code>l$bias$grad</code> <em>will</em> contain the respective gradients:</p>
-<div class="sourceCode" id="cb123"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb123-1"><a href="simple-net-modules.html#cb123-1"></a>l<span class="op">$</span>weight<span class="op">$</span>grad</span>
-<span id="cb123-2"><a href="simple-net-modules.html#cb123-2"></a>l<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
+<div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb137-1"><a href="simple-net-modules.html#cb137-1"></a>l<span class="op">$</span>weight<span class="op">$</span>grad</span>
+<span id="cb137-2"><a href="simple-net-modules.html#cb137-2"></a>l<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
 <p>Back to the main thread. <code>nn_linear()</code> is one of the most often used layers in neural networks; we’ll see others
 (convolutional, recurrent…) in later chapters. In the usual lingo, combining layers yields <em>models</em>.</p>
 </div>
@@ -348,25 +347,25 @@ mean were taken, its gradient with respect to <code>l$weight</code> would be obt
 <p>Now, <em>models</em> are just modules that contain other modules. For example, if all data is supposed to flow through the same
 nodes, in a unidirectional fashion, then <code>nn_sequential()</code> can be used to build a simple graph.</p>
 <p>For example:</p>
-<div class="sourceCode" id="cb124"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb124-1"><a href="simple-net-modules.html#cb124-1"></a>model &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
-<span id="cb124-2"><a href="simple-net-modules.html#cb124-2"></a>    <span class="kw">nn_linear</span>(<span class="dv">3</span>, <span class="dv">16</span>),</span>
-<span id="cb124-3"><a href="simple-net-modules.html#cb124-3"></a>    <span class="kw">nn_relu</span>(),</span>
-<span id="cb124-4"><a href="simple-net-modules.html#cb124-4"></a>    <span class="kw">nn_linear</span>(<span class="dv">16</span>, <span class="dv">1</span>)</span>
-<span id="cb124-5"><a href="simple-net-modules.html#cb124-5"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb138"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb138-1"><a href="simple-net-modules.html#cb138-1"></a>model &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
+<span id="cb138-2"><a href="simple-net-modules.html#cb138-2"></a>    <span class="kw">nn_linear</span>(<span class="dv">3</span>, <span class="dv">16</span>),</span>
+<span id="cb138-3"><a href="simple-net-modules.html#cb138-3"></a>    <span class="kw">nn_relu</span>(),</span>
+<span id="cb138-4"><a href="simple-net-modules.html#cb138-4"></a>    <span class="kw">nn_linear</span>(<span class="dv">16</span>, <span class="dv">1</span>)</span>
+<span id="cb138-5"><a href="simple-net-modules.html#cb138-5"></a>)</span></code></pre></div>
 <p>We can use the same technique used on the single linear layer to get an overview of all model parameters:</p>
-<div class="sourceCode" id="cb125"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb125-1"><a href="simple-net-modules.html#cb125-1"></a>model<span class="op">$</span>parameters</span></code></pre></div>
+<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="simple-net-modules.html#cb139-1"></a>model<span class="op">$</span>parameters</span></code></pre></div>
 <p>Individual parameters can just be directly inspected making use of their position in the sequential model, e.g.</p>
-<div class="sourceCode" id="cb126"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb126-1"><a href="simple-net-modules.html#cb126-1"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias</span></code></pre></div>
+<div class="sourceCode" id="cb140"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb140-1"><a href="simple-net-modules.html#cb140-1"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias</span></code></pre></div>
 <p>And just like the simple <code>Linear</code> module, this model can directly be called on data:</p>
-<div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb127-1"><a href="simple-net-modules.html#cb127-1"></a>out &lt;-<span class="st"> </span><span class="kw">model</span>(data)</span></code></pre></div>
+<div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="simple-net-modules.html#cb141-1"></a>out &lt;-<span class="st"> </span><span class="kw">model</span>(data)</span></code></pre></div>
 <p>On this composite module, calling <code>backward()</code> will effectuate a backward pass through all the layers:</p>
-<div class="sourceCode" id="cb128"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb128-1"><a href="simple-net-modules.html#cb128-1"></a>out<span class="op">$</span><span class="kw">backward</span>(<span class="dt">gradient =</span> <span class="kw">torch_tensor</span>(<span class="dv">10</span>)<span class="op">$</span><span class="st">`</span><span class="dt">repeat</span><span class="st">`</span>(<span class="dv">10</span>)<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dv">0</span>)<span class="op">$</span><span class="kw">t</span>())</span>
-<span id="cb128-2"><a href="simple-net-modules.html#cb128-2"></a></span>
-<span id="cb128-3"><a href="simple-net-modules.html#cb128-3"></a><span class="co"># e.g.</span></span>
-<span id="cb128-4"><a href="simple-net-modules.html#cb128-4"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
+<div class="sourceCode" id="cb142"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb142-1"><a href="simple-net-modules.html#cb142-1"></a>out<span class="op">$</span><span class="kw">backward</span>(<span class="dt">gradient =</span> <span class="kw">torch_tensor</span>(<span class="dv">10</span>)<span class="op">$</span><span class="st">`</span><span class="dt">repeat</span><span class="st">`</span>(<span class="dv">10</span>)<span class="op">$</span><span class="kw">unsqueeze</span>(<span class="dv">0</span>)<span class="op">$</span><span class="kw">t</span>())</span>
+<span id="cb142-2"><a href="simple-net-modules.html#cb142-2"></a></span>
+<span id="cb142-3"><a href="simple-net-modules.html#cb142-3"></a><span class="co"># e.g.</span></span>
+<span id="cb142-4"><a href="simple-net-modules.html#cb142-4"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
 <p>And placing the composite on the GPU will move all tensors there:</p>
-<div class="sourceCode" id="cb129"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb129-1"><a href="simple-net-modules.html#cb129-1"></a>model<span class="op">$</span><span class="kw">cuda</span>()</span>
-<span id="cb129-2"><a href="simple-net-modules.html#cb129-2"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
+<div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="simple-net-modules.html#cb143-1"></a>model<span class="op">$</span><span class="kw">cuda</span>()</span>
+<span id="cb143-2"><a href="simple-net-modules.html#cb143-2"></a>model[[<span class="dv">1</span>]]<span class="op">$</span>bias<span class="op">$</span>grad</span></code></pre></div>
 <p>Now let’s see how using <code>nn_sequential()</code> can simplify our example network. As an act of further simplication, we won’t
 calculate mean squared error “by hand” anymore either; instead, we’ll use one of the loss functions torch provides,
 <code>torch.nn.MSELoss</code>.</p>
@@ -374,136 +373,136 @@ calculate mean squared error “by hand” anymore either; instead, we’ll use 
 </div>
 <div id="simple-network-using-modules" class="section level2" number="5.2">
 <h2><span class="header-section-number">5.2</span> Simple network using modules</h2>
-<div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="simple-net-modules.html#cb130-1"></a><span class="kw">library</span>(torch)</span>
-<span id="cb130-2"><a href="simple-net-modules.html#cb130-2"></a></span>
-<span id="cb130-3"><a href="simple-net-modules.html#cb130-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
-<span id="cb130-4"><a href="simple-net-modules.html#cb130-4"></a></span>
-<span id="cb130-5"><a href="simple-net-modules.html#cb130-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
-<span id="cb130-6"><a href="simple-net-modules.html#cb130-6"></a>d_in &lt;-<span class="st"> </span><span class="dv">3</span></span>
-<span id="cb130-7"><a href="simple-net-modules.html#cb130-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
-<span id="cb130-8"><a href="simple-net-modules.html#cb130-8"></a>d_out &lt;-<span class="st"> </span><span class="dv">1</span></span>
-<span id="cb130-9"><a href="simple-net-modules.html#cb130-9"></a><span class="co"># number of observations in training set</span></span>
-<span id="cb130-10"><a href="simple-net-modules.html#cb130-10"></a>n &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb130-11"><a href="simple-net-modules.html#cb130-11"></a></span>
-<span id="cb130-12"><a href="simple-net-modules.html#cb130-12"></a></span>
-<span id="cb130-13"><a href="simple-net-modules.html#cb130-13"></a><span class="co"># create random data</span></span>
-<span id="cb130-14"><a href="simple-net-modules.html#cb130-14"></a>x &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(n, d_in)</span>
-<span id="cb130-15"><a href="simple-net-modules.html#cb130-15"></a>y &lt;-</span>
-<span id="cb130-16"><a href="simple-net-modules.html#cb130-16"></a><span class="st">  </span>x[, <span class="dv">1</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.2</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">2</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">1.3</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">3</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="kw">torch_randn</span>(n, <span class="dv">1</span>)</span>
-<span id="cb130-17"><a href="simple-net-modules.html#cb130-17"></a></span>
-<span id="cb130-18"><a href="simple-net-modules.html#cb130-18"></a></span>
-<span id="cb130-19"><a href="simple-net-modules.html#cb130-19"></a></span>
-<span id="cb130-20"><a href="simple-net-modules.html#cb130-20"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
-<span id="cb130-21"><a href="simple-net-modules.html#cb130-21"></a></span>
-<span id="cb130-22"><a href="simple-net-modules.html#cb130-22"></a><span class="co"># dimensionality of hidden layer</span></span>
-<span id="cb130-23"><a href="simple-net-modules.html#cb130-23"></a>d_hidden &lt;-<span class="st"> </span><span class="dv">32</span></span>
-<span id="cb130-24"><a href="simple-net-modules.html#cb130-24"></a></span>
-<span id="cb130-25"><a href="simple-net-modules.html#cb130-25"></a>model &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
-<span id="cb130-26"><a href="simple-net-modules.html#cb130-26"></a>  <span class="kw">nn_linear</span>(d_in, d_hidden),</span>
-<span id="cb130-27"><a href="simple-net-modules.html#cb130-27"></a>  <span class="kw">nn_relu</span>(),</span>
-<span id="cb130-28"><a href="simple-net-modules.html#cb130-28"></a>  <span class="kw">nn_linear</span>(d_hidden, d_out)</span>
-<span id="cb130-29"><a href="simple-net-modules.html#cb130-29"></a>)</span>
-<span id="cb130-30"><a href="simple-net-modules.html#cb130-30"></a></span>
-<span id="cb130-31"><a href="simple-net-modules.html#cb130-31"></a><span class="co"># </span><span class="al">TBD</span></span>
-<span id="cb130-32"><a href="simple-net-modules.html#cb130-32"></a><span class="co">#mse_loss = torch.nn.MSELoss(reduction=&#39;sum&#39;)</span></span>
-<span id="cb130-33"><a href="simple-net-modules.html#cb130-33"></a></span>
-<span id="cb130-34"><a href="simple-net-modules.html#cb130-34"></a></span>
-<span id="cb130-35"><a href="simple-net-modules.html#cb130-35"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
-<span id="cb130-36"><a href="simple-net-modules.html#cb130-36"></a></span>
-<span id="cb130-37"><a href="simple-net-modules.html#cb130-37"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">1e-4</span></span>
-<span id="cb130-38"><a href="simple-net-modules.html#cb130-38"></a></span>
-<span id="cb130-39"><a href="simple-net-modules.html#cb130-39"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
-<span id="cb130-40"><a href="simple-net-modules.html#cb130-40"></a></span>
-<span id="cb130-41"><a href="simple-net-modules.html#cb130-41"></a><span class="cf">for</span> (t <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">200</span>) {</span>
-<span id="cb130-42"><a href="simple-net-modules.html#cb130-42"></a>  </span>
-<span id="cb130-43"><a href="simple-net-modules.html#cb130-43"></a>  <span class="co">### -------- Forward pass -------- </span></span>
-<span id="cb130-44"><a href="simple-net-modules.html#cb130-44"></a>  </span>
-<span id="cb130-45"><a href="simple-net-modules.html#cb130-45"></a>  y_pred &lt;-<span class="st"> </span><span class="kw">model</span>(x)</span>
-<span id="cb130-46"><a href="simple-net-modules.html#cb130-46"></a>  </span>
-<span id="cb130-47"><a href="simple-net-modules.html#cb130-47"></a>  <span class="co">### -------- compute loss -------- </span></span>
-<span id="cb130-48"><a href="simple-net-modules.html#cb130-48"></a>  loss &lt;-<span class="st"> </span><span class="kw">nnf_mse_loss</span>(y_pred, y, <span class="dt">reduction =</span> <span class="st">&quot;sum&quot;</span>)</span>
-<span id="cb130-49"><a href="simple-net-modules.html#cb130-49"></a>  <span class="cf">if</span> t % <span class="dv">10</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span><span class="op">:</span><span class="st"> </span><span class="kw">print</span>(t, <span class="kw">as.numeric</span>(loss))</span>
-<span id="cb130-50"><a href="simple-net-modules.html#cb130-50"></a>  </span>
-<span id="cb130-51"><a href="simple-net-modules.html#cb130-51"></a>  <span class="co">### -------- Backpropagation -------- </span></span>
-<span id="cb130-52"><a href="simple-net-modules.html#cb130-52"></a>  </span>
-<span id="cb130-53"><a href="simple-net-modules.html#cb130-53"></a>  <span class="co"># Zero the gradients before running the backward pass.</span></span>
-<span id="cb130-54"><a href="simple-net-modules.html#cb130-54"></a>  model<span class="op">$</span><span class="kw">zero_grad</span>()</span>
-<span id="cb130-55"><a href="simple-net-modules.html#cb130-55"></a>  </span>
-<span id="cb130-56"><a href="simple-net-modules.html#cb130-56"></a>  <span class="co"># compute gradient of the loss w.r.t. all learnable parameters of the model</span></span>
-<span id="cb130-57"><a href="simple-net-modules.html#cb130-57"></a>  loss<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb130-58"><a href="simple-net-modules.html#cb130-58"></a>  </span>
-<span id="cb130-59"><a href="simple-net-modules.html#cb130-59"></a>  <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb130-60"><a href="simple-net-modules.html#cb130-60"></a>  </span>
-<span id="cb130-61"><a href="simple-net-modules.html#cb130-61"></a>  <span class="co"># Wrap in with_no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
-<span id="cb130-62"><a href="simple-net-modules.html#cb130-62"></a>  <span class="co"># Update each parameter by its `grad`</span></span>
-<span id="cb130-63"><a href="simple-net-modules.html#cb130-63"></a>  </span>
-<span id="cb130-64"><a href="simple-net-modules.html#cb130-64"></a>  <span class="kw">with_no_grad</span>({</span>
-<span id="cb130-65"><a href="simple-net-modules.html#cb130-65"></a>    model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>param<span class="op">$</span>grad))</span>
-<span id="cb130-66"><a href="simple-net-modules.html#cb130-66"></a>  })</span>
-<span id="cb130-67"><a href="simple-net-modules.html#cb130-67"></a>  </span>
-<span id="cb130-68"><a href="simple-net-modules.html#cb130-68"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb144"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb144-1"><a href="simple-net-modules.html#cb144-1"></a><span class="kw">library</span>(torch)</span>
+<span id="cb144-2"><a href="simple-net-modules.html#cb144-2"></a></span>
+<span id="cb144-3"><a href="simple-net-modules.html#cb144-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb144-4"><a href="simple-net-modules.html#cb144-4"></a></span>
+<span id="cb144-5"><a href="simple-net-modules.html#cb144-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb144-6"><a href="simple-net-modules.html#cb144-6"></a>d_in &lt;-<span class="st"> </span><span class="dv">3</span></span>
+<span id="cb144-7"><a href="simple-net-modules.html#cb144-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb144-8"><a href="simple-net-modules.html#cb144-8"></a>d_out &lt;-<span class="st"> </span><span class="dv">1</span></span>
+<span id="cb144-9"><a href="simple-net-modules.html#cb144-9"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb144-10"><a href="simple-net-modules.html#cb144-10"></a>n &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb144-11"><a href="simple-net-modules.html#cb144-11"></a></span>
+<span id="cb144-12"><a href="simple-net-modules.html#cb144-12"></a></span>
+<span id="cb144-13"><a href="simple-net-modules.html#cb144-13"></a><span class="co"># create random data</span></span>
+<span id="cb144-14"><a href="simple-net-modules.html#cb144-14"></a>x &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(n, d_in)</span>
+<span id="cb144-15"><a href="simple-net-modules.html#cb144-15"></a>y &lt;-</span>
+<span id="cb144-16"><a href="simple-net-modules.html#cb144-16"></a><span class="st">  </span>x[, <span class="dv">1</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.2</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">2</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">1.3</span> <span class="op">-</span><span class="st"> </span>x[, <span class="dv">3</span>, <span class="ot">NULL</span>] <span class="op">*</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="kw">torch_randn</span>(n, <span class="dv">1</span>)</span>
+<span id="cb144-17"><a href="simple-net-modules.html#cb144-17"></a></span>
+<span id="cb144-18"><a href="simple-net-modules.html#cb144-18"></a></span>
+<span id="cb144-19"><a href="simple-net-modules.html#cb144-19"></a></span>
+<span id="cb144-20"><a href="simple-net-modules.html#cb144-20"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
+<span id="cb144-21"><a href="simple-net-modules.html#cb144-21"></a></span>
+<span id="cb144-22"><a href="simple-net-modules.html#cb144-22"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb144-23"><a href="simple-net-modules.html#cb144-23"></a>d_hidden &lt;-<span class="st"> </span><span class="dv">32</span></span>
+<span id="cb144-24"><a href="simple-net-modules.html#cb144-24"></a></span>
+<span id="cb144-25"><a href="simple-net-modules.html#cb144-25"></a>model &lt;-<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
+<span id="cb144-26"><a href="simple-net-modules.html#cb144-26"></a>  <span class="kw">nn_linear</span>(d_in, d_hidden),</span>
+<span id="cb144-27"><a href="simple-net-modules.html#cb144-27"></a>  <span class="kw">nn_relu</span>(),</span>
+<span id="cb144-28"><a href="simple-net-modules.html#cb144-28"></a>  <span class="kw">nn_linear</span>(d_hidden, d_out)</span>
+<span id="cb144-29"><a href="simple-net-modules.html#cb144-29"></a>)</span>
+<span id="cb144-30"><a href="simple-net-modules.html#cb144-30"></a></span>
+<span id="cb144-31"><a href="simple-net-modules.html#cb144-31"></a><span class="co"># </span><span class="al">TBD</span></span>
+<span id="cb144-32"><a href="simple-net-modules.html#cb144-32"></a><span class="co">#mse_loss = torch.nn.MSELoss(reduction=&#39;sum&#39;)</span></span>
+<span id="cb144-33"><a href="simple-net-modules.html#cb144-33"></a></span>
+<span id="cb144-34"><a href="simple-net-modules.html#cb144-34"></a></span>
+<span id="cb144-35"><a href="simple-net-modules.html#cb144-35"></a><span class="co">### network parameters ---------------------------------------------------------</span></span>
+<span id="cb144-36"><a href="simple-net-modules.html#cb144-36"></a></span>
+<span id="cb144-37"><a href="simple-net-modules.html#cb144-37"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">1e-4</span></span>
+<span id="cb144-38"><a href="simple-net-modules.html#cb144-38"></a></span>
+<span id="cb144-39"><a href="simple-net-modules.html#cb144-39"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb144-40"><a href="simple-net-modules.html#cb144-40"></a></span>
+<span id="cb144-41"><a href="simple-net-modules.html#cb144-41"></a><span class="cf">for</span> (t <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">200</span>) {</span>
+<span id="cb144-42"><a href="simple-net-modules.html#cb144-42"></a>  </span>
+<span id="cb144-43"><a href="simple-net-modules.html#cb144-43"></a>  <span class="co">### -------- Forward pass -------- </span></span>
+<span id="cb144-44"><a href="simple-net-modules.html#cb144-44"></a>  </span>
+<span id="cb144-45"><a href="simple-net-modules.html#cb144-45"></a>  y_pred &lt;-<span class="st"> </span><span class="kw">model</span>(x)</span>
+<span id="cb144-46"><a href="simple-net-modules.html#cb144-46"></a>  </span>
+<span id="cb144-47"><a href="simple-net-modules.html#cb144-47"></a>  <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb144-48"><a href="simple-net-modules.html#cb144-48"></a>  loss &lt;-<span class="st"> </span><span class="kw">nnf_mse_loss</span>(y_pred, y, <span class="dt">reduction =</span> <span class="st">&quot;sum&quot;</span>)</span>
+<span id="cb144-49"><a href="simple-net-modules.html#cb144-49"></a>  <span class="cf">if</span> t % <span class="dv">10</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span><span class="op">:</span><span class="st"> </span><span class="kw">print</span>(t, <span class="kw">as.numeric</span>(loss))</span>
+<span id="cb144-50"><a href="simple-net-modules.html#cb144-50"></a>  </span>
+<span id="cb144-51"><a href="simple-net-modules.html#cb144-51"></a>  <span class="co">### -------- Backpropagation -------- </span></span>
+<span id="cb144-52"><a href="simple-net-modules.html#cb144-52"></a>  </span>
+<span id="cb144-53"><a href="simple-net-modules.html#cb144-53"></a>  <span class="co"># Zero the gradients before running the backward pass.</span></span>
+<span id="cb144-54"><a href="simple-net-modules.html#cb144-54"></a>  model<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb144-55"><a href="simple-net-modules.html#cb144-55"></a>  </span>
+<span id="cb144-56"><a href="simple-net-modules.html#cb144-56"></a>  <span class="co"># compute gradient of the loss w.r.t. all learnable parameters of the model</span></span>
+<span id="cb144-57"><a href="simple-net-modules.html#cb144-57"></a>  loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb144-58"><a href="simple-net-modules.html#cb144-58"></a>  </span>
+<span id="cb144-59"><a href="simple-net-modules.html#cb144-59"></a>  <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb144-60"><a href="simple-net-modules.html#cb144-60"></a>  </span>
+<span id="cb144-61"><a href="simple-net-modules.html#cb144-61"></a>  <span class="co"># Wrap in with_no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
+<span id="cb144-62"><a href="simple-net-modules.html#cb144-62"></a>  <span class="co"># Update each parameter by its `grad`</span></span>
+<span id="cb144-63"><a href="simple-net-modules.html#cb144-63"></a>  </span>
+<span id="cb144-64"><a href="simple-net-modules.html#cb144-64"></a>  <span class="kw">with_no_grad</span>({</span>
+<span id="cb144-65"><a href="simple-net-modules.html#cb144-65"></a>    model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span><span class="kw">sub_</span>(learning_rate <span class="op">*</span><span class="st"> </span>param<span class="op">$</span>grad))</span>
+<span id="cb144-66"><a href="simple-net-modules.html#cb144-66"></a>  })</span>
+<span id="cb144-67"><a href="simple-net-modules.html#cb144-67"></a>  </span>
+<span id="cb144-68"><a href="simple-net-modules.html#cb144-68"></a>}</span></code></pre></div>
 <p>The forward pass looks a lot better now; however, we still loop through the model’s parameters and update each one by hand. As
 a final act of simplification, the next chapter will show how to make use of torch optimizers instead.</p>
 </div>
 <div id="appendix-python-code" class="section level2" number="5.3">
 <h2><span class="header-section-number">5.3</span> Appendix: Python code</h2>
-<div class="sourceCode" id="cb131"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb131-1"><a href="simple-net-modules.html#cb131-1"></a><span class="im">import</span> torch</span>
-<span id="cb131-2"><a href="simple-net-modules.html#cb131-2"></a></span>
-<span id="cb131-3"><a href="simple-net-modules.html#cb131-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
-<span id="cb131-4"><a href="simple-net-modules.html#cb131-4"></a></span>
-<span id="cb131-5"><a href="simple-net-modules.html#cb131-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
-<span id="cb131-6"><a href="simple-net-modules.html#cb131-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb131-7"><a href="simple-net-modules.html#cb131-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
-<span id="cb131-8"><a href="simple-net-modules.html#cb131-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb131-9"><a href="simple-net-modules.html#cb131-9"></a><span class="co"># number of observations in training set</span></span>
-<span id="cb131-10"><a href="simple-net-modules.html#cb131-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb131-11"><a href="simple-net-modules.html#cb131-11"></a></span>
-<span id="cb131-12"><a href="simple-net-modules.html#cb131-12"></a><span class="co"># create random data</span></span>
-<span id="cb131-13"><a href="simple-net-modules.html#cb131-13"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
-<span id="cb131-14"><a href="simple-net-modules.html#cb131-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
-<span id="cb131-15"><a href="simple-net-modules.html#cb131-15"></a></span>
-<span id="cb131-16"><a href="simple-net-modules.html#cb131-16"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
-<span id="cb131-17"><a href="simple-net-modules.html#cb131-17"></a></span>
-<span id="cb131-18"><a href="simple-net-modules.html#cb131-18"></a><span class="co"># dimensionality of hidden layer</span></span>
-<span id="cb131-19"><a href="simple-net-modules.html#cb131-19"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb131-20"><a href="simple-net-modules.html#cb131-20"></a></span>
-<span id="cb131-21"><a href="simple-net-modules.html#cb131-21"></a>model <span class="op">=</span> torch.nn.Sequential(</span>
-<span id="cb131-22"><a href="simple-net-modules.html#cb131-22"></a>    torch.nn.Linear(d_in, d_hidden),</span>
-<span id="cb131-23"><a href="simple-net-modules.html#cb131-23"></a>    torch.nn.ReLU(),</span>
-<span id="cb131-24"><a href="simple-net-modules.html#cb131-24"></a>    torch.nn.Linear(d_hidden, d_out),</span>
-<span id="cb131-25"><a href="simple-net-modules.html#cb131-25"></a>)</span>
-<span id="cb131-26"><a href="simple-net-modules.html#cb131-26"></a></span>
-<span id="cb131-27"><a href="simple-net-modules.html#cb131-27"></a>mse_loss <span class="op">=</span> torch.nn.MSELoss(reduction<span class="op">=</span><span class="st">&#39;sum&#39;</span>)</span>
-<span id="cb131-28"><a href="simple-net-modules.html#cb131-28"></a></span>
-<span id="cb131-29"><a href="simple-net-modules.html#cb131-29"></a></span>
-<span id="cb131-30"><a href="simple-net-modules.html#cb131-30"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
-<span id="cb131-31"><a href="simple-net-modules.html#cb131-31"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
-<span id="cb131-32"><a href="simple-net-modules.html#cb131-32"></a></span>
-<span id="cb131-33"><a href="simple-net-modules.html#cb131-33"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
-<span id="cb131-34"><a href="simple-net-modules.html#cb131-34"></a>    </span>
-<span id="cb131-35"><a href="simple-net-modules.html#cb131-35"></a>    <span class="co">### -------- Forward pass -------- </span></span>
-<span id="cb131-36"><a href="simple-net-modules.html#cb131-36"></a></span>
-<span id="cb131-37"><a href="simple-net-modules.html#cb131-37"></a>    y_pred <span class="op">=</span> model(x)</span>
-<span id="cb131-38"><a href="simple-net-modules.html#cb131-38"></a></span>
-<span id="cb131-39"><a href="simple-net-modules.html#cb131-39"></a>    <span class="co">### -------- compute loss -------- </span></span>
-<span id="cb131-40"><a href="simple-net-modules.html#cb131-40"></a>    loss <span class="op">=</span> mse_loss(y_pred, y)</span>
-<span id="cb131-41"><a href="simple-net-modules.html#cb131-41"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
-<span id="cb131-42"><a href="simple-net-modules.html#cb131-42"></a></span>
-<span id="cb131-43"><a href="simple-net-modules.html#cb131-43"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
-<span id="cb131-44"><a href="simple-net-modules.html#cb131-44"></a></span>
-<span id="cb131-45"><a href="simple-net-modules.html#cb131-45"></a>    <span class="co"># Zero the gradients before running the backward pass.</span></span>
-<span id="cb131-46"><a href="simple-net-modules.html#cb131-46"></a>    model.zero_grad()</span>
-<span id="cb131-47"><a href="simple-net-modules.html#cb131-47"></a>    </span>
-<span id="cb131-48"><a href="simple-net-modules.html#cb131-48"></a>    <span class="co"># compute gradient of the loss w.r.t. all learnable parameters of the model</span></span>
-<span id="cb131-49"><a href="simple-net-modules.html#cb131-49"></a>    loss.backward()</span>
-<span id="cb131-50"><a href="simple-net-modules.html#cb131-50"></a> </span>
-<span id="cb131-51"><a href="simple-net-modules.html#cb131-51"></a>    <span class="co">### -------- Update weights -------- </span></span>
-<span id="cb131-52"><a href="simple-net-modules.html#cb131-52"></a>    </span>
-<span id="cb131-53"><a href="simple-net-modules.html#cb131-53"></a>    <span class="co"># Wrap in torch.no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
-<span id="cb131-54"><a href="simple-net-modules.html#cb131-54"></a>    <span class="co"># Update each parameter by its `grad`</span></span>
-<span id="cb131-55"><a href="simple-net-modules.html#cb131-55"></a>    <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb131-56"><a href="simple-net-modules.html#cb131-56"></a>        <span class="cf">for</span> param <span class="kw">in</span> model.parameters():</span>
-<span id="cb131-57"><a href="simple-net-modules.html#cb131-57"></a>            param <span class="op">-=</span> learning_rate <span class="op">*</span> param.grad</span></code></pre></div>
+<div class="sourceCode" id="cb145"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb145-1"><a href="simple-net-modules.html#cb145-1"></a><span class="im">import</span> torch</span>
+<span id="cb145-2"><a href="simple-net-modules.html#cb145-2"></a></span>
+<span id="cb145-3"><a href="simple-net-modules.html#cb145-3"></a><span class="co">### generate training data -----------------------------------------------------</span></span>
+<span id="cb145-4"><a href="simple-net-modules.html#cb145-4"></a></span>
+<span id="cb145-5"><a href="simple-net-modules.html#cb145-5"></a><span class="co"># input dimensionality (number of input features)</span></span>
+<span id="cb145-6"><a href="simple-net-modules.html#cb145-6"></a>d_in <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb145-7"><a href="simple-net-modules.html#cb145-7"></a><span class="co"># output dimensionality (number of predicted features)</span></span>
+<span id="cb145-8"><a href="simple-net-modules.html#cb145-8"></a>d_out <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb145-9"><a href="simple-net-modules.html#cb145-9"></a><span class="co"># number of observations in training set</span></span>
+<span id="cb145-10"><a href="simple-net-modules.html#cb145-10"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb145-11"><a href="simple-net-modules.html#cb145-11"></a></span>
+<span id="cb145-12"><a href="simple-net-modules.html#cb145-12"></a><span class="co"># create random data</span></span>
+<span id="cb145-13"><a href="simple-net-modules.html#cb145-13"></a>x <span class="op">=</span> torch.randn(n, d_in) </span>
+<span id="cb145-14"><a href="simple-net-modules.html#cb145-14"></a>y <span class="op">=</span> x[ : , <span class="dv">0</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.2</span> <span class="op">-</span> x[ : , <span class="dv">1</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">1.3</span> <span class="op">-</span> x[ : , <span class="dv">2</span>, <span class="va">None</span>] <span class="op">*</span> <span class="fl">0.5</span> <span class="op">+</span> torch.randn(n, <span class="dv">1</span>)</span>
+<span id="cb145-15"><a href="simple-net-modules.html#cb145-15"></a></span>
+<span id="cb145-16"><a href="simple-net-modules.html#cb145-16"></a><span class="co">### define the network ---------------------------------------------------------</span></span>
+<span id="cb145-17"><a href="simple-net-modules.html#cb145-17"></a></span>
+<span id="cb145-18"><a href="simple-net-modules.html#cb145-18"></a><span class="co"># dimensionality of hidden layer</span></span>
+<span id="cb145-19"><a href="simple-net-modules.html#cb145-19"></a>d_hidden <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb145-20"><a href="simple-net-modules.html#cb145-20"></a></span>
+<span id="cb145-21"><a href="simple-net-modules.html#cb145-21"></a>model <span class="op">=</span> torch.nn.Sequential(</span>
+<span id="cb145-22"><a href="simple-net-modules.html#cb145-22"></a>    torch.nn.Linear(d_in, d_hidden),</span>
+<span id="cb145-23"><a href="simple-net-modules.html#cb145-23"></a>    torch.nn.ReLU(),</span>
+<span id="cb145-24"><a href="simple-net-modules.html#cb145-24"></a>    torch.nn.Linear(d_hidden, d_out),</span>
+<span id="cb145-25"><a href="simple-net-modules.html#cb145-25"></a>)</span>
+<span id="cb145-26"><a href="simple-net-modules.html#cb145-26"></a></span>
+<span id="cb145-27"><a href="simple-net-modules.html#cb145-27"></a>mse_loss <span class="op">=</span> torch.nn.MSELoss(reduction<span class="op">=</span><span class="st">&#39;sum&#39;</span>)</span>
+<span id="cb145-28"><a href="simple-net-modules.html#cb145-28"></a></span>
+<span id="cb145-29"><a href="simple-net-modules.html#cb145-29"></a></span>
+<span id="cb145-30"><a href="simple-net-modules.html#cb145-30"></a><span class="co">### training loop --------------------------------------------------------------</span></span>
+<span id="cb145-31"><a href="simple-net-modules.html#cb145-31"></a>learning_rate <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span id="cb145-32"><a href="simple-net-modules.html#cb145-32"></a></span>
+<span id="cb145-33"><a href="simple-net-modules.html#cb145-33"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">200</span>):</span>
+<span id="cb145-34"><a href="simple-net-modules.html#cb145-34"></a>    </span>
+<span id="cb145-35"><a href="simple-net-modules.html#cb145-35"></a>    <span class="co">### -------- Forward pass -------- </span></span>
+<span id="cb145-36"><a href="simple-net-modules.html#cb145-36"></a></span>
+<span id="cb145-37"><a href="simple-net-modules.html#cb145-37"></a>    y_pred <span class="op">=</span> model(x)</span>
+<span id="cb145-38"><a href="simple-net-modules.html#cb145-38"></a></span>
+<span id="cb145-39"><a href="simple-net-modules.html#cb145-39"></a>    <span class="co">### -------- compute loss -------- </span></span>
+<span id="cb145-40"><a href="simple-net-modules.html#cb145-40"></a>    loss <span class="op">=</span> mse_loss(y_pred, y)</span>
+<span id="cb145-41"><a href="simple-net-modules.html#cb145-41"></a>    <span class="cf">if</span> t <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">0</span>: <span class="bu">print</span>(t, loss.item())</span>
+<span id="cb145-42"><a href="simple-net-modules.html#cb145-42"></a></span>
+<span id="cb145-43"><a href="simple-net-modules.html#cb145-43"></a>    <span class="co">### -------- Backpropagation -------- </span></span>
+<span id="cb145-44"><a href="simple-net-modules.html#cb145-44"></a></span>
+<span id="cb145-45"><a href="simple-net-modules.html#cb145-45"></a>    <span class="co"># Zero the gradients before running the backward pass.</span></span>
+<span id="cb145-46"><a href="simple-net-modules.html#cb145-46"></a>    model.zero_grad()</span>
+<span id="cb145-47"><a href="simple-net-modules.html#cb145-47"></a>    </span>
+<span id="cb145-48"><a href="simple-net-modules.html#cb145-48"></a>    <span class="co"># compute gradient of the loss w.r.t. all learnable parameters of the model</span></span>
+<span id="cb145-49"><a href="simple-net-modules.html#cb145-49"></a>    loss.backward()</span>
+<span id="cb145-50"><a href="simple-net-modules.html#cb145-50"></a> </span>
+<span id="cb145-51"><a href="simple-net-modules.html#cb145-51"></a>    <span class="co">### -------- Update weights -------- </span></span>
+<span id="cb145-52"><a href="simple-net-modules.html#cb145-52"></a>    </span>
+<span id="cb145-53"><a href="simple-net-modules.html#cb145-53"></a>    <span class="co"># Wrap in torch.no_grad() because this is a part we DON&#39;T want to record for automatic gradient computation</span></span>
+<span id="cb145-54"><a href="simple-net-modules.html#cb145-54"></a>    <span class="co"># Update each parameter by its `grad`</span></span>
+<span id="cb145-55"><a href="simple-net-modules.html#cb145-55"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb145-56"><a href="simple-net-modules.html#cb145-56"></a>        <span class="cf">for</span> param <span class="kw">in</span> model.parameters():</span>
+<span id="cb145-57"><a href="simple-net-modules.html#cb145-57"></a>            param <span class="op">-=</span> learning_rate <span class="op">*</span> param.grad</span></code></pre></div>
 
 </div>
 </div>

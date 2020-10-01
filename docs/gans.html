@@ -153,7 +153,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
 <li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
 </ul></li>
-<li class="chapter" data-level="2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>2.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
 <ul>
@@ -171,9 +170,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
 <ul>
-<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with autograd</a></li>
-<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using autograd</a></li>
-<li class="chapter" data-level="4.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>4.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with <em>autograd</em></a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using <em>autograd</em></a></li>
+<li class="chapter" data-level="4.3" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#outlook"><i class="fa fa-check"></i><b>4.3</b> Outlook</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
 <ul>
@@ -183,13 +182,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
-<li class="chapter" data-level="5.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="5.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
 <ul>
 <li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
 <li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>optim</code></a></li>
-<li class="chapter" data-level="6.3" data-path="simple-net-R.html"><a href="simple-net-R.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="part"><span><b>II Image Recognition</b></span></li>
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
@@ -309,27 +308,27 @@ and/or parameters may make an important difference.</p>
 drop-ins. Kuzushiji-MNIST contains 70,000 grayscale images, of size 28x28 px just like MNIST, and also like MNIST, divided
 into 10 classes.</p>
 <p>We can use <code>torch</code> for loading it. With an unsupervised learning task such as this one, we only need the training set:</p>
-<div class="sourceCode" id="cb237"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb237-1"><a href="gans.html#cb237-1"></a><span class="kw">library</span>(torch)</span>
-<span id="cb237-2"><a href="gans.html#cb237-2"></a></span>
-<span id="cb237-3"><a href="gans.html#cb237-3"></a>batch_size &lt;-<span class="st"> </span><span class="dv">128</span></span>
-<span id="cb237-4"><a href="gans.html#cb237-4"></a></span>
-<span id="cb237-5"><a href="gans.html#cb237-5"></a>kmnist &lt;-<span class="st"> </span><span class="kw">kmnist_dataset</span>(</span>
-<span id="cb237-6"><a href="gans.html#cb237-6"></a>    dir,</span>
-<span id="cb237-7"><a href="gans.html#cb237-7"></a>    <span class="dt">download =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb237-8"><a href="gans.html#cb237-8"></a>    <span class="dt">transform =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb237-9"><a href="gans.html#cb237-9"></a>        x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">to</span>(<span class="dt">dtype =</span> <span class="kw">torch_float</span>())<span class="op">/</span><span class="dv">256</span></span>
-<span id="cb237-10"><a href="gans.html#cb237-10"></a>        x[newaxis,..]</span>
-<span id="cb237-11"><a href="gans.html#cb237-11"></a>    }</span>
-<span id="cb237-12"><a href="gans.html#cb237-12"></a>)</span>
-<span id="cb237-13"><a href="gans.html#cb237-13"></a>dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(kmnist, <span class="dt">batch_size =</span> batch_size, <span class="dt">shuffle =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb251"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb251-1"><a href="gans.html#cb251-1"></a><span class="kw">library</span>(torch)</span>
+<span id="cb251-2"><a href="gans.html#cb251-2"></a></span>
+<span id="cb251-3"><a href="gans.html#cb251-3"></a>batch_size &lt;-<span class="st"> </span><span class="dv">128</span></span>
+<span id="cb251-4"><a href="gans.html#cb251-4"></a></span>
+<span id="cb251-5"><a href="gans.html#cb251-5"></a>kmnist &lt;-<span class="st"> </span><span class="kw">kmnist_dataset</span>(</span>
+<span id="cb251-6"><a href="gans.html#cb251-6"></a>    dir,</span>
+<span id="cb251-7"><a href="gans.html#cb251-7"></a>    <span class="dt">download =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb251-8"><a href="gans.html#cb251-8"></a>    <span class="dt">transform =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb251-9"><a href="gans.html#cb251-9"></a>        x &lt;-<span class="st"> </span>x<span class="op">$</span><span class="kw">to</span>(<span class="dt">dtype =</span> <span class="kw">torch_float</span>())<span class="op">/</span><span class="dv">256</span></span>
+<span id="cb251-10"><a href="gans.html#cb251-10"></a>        x[newaxis,..]</span>
+<span id="cb251-11"><a href="gans.html#cb251-11"></a>    }</span>
+<span id="cb251-12"><a href="gans.html#cb251-12"></a>)</span>
+<span id="cb251-13"><a href="gans.html#cb251-13"></a>dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(kmnist, <span class="dt">batch_size =</span> batch_size, <span class="dt">shuffle =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 <p>Let’s view a few of those. Here are the initial 16 images, taken from the very first batch:</p>
-<div class="sourceCode" id="cb238"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb238-1"><a href="gans.html#cb238-1"></a>images &lt;-<span class="st"> </span>dl<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.next</span>()[[<span class="dv">1</span>]][<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>, <span class="dv">1</span>, , ] </span>
-<span id="cb238-2"><a href="gans.html#cb238-2"></a>images &lt;-<span class="st"> </span><span class="kw">normalize</span>(images) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_array</span>()</span>
-<span id="cb238-3"><a href="gans.html#cb238-3"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb238-4"><a href="gans.html#cb238-4"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb238-5"><a href="gans.html#cb238-5"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster) <span class="op">%&gt;%</span></span>
-<span id="cb238-6"><a href="gans.html#cb238-6"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
-<div class="sourceCode" id="cb239"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb239-1"><a href="gans.html#cb239-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_real.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb252"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb252-1"><a href="gans.html#cb252-1"></a>images &lt;-<span class="st"> </span>dl<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.next</span>()[[<span class="dv">1</span>]][<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>, <span class="dv">1</span>, , ] </span>
+<span id="cb252-2"><a href="gans.html#cb252-2"></a>images &lt;-<span class="st"> </span><span class="kw">normalize</span>(images) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_array</span>()</span>
+<span id="cb252-3"><a href="gans.html#cb252-3"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb252-4"><a href="gans.html#cb252-4"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb252-5"><a href="gans.html#cb252-5"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster) <span class="op">%&gt;%</span></span>
+<span id="cb252-6"><a href="gans.html#cb252-6"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb253"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb253-1"><a href="gans.html#cb253-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_real.png&quot;</span>)</span></code></pre></div>
 </div>
 <div id="model" class="section level2" number="11.2">
 <h2><span class="header-section-number">11.2</span> Model</h2>
@@ -345,99 +344,99 @@ action is repeated application of <em>transposed convolutions</em> that upsample
 resolution of <code>28x28</code>.</p>
 <p>Following the DCGAN paper, the generator’s <code>nn_conv_transpose2d</code> and <code>nn_batch_norm2d</code> layers are initialized according to a
 normal distribution with mean 0 and standard deviation 0.02.</p>
-<div class="sourceCode" id="cb240"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb240-1"><a href="gans.html#cb240-1"></a>device &lt;-<span class="st"> </span><span class="cf">if</span> (<span class="kw">cuda_is_available</span>()) <span class="kw">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span>
-<span id="cb240-2"><a href="gans.html#cb240-2"></a></span>
-<span id="cb240-3"><a href="gans.html#cb240-3"></a>latent_input_size &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb240-4"><a href="gans.html#cb240-4"></a>image_size &lt;-<span class="st"> </span><span class="dv">28</span></span>
-<span id="cb240-5"><a href="gans.html#cb240-5"></a></span>
-<span id="cb240-6"><a href="gans.html#cb240-6"></a>generator &lt;-<span class="st"> </span><span class="kw">nn_module</span>(</span>
-<span id="cb240-7"><a href="gans.html#cb240-7"></a>    <span class="st">&quot;generator&quot;</span>,</span>
-<span id="cb240-8"><a href="gans.html#cb240-8"></a>    <span class="dt">initialize =</span> <span class="cf">function</span>() {</span>
-<span id="cb240-9"><a href="gans.html#cb240-9"></a>        self<span class="op">$</span>main =<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
-<span id="cb240-10"><a href="gans.html#cb240-10"></a>            <span class="co"># nn_conv_transpose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=TRUE, dilation=1, padding_mode=&#39;zeros&#39;)</span></span>
-<span id="cb240-11"><a href="gans.html#cb240-11"></a>            <span class="co"># h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1</span></span>
-<span id="cb240-12"><a href="gans.html#cb240-12"></a>            <span class="co"># (1 - 1) * 1 - 2 * 0 + 1 * (4 -1 ) + 0 + 1</span></span>
-<span id="cb240-13"><a href="gans.html#cb240-13"></a>            <span class="co"># 4 x 4</span></span>
-<span id="cb240-14"><a href="gans.html#cb240-14"></a>            <span class="kw">nn_conv_transpose2d</span>(latent_input_size, image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb240-15"><a href="gans.html#cb240-15"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>),</span>
-<span id="cb240-16"><a href="gans.html#cb240-16"></a>            <span class="kw">nn_relu</span>(),</span>
-<span id="cb240-17"><a href="gans.html#cb240-17"></a>            <span class="co"># 8 * 8</span></span>
-<span id="cb240-18"><a href="gans.html#cb240-18"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb240-19"><a href="gans.html#cb240-19"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>),</span>
-<span id="cb240-20"><a href="gans.html#cb240-20"></a>            <span class="kw">nn_relu</span>(),</span>
-<span id="cb240-21"><a href="gans.html#cb240-21"></a>            <span class="co"># 16 x 16</span></span>
-<span id="cb240-22"><a href="gans.html#cb240-22"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, image_size, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb240-23"><a href="gans.html#cb240-23"></a>            <span class="kw">nn_batch_norm2d</span>(image_size),</span>
-<span id="cb240-24"><a href="gans.html#cb240-24"></a>            <span class="kw">nn_relu</span>(),</span>
-<span id="cb240-25"><a href="gans.html#cb240-25"></a>            <span class="co"># 28 x 28</span></span>
-<span id="cb240-26"><a href="gans.html#cb240-26"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb240-27"><a href="gans.html#cb240-27"></a>            <span class="kw">nn_tanh</span>()</span>
-<span id="cb240-28"><a href="gans.html#cb240-28"></a>        )</span>
-<span id="cb240-29"><a href="gans.html#cb240-29"></a>    },</span>
-<span id="cb240-30"><a href="gans.html#cb240-30"></a>    <span class="dt">forward =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb240-31"><a href="gans.html#cb240-31"></a>        self<span class="op">$</span><span class="kw">main</span>(x)</span>
-<span id="cb240-32"><a href="gans.html#cb240-32"></a>    }</span>
-<span id="cb240-33"><a href="gans.html#cb240-33"></a>)</span>
-<span id="cb240-34"><a href="gans.html#cb240-34"></a></span>
-<span id="cb240-35"><a href="gans.html#cb240-35"></a>gen &lt;-<span class="st"> </span><span class="kw">generator</span>()</span>
-<span id="cb240-36"><a href="gans.html#cb240-36"></a></span>
-<span id="cb240-37"><a href="gans.html#cb240-37"></a>init_weights &lt;-<span class="st"> </span><span class="cf">function</span>(m) {</span>
-<span id="cb240-38"><a href="gans.html#cb240-38"></a>    <span class="cf">if</span> (<span class="kw">grepl</span>(<span class="st">&quot;conv&quot;</span>, m<span class="op">$</span>.classes[[<span class="dv">1</span>]])) {</span>
-<span id="cb240-39"><a href="gans.html#cb240-39"></a>        <span class="kw">nn_init_normal_</span>(m<span class="op">$</span>weight<span class="op">$</span><span class="kw">data</span>(), <span class="fl">0.0</span>, <span class="fl">0.02</span>)</span>
-<span id="cb240-40"><a href="gans.html#cb240-40"></a>    } <span class="cf">else</span> <span class="cf">if</span> (<span class="kw">grepl</span>(<span class="st">&quot;batch_norm&quot;</span>, m<span class="op">$</span>.classes[[<span class="dv">1</span>]])) {</span>
-<span id="cb240-41"><a href="gans.html#cb240-41"></a>        <span class="kw">nn_init_normal_</span>(m<span class="op">$</span>weight<span class="op">$</span><span class="kw">data</span>(), <span class="fl">1.0</span>, <span class="fl">0.02</span>)</span>
-<span id="cb240-42"><a href="gans.html#cb240-42"></a>        <span class="kw">nn_init_constant_</span>(m<span class="op">$</span>bias<span class="op">$</span><span class="kw">data</span>(), <span class="dv">0</span>)</span>
-<span id="cb240-43"><a href="gans.html#cb240-43"></a>    }</span>
-<span id="cb240-44"><a href="gans.html#cb240-44"></a>}</span>
-<span id="cb240-45"><a href="gans.html#cb240-45"></a></span>
-<span id="cb240-46"><a href="gans.html#cb240-46"></a>gen[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">apply</span>(init_weights)</span>
-<span id="cb240-47"><a href="gans.html#cb240-47"></a></span>
-<span id="cb240-48"><a href="gans.html#cb240-48"></a>disc<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
+<div class="sourceCode" id="cb254"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb254-1"><a href="gans.html#cb254-1"></a>device &lt;-<span class="st"> </span><span class="cf">if</span> (<span class="kw">cuda_is_available</span>()) <span class="kw">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb254-2"><a href="gans.html#cb254-2"></a></span>
+<span id="cb254-3"><a href="gans.html#cb254-3"></a>latent_input_size &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb254-4"><a href="gans.html#cb254-4"></a>image_size &lt;-<span class="st"> </span><span class="dv">28</span></span>
+<span id="cb254-5"><a href="gans.html#cb254-5"></a></span>
+<span id="cb254-6"><a href="gans.html#cb254-6"></a>generator &lt;-<span class="st"> </span><span class="kw">nn_module</span>(</span>
+<span id="cb254-7"><a href="gans.html#cb254-7"></a>    <span class="st">&quot;generator&quot;</span>,</span>
+<span id="cb254-8"><a href="gans.html#cb254-8"></a>    <span class="dt">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb254-9"><a href="gans.html#cb254-9"></a>        self<span class="op">$</span>main =<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
+<span id="cb254-10"><a href="gans.html#cb254-10"></a>            <span class="co"># nn_conv_transpose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=TRUE, dilation=1, padding_mode=&#39;zeros&#39;)</span></span>
+<span id="cb254-11"><a href="gans.html#cb254-11"></a>            <span class="co"># h_out = (h_in - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1</span></span>
+<span id="cb254-12"><a href="gans.html#cb254-12"></a>            <span class="co"># (1 - 1) * 1 - 2 * 0 + 1 * (4 -1 ) + 0 + 1</span></span>
+<span id="cb254-13"><a href="gans.html#cb254-13"></a>            <span class="co"># 4 x 4</span></span>
+<span id="cb254-14"><a href="gans.html#cb254-14"></a>            <span class="kw">nn_conv_transpose2d</span>(latent_input_size, image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb254-15"><a href="gans.html#cb254-15"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>),</span>
+<span id="cb254-16"><a href="gans.html#cb254-16"></a>            <span class="kw">nn_relu</span>(),</span>
+<span id="cb254-17"><a href="gans.html#cb254-17"></a>            <span class="co"># 8 * 8</span></span>
+<span id="cb254-18"><a href="gans.html#cb254-18"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb254-19"><a href="gans.html#cb254-19"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>),</span>
+<span id="cb254-20"><a href="gans.html#cb254-20"></a>            <span class="kw">nn_relu</span>(),</span>
+<span id="cb254-21"><a href="gans.html#cb254-21"></a>            <span class="co"># 16 x 16</span></span>
+<span id="cb254-22"><a href="gans.html#cb254-22"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, image_size, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb254-23"><a href="gans.html#cb254-23"></a>            <span class="kw">nn_batch_norm2d</span>(image_size),</span>
+<span id="cb254-24"><a href="gans.html#cb254-24"></a>            <span class="kw">nn_relu</span>(),</span>
+<span id="cb254-25"><a href="gans.html#cb254-25"></a>            <span class="co"># 28 x 28</span></span>
+<span id="cb254-26"><a href="gans.html#cb254-26"></a>            <span class="kw">nn_conv_transpose2d</span>(image_size, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb254-27"><a href="gans.html#cb254-27"></a>            <span class="kw">nn_tanh</span>()</span>
+<span id="cb254-28"><a href="gans.html#cb254-28"></a>        )</span>
+<span id="cb254-29"><a href="gans.html#cb254-29"></a>    },</span>
+<span id="cb254-30"><a href="gans.html#cb254-30"></a>    <span class="dt">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb254-31"><a href="gans.html#cb254-31"></a>        self<span class="op">$</span><span class="kw">main</span>(x)</span>
+<span id="cb254-32"><a href="gans.html#cb254-32"></a>    }</span>
+<span id="cb254-33"><a href="gans.html#cb254-33"></a>)</span>
+<span id="cb254-34"><a href="gans.html#cb254-34"></a></span>
+<span id="cb254-35"><a href="gans.html#cb254-35"></a>gen &lt;-<span class="st"> </span><span class="kw">generator</span>()</span>
+<span id="cb254-36"><a href="gans.html#cb254-36"></a></span>
+<span id="cb254-37"><a href="gans.html#cb254-37"></a>init_weights &lt;-<span class="st"> </span><span class="cf">function</span>(m) {</span>
+<span id="cb254-38"><a href="gans.html#cb254-38"></a>    <span class="cf">if</span> (<span class="kw">grepl</span>(<span class="st">&quot;conv&quot;</span>, m<span class="op">$</span>.classes[[<span class="dv">1</span>]])) {</span>
+<span id="cb254-39"><a href="gans.html#cb254-39"></a>        <span class="kw">nn_init_normal_</span>(m<span class="op">$</span>weight<span class="op">$</span><span class="kw">data</span>(), <span class="fl">0.0</span>, <span class="fl">0.02</span>)</span>
+<span id="cb254-40"><a href="gans.html#cb254-40"></a>    } <span class="cf">else</span> <span class="cf">if</span> (<span class="kw">grepl</span>(<span class="st">&quot;batch_norm&quot;</span>, m<span class="op">$</span>.classes[[<span class="dv">1</span>]])) {</span>
+<span id="cb254-41"><a href="gans.html#cb254-41"></a>        <span class="kw">nn_init_normal_</span>(m<span class="op">$</span>weight<span class="op">$</span><span class="kw">data</span>(), <span class="fl">1.0</span>, <span class="fl">0.02</span>)</span>
+<span id="cb254-42"><a href="gans.html#cb254-42"></a>        <span class="kw">nn_init_constant_</span>(m<span class="op">$</span>bias<span class="op">$</span><span class="kw">data</span>(), <span class="dv">0</span>)</span>
+<span id="cb254-43"><a href="gans.html#cb254-43"></a>    }</span>
+<span id="cb254-44"><a href="gans.html#cb254-44"></a>}</span>
+<span id="cb254-45"><a href="gans.html#cb254-45"></a></span>
+<span id="cb254-46"><a href="gans.html#cb254-46"></a>gen[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">apply</span>(init_weights)</span>
+<span id="cb254-47"><a href="gans.html#cb254-47"></a></span>
+<span id="cb254-48"><a href="gans.html#cb254-48"></a>disc<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
 </div>
 <div id="discriminator" class="section level3" number="11.2.2">
 <h3><span class="header-section-number">11.2.2</span> Discriminator</h3>
 <p>The discriminator is a pretty conventional convnet. Its layers’ weights are initialized in the same way as the generator’s.</p>
-<div class="sourceCode" id="cb241"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb241-1"><a href="gans.html#cb241-1"></a>discriminator &lt;-<span class="st"> </span><span class="kw">nn_module</span>(</span>
-<span id="cb241-2"><a href="gans.html#cb241-2"></a>    <span class="st">&quot;discriminator&quot;</span>,</span>
-<span id="cb241-3"><a href="gans.html#cb241-3"></a>    <span class="dt">initialize =</span> <span class="cf">function</span>() {</span>
-<span id="cb241-4"><a href="gans.html#cb241-4"></a>        self<span class="op">$</span>main =<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
-<span id="cb241-5"><a href="gans.html#cb241-5"></a>            <span class="co"># 14 x 14</span></span>
-<span id="cb241-6"><a href="gans.html#cb241-6"></a>            <span class="kw">nn_conv2d</span>(<span class="dv">1</span>, image_size, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb241-7"><a href="gans.html#cb241-7"></a>            <span class="kw">nn_leaky_relu</span>(<span class="fl">0.2</span>, <span class="dt">inplace =</span> <span class="ot">TRUE</span>),</span>
-<span id="cb241-8"><a href="gans.html#cb241-8"></a>            <span class="co"># 7 x 7</span></span>
-<span id="cb241-9"><a href="gans.html#cb241-9"></a>            <span class="kw">nn_conv2d</span>(image_size, image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>,  <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb241-10"><a href="gans.html#cb241-10"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>),</span>
-<span id="cb241-11"><a href="gans.html#cb241-11"></a>            <span class="kw">nn_leaky_relu</span>(<span class="fl">0.2</span>, <span class="dt">inplace =</span> <span class="ot">TRUE</span>),</span>
-<span id="cb241-12"><a href="gans.html#cb241-12"></a>            <span class="co"># 3 x 3</span></span>
-<span id="cb241-13"><a href="gans.html#cb241-13"></a>            <span class="kw">nn_conv2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>,  <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb241-14"><a href="gans.html#cb241-14"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>),</span>
-<span id="cb241-15"><a href="gans.html#cb241-15"></a>            <span class="kw">nn_leaky_relu</span>(<span class="fl">0.2</span>, <span class="dt">inplace =</span> <span class="ot">TRUE</span>),</span>
-<span id="cb241-16"><a href="gans.html#cb241-16"></a>            <span class="co"># 1 x 1</span></span>
-<span id="cb241-17"><a href="gans.html#cb241-17"></a>            <span class="kw">nn_conv2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>,  <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
-<span id="cb241-18"><a href="gans.html#cb241-18"></a>            <span class="kw">nn_sigmoid</span>()</span>
-<span id="cb241-19"><a href="gans.html#cb241-19"></a>        )</span>
-<span id="cb241-20"><a href="gans.html#cb241-20"></a>    },</span>
-<span id="cb241-21"><a href="gans.html#cb241-21"></a>    <span class="dt">forward =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb241-22"><a href="gans.html#cb241-22"></a>        self<span class="op">$</span><span class="kw">main</span>(x)</span>
-<span id="cb241-23"><a href="gans.html#cb241-23"></a>    }</span>
-<span id="cb241-24"><a href="gans.html#cb241-24"></a>)</span>
-<span id="cb241-25"><a href="gans.html#cb241-25"></a></span>
-<span id="cb241-26"><a href="gans.html#cb241-26"></a>disc &lt;-<span class="st"> </span><span class="kw">discriminator</span>()</span>
-<span id="cb241-27"><a href="gans.html#cb241-27"></a></span>
-<span id="cb241-28"><a href="gans.html#cb241-28"></a>disc[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">apply</span>(init_weights)</span>
-<span id="cb241-29"><a href="gans.html#cb241-29"></a></span>
-<span id="cb241-30"><a href="gans.html#cb241-30"></a>disc<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
+<div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb255-1"><a href="gans.html#cb255-1"></a>discriminator &lt;-<span class="st"> </span><span class="kw">nn_module</span>(</span>
+<span id="cb255-2"><a href="gans.html#cb255-2"></a>    <span class="st">&quot;discriminator&quot;</span>,</span>
+<span id="cb255-3"><a href="gans.html#cb255-3"></a>    <span class="dt">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb255-4"><a href="gans.html#cb255-4"></a>        self<span class="op">$</span>main =<span class="st"> </span><span class="kw">nn_sequential</span>(</span>
+<span id="cb255-5"><a href="gans.html#cb255-5"></a>            <span class="co"># 14 x 14</span></span>
+<span id="cb255-6"><a href="gans.html#cb255-6"></a>            <span class="kw">nn_conv2d</span>(<span class="dv">1</span>, image_size, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb255-7"><a href="gans.html#cb255-7"></a>            <span class="kw">nn_leaky_relu</span>(<span class="fl">0.2</span>, <span class="dt">inplace =</span> <span class="ot">TRUE</span>),</span>
+<span id="cb255-8"><a href="gans.html#cb255-8"></a>            <span class="co"># 7 x 7</span></span>
+<span id="cb255-9"><a href="gans.html#cb255-9"></a>            <span class="kw">nn_conv2d</span>(image_size, image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>,  <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb255-10"><a href="gans.html#cb255-10"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>),</span>
+<span id="cb255-11"><a href="gans.html#cb255-11"></a>            <span class="kw">nn_leaky_relu</span>(<span class="fl">0.2</span>, <span class="dt">inplace =</span> <span class="ot">TRUE</span>),</span>
+<span id="cb255-12"><a href="gans.html#cb255-12"></a>            <span class="co"># 3 x 3</span></span>
+<span id="cb255-13"><a href="gans.html#cb255-13"></a>            <span class="kw">nn_conv2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>,  <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb255-14"><a href="gans.html#cb255-14"></a>            <span class="kw">nn_batch_norm2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>),</span>
+<span id="cb255-15"><a href="gans.html#cb255-15"></a>            <span class="kw">nn_leaky_relu</span>(<span class="fl">0.2</span>, <span class="dt">inplace =</span> <span class="ot">TRUE</span>),</span>
+<span id="cb255-16"><a href="gans.html#cb255-16"></a>            <span class="co"># 1 x 1</span></span>
+<span id="cb255-17"><a href="gans.html#cb255-17"></a>            <span class="kw">nn_conv2d</span>(image_size <span class="op">*</span><span class="st"> </span><span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>,  <span class="dt">bias =</span> <span class="ot">FALSE</span>),</span>
+<span id="cb255-18"><a href="gans.html#cb255-18"></a>            <span class="kw">nn_sigmoid</span>()</span>
+<span id="cb255-19"><a href="gans.html#cb255-19"></a>        )</span>
+<span id="cb255-20"><a href="gans.html#cb255-20"></a>    },</span>
+<span id="cb255-21"><a href="gans.html#cb255-21"></a>    <span class="dt">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb255-22"><a href="gans.html#cb255-22"></a>        self<span class="op">$</span><span class="kw">main</span>(x)</span>
+<span id="cb255-23"><a href="gans.html#cb255-23"></a>    }</span>
+<span id="cb255-24"><a href="gans.html#cb255-24"></a>)</span>
+<span id="cb255-25"><a href="gans.html#cb255-25"></a></span>
+<span id="cb255-26"><a href="gans.html#cb255-26"></a>disc &lt;-<span class="st"> </span><span class="kw">discriminator</span>()</span>
+<span id="cb255-27"><a href="gans.html#cb255-27"></a></span>
+<span id="cb255-28"><a href="gans.html#cb255-28"></a>disc[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">apply</span>(init_weights)</span>
+<span id="cb255-29"><a href="gans.html#cb255-29"></a></span>
+<span id="cb255-30"><a href="gans.html#cb255-30"></a>disc<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
 </div>
 <div id="optimizers-and-loss-function" class="section level3" number="11.2.3">
 <h3><span class="header-section-number">11.2.3</span> Optimizers and loss function</h3>
 <p>While generator and discriminator each need to account for their own losses, mathematically both use the same calculation,
 namely, binary crossentropy:</p>
-<div class="sourceCode" id="cb242"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb242-1"><a href="gans.html#cb242-1"></a>criterion &lt;-<span class="st"> </span><span class="kw">nn_bce_loss</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb256"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb256-1"><a href="gans.html#cb256-1"></a>criterion &lt;-<span class="st"> </span><span class="kw">nn_bce_loss</span>()</span></code></pre></div>
 <p>They each have their own optimizer:</p>
-<div class="sourceCode" id="cb243"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb243-1"><a href="gans.html#cb243-1"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">0.0002</span></span>
-<span id="cb243-2"><a href="gans.html#cb243-2"></a></span>
-<span id="cb243-3"><a href="gans.html#cb243-3"></a>disc_optimizer &lt;-<span class="st"> </span><span class="kw">optim_adam</span>(disc<span class="op">$</span>parameters, <span class="dt">lr =</span> learning_rate, <span class="dt">betas =</span> <span class="kw">c</span>(<span class="fl">0.5</span>, <span class="fl">0.999</span>))</span>
-<span id="cb243-4"><a href="gans.html#cb243-4"></a>gen_optimizer &lt;-<span class="st"> </span><span class="kw">optim_adam</span>(gen<span class="op">$</span>parameters, <span class="dt">lr =</span> learning_rate, <span class="dt">betas =</span> <span class="kw">c</span>(<span class="fl">0.5</span>, <span class="fl">0.999</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb257"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb257-1"><a href="gans.html#cb257-1"></a>learning_rate &lt;-<span class="st"> </span><span class="fl">0.0002</span></span>
+<span id="cb257-2"><a href="gans.html#cb257-2"></a></span>
+<span id="cb257-3"><a href="gans.html#cb257-3"></a>disc_optimizer &lt;-<span class="st"> </span><span class="kw">optim_adam</span>(disc<span class="op">$</span>parameters, <span class="dt">lr =</span> learning_rate, <span class="dt">betas =</span> <span class="kw">c</span>(<span class="fl">0.5</span>, <span class="fl">0.999</span>))</span>
+<span id="cb257-4"><a href="gans.html#cb257-4"></a>gen_optimizer &lt;-<span class="st"> </span><span class="kw">optim_adam</span>(gen<span class="op">$</span>parameters, <span class="dt">lr =</span> learning_rate, <span class="dt">betas =</span> <span class="kw">c</span>(<span class="fl">0.5</span>, <span class="fl">0.999</span>))</span></code></pre></div>
 </div>
 </div>
 <div id="training-loop" class="section level2" number="11.3">
@@ -452,97 +451,97 @@ for both computations, the discriminator’s weights are updated.</p>
 <p>Then it’s the generator’s turn – although in an indirect way. We pass the newly generated fakes to the <em>discriminator</em> again;
 only this time, the desired verdict is “no fake”, so the labels are set to “real”. The binary cross entropy loss then reflects
 the <em>generator’s</em> performance, not that of the discriminator.</p>
-<div class="sourceCode" id="cb244"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb244-1"><a href="gans.html#cb244-1"></a>fixed_noise &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(<span class="kw">c</span>(<span class="dv">64</span>, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">device =</span> device)</span>
-<span id="cb244-2"><a href="gans.html#cb244-2"></a>num_epochs &lt;-<span class="st"> </span><span class="dv">5</span></span>
-<span id="cb244-3"><a href="gans.html#cb244-3"></a></span>
-<span id="cb244-4"><a href="gans.html#cb244-4"></a>img_list &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">mode =</span> <span class="st">&quot;list&quot;</span>, <span class="dt">length =</span> num_epochs <span class="op">*</span><span class="st"> </span><span class="kw">trunc</span>(dl<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.length</span>()<span class="op">/</span><span class="dv">50</span>))</span>
-<span id="cb244-5"><a href="gans.html#cb244-5"></a>gen_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb244-6"><a href="gans.html#cb244-6"></a>disc_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb244-7"><a href="gans.html#cb244-7"></a></span>
-<span id="cb244-8"><a href="gans.html#cb244-8"></a>img_num &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb244-9"><a href="gans.html#cb244-9"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>num_epochs) {</span>
-<span id="cb244-10"><a href="gans.html#cb244-10"></a></span>
-<span id="cb244-11"><a href="gans.html#cb244-11"></a>    batchnum &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb244-12"><a href="gans.html#cb244-12"></a>    <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(dl)) {</span>
-<span id="cb244-13"><a href="gans.html#cb244-13"></a></span>
-<span id="cb244-14"><a href="gans.html#cb244-14"></a>        batchnum &lt;-<span class="st"> </span>batchnum <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb244-15"><a href="gans.html#cb244-15"></a></span>
-<span id="cb244-16"><a href="gans.html#cb244-16"></a>        y_real &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()[<span class="dv">1</span>], <span class="dt">device =</span> device)</span>
-<span id="cb244-17"><a href="gans.html#cb244-17"></a>        y_fake &lt;-<span class="st"> </span><span class="kw">torch_zeros</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()[<span class="dv">1</span>], <span class="dt">device =</span> device)</span>
-<span id="cb244-18"><a href="gans.html#cb244-18"></a></span>
-<span id="cb244-19"><a href="gans.html#cb244-19"></a>        noise &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()[<span class="dv">1</span>], latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dt">device =</span> device)</span>
-<span id="cb244-20"><a href="gans.html#cb244-20"></a>        fake &lt;-<span class="st"> </span><span class="kw">gen</span>(noise)</span>
-<span id="cb244-21"><a href="gans.html#cb244-21"></a>        img &lt;-<span class="st"> </span>b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span>
-<span id="cb244-22"><a href="gans.html#cb244-22"></a></span>
-<span id="cb244-23"><a href="gans.html#cb244-23"></a>        <span class="co"># update discriminator</span></span>
-<span id="cb244-24"><a href="gans.html#cb244-24"></a>        disc_loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(<span class="kw">disc</span>(img), y_real) <span class="op">+</span><span class="st"> </span><span class="kw">criterion</span>(<span class="kw">disc</span>(fake<span class="op">$</span><span class="kw">detach</span>()), y_fake)</span>
-<span id="cb244-25"><a href="gans.html#cb244-25"></a></span>
-<span id="cb244-26"><a href="gans.html#cb244-26"></a>        disc_optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
-<span id="cb244-27"><a href="gans.html#cb244-27"></a>        disc_loss<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb244-28"><a href="gans.html#cb244-28"></a>        disc_optimizer<span class="op">$</span><span class="kw">step</span>()</span>
-<span id="cb244-29"><a href="gans.html#cb244-29"></a></span>
-<span id="cb244-30"><a href="gans.html#cb244-30"></a>        <span class="co"># update generator</span></span>
-<span id="cb244-31"><a href="gans.html#cb244-31"></a>        gen_loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(<span class="kw">disc</span>(fake), y_real)</span>
-<span id="cb244-32"><a href="gans.html#cb244-32"></a></span>
-<span id="cb244-33"><a href="gans.html#cb244-33"></a>        gen_optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
-<span id="cb244-34"><a href="gans.html#cb244-34"></a>        gen_loss<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb244-35"><a href="gans.html#cb244-35"></a>        gen_optimizer<span class="op">$</span><span class="kw">step</span>()</span>
-<span id="cb244-36"><a href="gans.html#cb244-36"></a></span>
-<span id="cb244-37"><a href="gans.html#cb244-37"></a>        disc_losses &lt;-<span class="st"> </span><span class="kw">c</span>(disc_losses, disc_loss<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">item</span>())</span>
-<span id="cb244-38"><a href="gans.html#cb244-38"></a>        gen_losses &lt;-<span class="st"> </span><span class="kw">c</span>(gen_losses, gen_loss<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">item</span>())</span>
-<span id="cb244-39"><a href="gans.html#cb244-39"></a></span>
-<span id="cb244-40"><a href="gans.html#cb244-40"></a>        <span class="cf">if</span> (batchnum <span class="op">%%</span><span class="st"> </span><span class="dv">50</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) {</span>
-<span id="cb244-41"><a href="gans.html#cb244-41"></a>            img_num &lt;-<span class="st"> </span>img_num <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb244-42"><a href="gans.html#cb244-42"></a>            <span class="kw">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, epoch,</span>
-<span id="cb244-43"><a href="gans.html#cb244-43"></a>                <span class="st">&quot;    batch: &quot;</span>, batchnum,</span>
-<span id="cb244-44"><a href="gans.html#cb244-44"></a>                <span class="st">&quot;    disc loss: &quot;</span>, <span class="kw">as.numeric</span>(disc_loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
-<span id="cb244-45"><a href="gans.html#cb244-45"></a>                <span class="st">&quot;    gen loss: &quot;</span>, <span class="kw">as.numeric</span>(gen_loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
-<span id="cb244-46"><a href="gans.html#cb244-46"></a>                <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb244-47"><a href="gans.html#cb244-47"></a>            <span class="kw">with_no_grad</span>({</span>
-<span id="cb244-48"><a href="gans.html#cb244-48"></a>                generated &lt;-<span class="st"> </span><span class="kw">gen</span>(fixed_noise)</span>
-<span id="cb244-49"><a href="gans.html#cb244-49"></a>                grid &lt;-<span class="st"> </span><span class="kw">vision_make_grid</span>(generated)</span>
-<span id="cb244-50"><a href="gans.html#cb244-50"></a>                img_list[[img_num]] &lt;-<span class="st"> </span><span class="kw">as_array</span>(grid<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
-<span id="cb244-51"><a href="gans.html#cb244-51"></a>            })</span>
-<span id="cb244-52"><a href="gans.html#cb244-52"></a>        }</span>
-<span id="cb244-53"><a href="gans.html#cb244-53"></a></span>
-<span id="cb244-54"><a href="gans.html#cb244-54"></a>    }</span>
-<span id="cb244-55"><a href="gans.html#cb244-55"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb258"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb258-1"><a href="gans.html#cb258-1"></a>fixed_noise &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(<span class="kw">c</span>(<span class="dv">64</span>, latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">device =</span> device)</span>
+<span id="cb258-2"><a href="gans.html#cb258-2"></a>num_epochs &lt;-<span class="st"> </span><span class="dv">5</span></span>
+<span id="cb258-3"><a href="gans.html#cb258-3"></a></span>
+<span id="cb258-4"><a href="gans.html#cb258-4"></a>img_list &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">mode =</span> <span class="st">&quot;list&quot;</span>, <span class="dt">length =</span> num_epochs <span class="op">*</span><span class="st"> </span><span class="kw">trunc</span>(dl<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.length</span>()<span class="op">/</span><span class="dv">50</span>))</span>
+<span id="cb258-5"><a href="gans.html#cb258-5"></a>gen_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb258-6"><a href="gans.html#cb258-6"></a>disc_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb258-7"><a href="gans.html#cb258-7"></a></span>
+<span id="cb258-8"><a href="gans.html#cb258-8"></a>img_num &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb258-9"><a href="gans.html#cb258-9"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>num_epochs) {</span>
+<span id="cb258-10"><a href="gans.html#cb258-10"></a></span>
+<span id="cb258-11"><a href="gans.html#cb258-11"></a>    batchnum &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb258-12"><a href="gans.html#cb258-12"></a>    <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(dl)) {</span>
+<span id="cb258-13"><a href="gans.html#cb258-13"></a></span>
+<span id="cb258-14"><a href="gans.html#cb258-14"></a>        batchnum &lt;-<span class="st"> </span>batchnum <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb258-15"><a href="gans.html#cb258-15"></a></span>
+<span id="cb258-16"><a href="gans.html#cb258-16"></a>        y_real &lt;-<span class="st"> </span><span class="kw">torch_ones</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()[<span class="dv">1</span>], <span class="dt">device =</span> device)</span>
+<span id="cb258-17"><a href="gans.html#cb258-17"></a>        y_fake &lt;-<span class="st"> </span><span class="kw">torch_zeros</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()[<span class="dv">1</span>], <span class="dt">device =</span> device)</span>
+<span id="cb258-18"><a href="gans.html#cb258-18"></a></span>
+<span id="cb258-19"><a href="gans.html#cb258-19"></a>        noise &lt;-<span class="st"> </span><span class="kw">torch_randn</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()[<span class="dv">1</span>], latent_input_size, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dt">device =</span> device)</span>
+<span id="cb258-20"><a href="gans.html#cb258-20"></a>        fake &lt;-<span class="st"> </span><span class="kw">gen</span>(noise)</span>
+<span id="cb258-21"><a href="gans.html#cb258-21"></a>        img &lt;-<span class="st"> </span>b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span>
+<span id="cb258-22"><a href="gans.html#cb258-22"></a></span>
+<span id="cb258-23"><a href="gans.html#cb258-23"></a>        <span class="co"># update discriminator</span></span>
+<span id="cb258-24"><a href="gans.html#cb258-24"></a>        disc_loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(<span class="kw">disc</span>(img), y_real) <span class="op">+</span><span class="st"> </span><span class="kw">criterion</span>(<span class="kw">disc</span>(fake<span class="op">$</span><span class="kw">detach</span>()), y_fake)</span>
+<span id="cb258-25"><a href="gans.html#cb258-25"></a></span>
+<span id="cb258-26"><a href="gans.html#cb258-26"></a>        disc_optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb258-27"><a href="gans.html#cb258-27"></a>        disc_loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb258-28"><a href="gans.html#cb258-28"></a>        disc_optimizer<span class="op">$</span><span class="kw">step</span>()</span>
+<span id="cb258-29"><a href="gans.html#cb258-29"></a></span>
+<span id="cb258-30"><a href="gans.html#cb258-30"></a>        <span class="co"># update generator</span></span>
+<span id="cb258-31"><a href="gans.html#cb258-31"></a>        gen_loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(<span class="kw">disc</span>(fake), y_real)</span>
+<span id="cb258-32"><a href="gans.html#cb258-32"></a></span>
+<span id="cb258-33"><a href="gans.html#cb258-33"></a>        gen_optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb258-34"><a href="gans.html#cb258-34"></a>        gen_loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb258-35"><a href="gans.html#cb258-35"></a>        gen_optimizer<span class="op">$</span><span class="kw">step</span>()</span>
+<span id="cb258-36"><a href="gans.html#cb258-36"></a></span>
+<span id="cb258-37"><a href="gans.html#cb258-37"></a>        disc_losses &lt;-<span class="st"> </span><span class="kw">c</span>(disc_losses, disc_loss<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">item</span>())</span>
+<span id="cb258-38"><a href="gans.html#cb258-38"></a>        gen_losses &lt;-<span class="st"> </span><span class="kw">c</span>(gen_losses, gen_loss<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">item</span>())</span>
+<span id="cb258-39"><a href="gans.html#cb258-39"></a></span>
+<span id="cb258-40"><a href="gans.html#cb258-40"></a>        <span class="cf">if</span> (batchnum <span class="op">%%</span><span class="st"> </span><span class="dv">50</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) {</span>
+<span id="cb258-41"><a href="gans.html#cb258-41"></a>            img_num &lt;-<span class="st"> </span>img_num <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb258-42"><a href="gans.html#cb258-42"></a>            <span class="kw">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, epoch,</span>
+<span id="cb258-43"><a href="gans.html#cb258-43"></a>                <span class="st">&quot;    batch: &quot;</span>, batchnum,</span>
+<span id="cb258-44"><a href="gans.html#cb258-44"></a>                <span class="st">&quot;    disc loss: &quot;</span>, <span class="kw">as.numeric</span>(disc_loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
+<span id="cb258-45"><a href="gans.html#cb258-45"></a>                <span class="st">&quot;    gen loss: &quot;</span>, <span class="kw">as.numeric</span>(gen_loss<span class="op">$</span><span class="kw">cpu</span>()),</span>
+<span id="cb258-46"><a href="gans.html#cb258-46"></a>                <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb258-47"><a href="gans.html#cb258-47"></a>            <span class="kw">with_no_grad</span>({</span>
+<span id="cb258-48"><a href="gans.html#cb258-48"></a>                generated &lt;-<span class="st"> </span><span class="kw">gen</span>(fixed_noise)</span>
+<span id="cb258-49"><a href="gans.html#cb258-49"></a>                grid &lt;-<span class="st"> </span><span class="kw">vision_make_grid</span>(generated)</span>
+<span id="cb258-50"><a href="gans.html#cb258-50"></a>                img_list[[img_num]] &lt;-<span class="st"> </span><span class="kw">as_array</span>(grid<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
+<span id="cb258-51"><a href="gans.html#cb258-51"></a>            })</span>
+<span id="cb258-52"><a href="gans.html#cb258-52"></a>        }</span>
+<span id="cb258-53"><a href="gans.html#cb258-53"></a></span>
+<span id="cb258-54"><a href="gans.html#cb258-54"></a>    }</span>
+<span id="cb258-55"><a href="gans.html#cb258-55"></a>}</span></code></pre></div>
 </div>
 <div id="artifacts" class="section level2" number="11.4">
 <h2><span class="header-section-number">11.4</span> Artifacts</h2>
 <p>Now let’s see a few samples of generated images, spread out over training time:</p>
-<div class="sourceCode" id="cb245"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb245-1"><a href="gans.html#cb245-1"></a>index &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(img_list), <span class="dt">length.out =</span> <span class="dv">16</span>)</span>
-<span id="cb245-2"><a href="gans.html#cb245-2"></a>images &lt;-<span class="st"> </span>img_list[index]</span>
-<span id="cb245-3"><a href="gans.html#cb245-3"></a></span>
-<span id="cb245-4"><a href="gans.html#cb245-4"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
-<span id="cb245-5"><a href="gans.html#cb245-5"></a>rasterize &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
-<span id="cb245-6"><a href="gans.html#cb245-6"></a>    <span class="kw">as.raster</span>(x[<span class="dv">1</span>, , ])</span>
-<span id="cb245-7"><a href="gans.html#cb245-7"></a>}</span>
-<span id="cb245-8"><a href="gans.html#cb245-8"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb245-9"><a href="gans.html#cb245-9"></a><span class="st">    </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
-<span id="cb245-10"><a href="gans.html#cb245-10"></a><span class="st">    </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
-<div class="sourceCode" id="cb246"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb246-1"><a href="gans.html#cb246-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_over_time.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb259"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb259-1"><a href="gans.html#cb259-1"></a>index &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(img_list), <span class="dt">length.out =</span> <span class="dv">16</span>)</span>
+<span id="cb259-2"><a href="gans.html#cb259-2"></a>images &lt;-<span class="st"> </span>img_list[index]</span>
+<span id="cb259-3"><a href="gans.html#cb259-3"></a></span>
+<span id="cb259-4"><a href="gans.html#cb259-4"></a><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
+<span id="cb259-5"><a href="gans.html#cb259-5"></a>rasterize &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb259-6"><a href="gans.html#cb259-6"></a>    <span class="kw">as.raster</span>(x[<span class="dv">1</span>, , ])</span>
+<span id="cb259-7"><a href="gans.html#cb259-7"></a>}</span>
+<span id="cb259-8"><a href="gans.html#cb259-8"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb259-9"><a href="gans.html#cb259-9"></a><span class="st">    </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
+<span id="cb259-10"><a href="gans.html#cb259-10"></a><span class="st">    </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb260"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb260-1"><a href="gans.html#cb260-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_over_time.png&quot;</span>)</span></code></pre></div>
 <p>To my (untrained) eyes, the final results look pretty good! Let’s generate a fresh batch:</p>
-<div class="sourceCode" id="cb247"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb247-1"><a href="gans.html#cb247-1"></a>new &lt;-<span class="st"> </span><span class="kw">gen</span>(fixed_noise)<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">detach</span>()[<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>, , , ]</span>
-<span id="cb247-2"><a href="gans.html#cb247-2"></a></span>
-<span id="cb247-3"><a href="gans.html#cb247-3"></a>new <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">normalize</span>() <span class="op">%&gt;%</span></span>
-<span id="cb247-4"><a href="gans.html#cb247-4"></a><span class="st">  </span><span class="kw">as_array</span>() <span class="op">%&gt;%</span></span>
-<span id="cb247-5"><a href="gans.html#cb247-5"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb247-6"><a href="gans.html#cb247-6"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
-<span id="cb247-7"><a href="gans.html#cb247-7"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
-<div class="sourceCode" id="cb248"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb248-1"><a href="gans.html#cb248-1"></a><span class="co"># knitr::include_graphics(&quot;images/gan_over_time.png&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="gans.html#cb261-1"></a>new &lt;-<span class="st"> </span><span class="kw">gen</span>(fixed_noise)<span class="op">$</span><span class="kw">cpu</span>()<span class="op">$</span><span class="kw">detach</span>()[<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>, , , ]</span>
+<span id="cb261-2"><a href="gans.html#cb261-2"></a></span>
+<span id="cb261-3"><a href="gans.html#cb261-3"></a>new <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">normalize</span>() <span class="op">%&gt;%</span></span>
+<span id="cb261-4"><a href="gans.html#cb261-4"></a><span class="st">  </span><span class="kw">as_array</span>() <span class="op">%&gt;%</span></span>
+<span id="cb261-5"><a href="gans.html#cb261-5"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb261-6"><a href="gans.html#cb261-6"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(rasterize) <span class="op">%&gt;%</span></span>
+<span id="cb261-7"><a href="gans.html#cb261-7"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb262"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb262-1"><a href="gans.html#cb262-1"></a><span class="co"># knitr::include_graphics(&quot;images/gan_over_time.png&quot;)</span></span></code></pre></div>
 <p>We can also inspect how the respective losses developed over time:</p>
-<div class="sourceCode" id="cb249"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb249-1"><a href="gans.html#cb249-1"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb249-2"><a href="gans.html#cb249-2"></a><span class="kw">library</span>(tidyr)</span>
-<span id="cb249-3"><a href="gans.html#cb249-3"></a></span>
-<span id="cb249-4"><a href="gans.html#cb249-4"></a>iterations &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(disc_losses)</span>
-<span id="cb249-5"><a href="gans.html#cb249-5"></a></span>
-<span id="cb249-6"><a href="gans.html#cb249-6"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">iteration =</span> iterations, <span class="dt">discriminator =</span> disc_losses, <span class="dt">generator =</span> gen_losses)</span>
-<span id="cb249-7"><a href="gans.html#cb249-7"></a>df <span class="op">%&gt;%</span></span>
-<span id="cb249-8"><a href="gans.html#cb249-8"></a><span class="st">  </span><span class="kw">gather</span>(module, loss, discriminator, generator) <span class="op">%&gt;%</span></span>
-<span id="cb249-9"><a href="gans.html#cb249-9"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> loss, <span class="dt">colour =</span> module)) <span class="op">+</span></span>
-<span id="cb249-10"><a href="gans.html#cb249-10"></a><span class="st">  </span><span class="kw">geom_line</span>()</span></code></pre></div>
-<div class="sourceCode" id="cb250"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb250-1"><a href="gans.html#cb250-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_losses.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="gans.html#cb263-1"></a><span class="kw">library</span>(ggplot2)</span>
+<span id="cb263-2"><a href="gans.html#cb263-2"></a><span class="kw">library</span>(tidyr)</span>
+<span id="cb263-3"><a href="gans.html#cb263-3"></a></span>
+<span id="cb263-4"><a href="gans.html#cb263-4"></a>iterations &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(disc_losses)</span>
+<span id="cb263-5"><a href="gans.html#cb263-5"></a></span>
+<span id="cb263-6"><a href="gans.html#cb263-6"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">iteration =</span> iterations, <span class="dt">discriminator =</span> disc_losses, <span class="dt">generator =</span> gen_losses)</span>
+<span id="cb263-7"><a href="gans.html#cb263-7"></a>df <span class="op">%&gt;%</span></span>
+<span id="cb263-8"><a href="gans.html#cb263-8"></a><span class="st">  </span><span class="kw">gather</span>(module, loss, discriminator, generator) <span class="op">%&gt;%</span></span>
+<span id="cb263-9"><a href="gans.html#cb263-9"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> iteration, <span class="dt">y =</span> loss, <span class="dt">colour =</span> module)) <span class="op">+</span></span>
+<span id="cb263-10"><a href="gans.html#cb263-10"></a><span class="st">  </span><span class="kw">geom_line</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb264"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb264-1"><a href="gans.html#cb264-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/gan_losses.png&quot;</span>)</span></code></pre></div>
 
 </div>
 </div>
