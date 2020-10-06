@@ -21,29 +21,22 @@ valid_transforms <- function(img) {
 
 test_transforms <- valid_transforms
 
-target_transform = function(x) {
-  x <- torch_tensor(x, dtype = torch_long())
-  x$squeeze(1)
-}
 
 # https://www.kaggle.com/gpiosenka/100-bird-species/data
 data_dir = 'data/bird_species'
 
 train_ds <- image_folder_dataset(file.path(data_dir, "train"),
-                                 transform = train_transforms,
-                                 target_transform = target_transform)
+                                 transform = train_transforms)
 valid_ds <- image_folder_dataset(file.path(data_dir, "valid"),
-                                 transform = valid_transforms,
-                                 target_transform = target_transform)
+                                 transform = valid_transforms)
 test_ds <-
   image_folder_dataset(file.path(data_dir, "test"),
-                       transform = test_transforms,
-                       target_transform = target_transform)
+                       transform = test_transforms)
 
 class_names <- train_ds$classes
 class_names
 
-batch_size <- 32
+batch_size <- 4
 train_dl <- dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
 valid_dl <- dataloader(valid_ds, batch_size = batch_size)
 test_dl <- dataloader(test_ds, batch_size = batch_size)
@@ -52,7 +45,7 @@ train_dl$.length()
 valid_dl$.length()
 test_dl$.length()
 
-batch <-train_dl$.iter()$.next()
+batch <-test_dl$.iter()$.next()
 batch[[1]]$size()
 batch[[2]]$size()
 
@@ -138,15 +131,16 @@ find_lr <- function(init_value = 1e-8, final_value = 10, beta = 0.98) {
 
 # find_lr()
 
-df <- data.frame(log_lrs = log_lrs, losses = losses)
-library(ggplot2)
-ggplot(df, aes(log_lrs, losses)) + geom_point(size = 1)
+# df <- data.frame(log_lrs = log_lrs, losses = losses)
+# library(ggplot2)
+# ggplot(df, aes(log_lrs, losses)) + geom_point(size = 1)
 
 num_epochs <- 10
 
 scheduler <- optimizer %>%
   lr_one_cycle(max_lr = 0.05, epochs = num_epochs, steps_per_epoch = train_dl$.length())
 
+batch_lrs <- c()
 for (epoch in 1:num_epochs) {
 
   model$train()
@@ -160,19 +154,22 @@ for (epoch in 1:num_epochs) {
     optimizer$step()
     scheduler$step()
     train_losses <- c(train_losses, loss$item())
-    #print(optimizer$param_groups[[1]]$lr)
+    batch_lrs <<- c(batch_lrs, optimizer$param_groups[[1]]$lr)
+    #cat(".")
   }
 
+  cat("\nstarting eval\n")
   model$eval()
   valid_losses <- c()
 
   for (b in enumerate(valid_dl)) {
-    output <- model(b[[1]])
+    output <- model(b[[1]]$to(device = "cuda"))
     loss <- criterion(output, b[[2]]$to(device = "cuda"))
     valid_losses <- c(valid_losses, loss$item())
   }
+  #cat("+")
 
-  cat(sprintf("Loss at epoch %d: training: %3f, validation: %3f\n", epoch, mean(train_losses), mean(valid_losses)))
+  cat(sprintf("\nLoss at epoch %d: training: %3f, validation: %3f\n", epoch, mean(train_losses), mean(valid_losses)))
 }
 
 model$eval()

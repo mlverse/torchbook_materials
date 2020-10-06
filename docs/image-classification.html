@@ -172,23 +172,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with <em>autograd</em></a></li>
 <li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using <em>autograd</em></a></li>
-<li class="chapter" data-level="4.3" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#outlook"><i class="fa fa-check"></i><b>4.3</b> Outlook</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
 <ul>
 <li class="chapter" data-level="5.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#modules"><i class="fa fa-check"></i><b>5.1</b> Modules</a>
 <ul>
-<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#layers-as-modules"><i class="fa fa-check"></i><b>5.1.1</b> Layers as modules</a></li>
-<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
+<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#base-modules-layers"><i class="fa fa-check"></i><b>5.1.1</b> Base modules (“layers”)</a></li>
+<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#container-modules-models"><i class="fa fa-check"></i><b>5.1.2</b> Container modules (“models”)</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
-<li class="chapter" data-level="5.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
 <ul>
-<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
-<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>optim</code></a></li>
-<li class="chapter" data-level="6.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#losses-and-loss-functions"><i class="fa fa-check"></i><b>6.1</b> Losses and loss functions</a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#optimizers"><i class="fa fa-check"></i><b>6.2</b> Optimizers</a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-network-final-version"><i class="fa fa-check"></i><b>6.3</b> Simple network: final version</a></li>
 </ul></li>
 <li class="part"><span><b>II Image Recognition</b></span></li>
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
@@ -299,51 +297,51 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="data-loading-and-transformation" class="section level2" number="7.1">
 <h2><span class="header-section-number">7.1</span> Data loading and transformation</h2>
 <p>The example dataset used here is available on Kaggle (<a href="https://www.kaggle.com/gpiosenka/100-bird-species/data" class="uri">https://www.kaggle.com/gpiosenka/100-bird-species/data</a>). It is very “non-noisy”, which is why, the number of classes notwithstanding (130!), accuracy will turn out to be very good.</p>
-<div class="sourceCode" id="cb153"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb153-1"><a href="image-classification.html#cb153-1"></a><span class="kw">library</span>(torch)</span>
-<span id="cb153-2"><a href="image-classification.html#cb153-2"></a><span class="kw">library</span>(torchvision)</span>
-<span id="cb153-3"><a href="image-classification.html#cb153-3"></a><span class="kw">library</span>(dplyr)</span></code></pre></div>
-<div class="sourceCode" id="cb154"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb154-1"><a href="image-classification.html#cb154-1"></a><span class="co"># from: https://www.kaggle.com/gpiosenka/100-bird-species/data</span></span>
-<span id="cb154-2"><a href="image-classification.html#cb154-2"></a>data_dir =<span class="st"> &#39;data/bird_species&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb170"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb170-1"><a href="image-classification.html#cb170-1"></a><span class="kw">library</span>(torch)</span>
+<span id="cb170-2"><a href="image-classification.html#cb170-2"></a><span class="kw">library</span>(torchvision)</span>
+<span id="cb170-3"><a href="image-classification.html#cb170-3"></a><span class="kw">library</span>(dplyr)</span></code></pre></div>
+<div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="image-classification.html#cb171-1"></a><span class="co"># from: https://www.kaggle.com/gpiosenka/100-bird-species/data</span></span>
+<span id="cb171-2"><a href="image-classification.html#cb171-2"></a>data_dir =<span class="st"> &#39;data/bird_species&#39;</span></span></code></pre></div>
 <p>The data set being so clean, we’ll want to introduce random noise (<em>data augmentation</em>) on the training set to enhance model resiliency.</p>
 <p>In <code>torchvision</code>, data augmentation steps are added as part of an <em>image processing pipeline</em> that also takes care of resizing and/or cropping images, converting them to <code>torch</code> tensors, and possibly, normalizing them according to the model’s expectations. Here they are, deterministic on validation and test sets, but including random components for the training set:</p>
-<div class="sourceCode" id="cb155"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb155-1"><a href="image-classification.html#cb155-1"></a>train_transforms &lt;-<span class="st"> </span><span class="cf">function</span>(img) {</span>
-<span id="cb155-2"><a href="image-classification.html#cb155-2"></a>  img <span class="op">%&gt;%</span></span>
-<span id="cb155-3"><a href="image-classification.html#cb155-3"></a><span class="st">    </span><span class="kw">transform_random_resized_crop</span>(<span class="dt">size =</span> <span class="kw">c</span>(<span class="dv">224</span>, <span class="dv">224</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb155-4"><a href="image-classification.html#cb155-4"></a><span class="st">    </span><span class="kw">transform_color_jitter</span>() <span class="op">%&gt;%</span></span>
-<span id="cb155-5"><a href="image-classification.html#cb155-5"></a><span class="st">    </span><span class="kw">transform_random_horizontal_flip</span>() <span class="op">%&gt;%</span></span>
-<span id="cb155-6"><a href="image-classification.html#cb155-6"></a><span class="st">    </span><span class="kw">transform_to_tensor</span>() <span class="op">%&gt;%</span></span>
-<span id="cb155-7"><a href="image-classification.html#cb155-7"></a><span class="st">    </span><span class="kw">transform_normalize</span>(<span class="dt">mean =</span> <span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>), <span class="dt">std =</span> <span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>))</span>
-<span id="cb155-8"><a href="image-classification.html#cb155-8"></a>}</span>
-<span id="cb155-9"><a href="image-classification.html#cb155-9"></a></span>
-<span id="cb155-10"><a href="image-classification.html#cb155-10"></a>valid_transforms &lt;-<span class="st"> </span><span class="cf">function</span>(img) {</span>
-<span id="cb155-11"><a href="image-classification.html#cb155-11"></a>  img <span class="op">%&gt;%</span></span>
-<span id="cb155-12"><a href="image-classification.html#cb155-12"></a><span class="st">    </span><span class="kw">transform_resize</span>(<span class="dv">256</span>) <span class="op">%&gt;%</span></span>
-<span id="cb155-13"><a href="image-classification.html#cb155-13"></a><span class="st">    </span><span class="kw">transform_center_crop</span>(<span class="dv">224</span>) <span class="op">%&gt;%</span></span>
-<span id="cb155-14"><a href="image-classification.html#cb155-14"></a><span class="st">    </span><span class="kw">transform_to_tensor</span>() <span class="op">%&gt;%</span></span>
-<span id="cb155-15"><a href="image-classification.html#cb155-15"></a><span class="st">    </span><span class="kw">transform_normalize</span>(<span class="dt">mean =</span> <span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>), <span class="dt">std =</span> <span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>))</span>
-<span id="cb155-16"><a href="image-classification.html#cb155-16"></a>}</span>
-<span id="cb155-17"><a href="image-classification.html#cb155-17"></a></span>
-<span id="cb155-18"><a href="image-classification.html#cb155-18"></a>test_transforms &lt;-<span class="st"> </span>valid_transforms</span>
-<span id="cb155-19"><a href="image-classification.html#cb155-19"></a></span>
-<span id="cb155-20"><a href="image-classification.html#cb155-20"></a><span class="co"># </span><span class="al">TBD</span><span class="co"> remove later</span></span>
-<span id="cb155-21"><a href="image-classification.html#cb155-21"></a>target_transform =<span class="st"> </span><span class="cf">function</span>(x) {</span>
-<span id="cb155-22"><a href="image-classification.html#cb155-22"></a>  x &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(x, <span class="dt">dtype =</span> <span class="kw">torch_long</span>())</span>
-<span id="cb155-23"><a href="image-classification.html#cb155-23"></a>  x<span class="op">$</span><span class="kw">squeeze</span>(<span class="dv">1</span>)</span>
-<span id="cb155-24"><a href="image-classification.html#cb155-24"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb172"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb172-1"><a href="image-classification.html#cb172-1"></a>train_transforms &lt;-<span class="st"> </span><span class="cf">function</span>(img) {</span>
+<span id="cb172-2"><a href="image-classification.html#cb172-2"></a>  img <span class="op">%&gt;%</span></span>
+<span id="cb172-3"><a href="image-classification.html#cb172-3"></a><span class="st">    </span><span class="kw">transform_random_resized_crop</span>(<span class="dt">size =</span> <span class="kw">c</span>(<span class="dv">224</span>, <span class="dv">224</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb172-4"><a href="image-classification.html#cb172-4"></a><span class="st">    </span><span class="kw">transform_color_jitter</span>() <span class="op">%&gt;%</span></span>
+<span id="cb172-5"><a href="image-classification.html#cb172-5"></a><span class="st">    </span><span class="kw">transform_random_horizontal_flip</span>() <span class="op">%&gt;%</span></span>
+<span id="cb172-6"><a href="image-classification.html#cb172-6"></a><span class="st">    </span><span class="kw">transform_to_tensor</span>() <span class="op">%&gt;%</span></span>
+<span id="cb172-7"><a href="image-classification.html#cb172-7"></a><span class="st">    </span><span class="kw">transform_normalize</span>(<span class="dt">mean =</span> <span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>), <span class="dt">std =</span> <span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>))</span>
+<span id="cb172-8"><a href="image-classification.html#cb172-8"></a>}</span>
+<span id="cb172-9"><a href="image-classification.html#cb172-9"></a></span>
+<span id="cb172-10"><a href="image-classification.html#cb172-10"></a>valid_transforms &lt;-<span class="st"> </span><span class="cf">function</span>(img) {</span>
+<span id="cb172-11"><a href="image-classification.html#cb172-11"></a>  img <span class="op">%&gt;%</span></span>
+<span id="cb172-12"><a href="image-classification.html#cb172-12"></a><span class="st">    </span><span class="kw">transform_resize</span>(<span class="dv">256</span>) <span class="op">%&gt;%</span></span>
+<span id="cb172-13"><a href="image-classification.html#cb172-13"></a><span class="st">    </span><span class="kw">transform_center_crop</span>(<span class="dv">224</span>) <span class="op">%&gt;%</span></span>
+<span id="cb172-14"><a href="image-classification.html#cb172-14"></a><span class="st">    </span><span class="kw">transform_to_tensor</span>() <span class="op">%&gt;%</span></span>
+<span id="cb172-15"><a href="image-classification.html#cb172-15"></a><span class="st">    </span><span class="kw">transform_normalize</span>(<span class="dt">mean =</span> <span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>), <span class="dt">std =</span> <span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>))</span>
+<span id="cb172-16"><a href="image-classification.html#cb172-16"></a>}</span>
+<span id="cb172-17"><a href="image-classification.html#cb172-17"></a></span>
+<span id="cb172-18"><a href="image-classification.html#cb172-18"></a>test_transforms &lt;-<span class="st"> </span>valid_transforms</span>
+<span id="cb172-19"><a href="image-classification.html#cb172-19"></a></span>
+<span id="cb172-20"><a href="image-classification.html#cb172-20"></a><span class="co"># </span><span class="al">TBD</span><span class="co"> remove later</span></span>
+<span id="cb172-21"><a href="image-classification.html#cb172-21"></a>target_transform =<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb172-22"><a href="image-classification.html#cb172-22"></a>  x &lt;-<span class="st"> </span><span class="kw">torch_tensor</span>(x, <span class="dt">dtype =</span> <span class="kw">torch_long</span>())</span>
+<span id="cb172-23"><a href="image-classification.html#cb172-23"></a>  x<span class="op">$</span><span class="kw">squeeze</span>(<span class="dv">1</span>)</span>
+<span id="cb172-24"><a href="image-classification.html#cb172-24"></a>}</span></code></pre></div>
 <p><code>image_folder_dataset</code> is a subtype of dataset that encapsulates information about where the images reside, and what transformations to apply. Here, we create such a dataset for each of training, validation and test set:</p>
-<div class="sourceCode" id="cb156"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb156-1"><a href="image-classification.html#cb156-1"></a>train_ds &lt;-<span class="st"> </span><span class="kw">image_folder_dataset</span>(</span>
-<span id="cb156-2"><a href="image-classification.html#cb156-2"></a>  <span class="kw">file.path</span>(data_dir, <span class="st">&quot;train&quot;</span>),</span>
-<span id="cb156-3"><a href="image-classification.html#cb156-3"></a>  <span class="dt">transform =</span> train_transforms,</span>
-<span id="cb156-4"><a href="image-classification.html#cb156-4"></a>  <span class="dt">target_transform =</span> target_transform)</span>
-<span id="cb156-5"><a href="image-classification.html#cb156-5"></a></span>
-<span id="cb156-6"><a href="image-classification.html#cb156-6"></a>valid_ds &lt;-<span class="st"> </span><span class="kw">image_folder_dataset</span>(</span>
-<span id="cb156-7"><a href="image-classification.html#cb156-7"></a>  <span class="kw">file.path</span>(data_dir, <span class="st">&quot;valid&quot;</span>),</span>
-<span id="cb156-8"><a href="image-classification.html#cb156-8"></a>  <span class="dt">transform =</span> valid_transforms,</span>
-<span id="cb156-9"><a href="image-classification.html#cb156-9"></a>  <span class="dt">target_transform =</span> target_transform)</span>
-<span id="cb156-10"><a href="image-classification.html#cb156-10"></a></span>
-<span id="cb156-11"><a href="image-classification.html#cb156-11"></a>test_ds &lt;-<span class="st"> </span><span class="kw">image_folder_dataset</span>(</span>
-<span id="cb156-12"><a href="image-classification.html#cb156-12"></a>  <span class="kw">file.path</span>(data_dir, <span class="st">&quot;test&quot;</span>),</span>
-<span id="cb156-13"><a href="image-classification.html#cb156-13"></a>  <span class="dt">transform =</span> test_transforms)</span></code></pre></div>
+<div class="sourceCode" id="cb173"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb173-1"><a href="image-classification.html#cb173-1"></a>train_ds &lt;-<span class="st"> </span><span class="kw">image_folder_dataset</span>(</span>
+<span id="cb173-2"><a href="image-classification.html#cb173-2"></a>  <span class="kw">file.path</span>(data_dir, <span class="st">&quot;train&quot;</span>),</span>
+<span id="cb173-3"><a href="image-classification.html#cb173-3"></a>  <span class="dt">transform =</span> train_transforms,</span>
+<span id="cb173-4"><a href="image-classification.html#cb173-4"></a>  <span class="dt">target_transform =</span> target_transform)</span>
+<span id="cb173-5"><a href="image-classification.html#cb173-5"></a></span>
+<span id="cb173-6"><a href="image-classification.html#cb173-6"></a>valid_ds &lt;-<span class="st"> </span><span class="kw">image_folder_dataset</span>(</span>
+<span id="cb173-7"><a href="image-classification.html#cb173-7"></a>  <span class="kw">file.path</span>(data_dir, <span class="st">&quot;valid&quot;</span>),</span>
+<span id="cb173-8"><a href="image-classification.html#cb173-8"></a>  <span class="dt">transform =</span> valid_transforms,</span>
+<span id="cb173-9"><a href="image-classification.html#cb173-9"></a>  <span class="dt">target_transform =</span> target_transform)</span>
+<span id="cb173-10"><a href="image-classification.html#cb173-10"></a></span>
+<span id="cb173-11"><a href="image-classification.html#cb173-11"></a>test_ds &lt;-<span class="st"> </span><span class="kw">image_folder_dataset</span>(</span>
+<span id="cb173-12"><a href="image-classification.html#cb173-12"></a>  <span class="kw">file.path</span>(data_dir, <span class="st">&quot;test&quot;</span>),</span>
+<span id="cb173-13"><a href="image-classification.html#cb173-13"></a>  <span class="dt">transform =</span> test_transforms)</span></code></pre></div>
 <p><code>image_folder_dataset</code> objects expect the different classes of images to reside each in their own folder. In our example, this is in fact the case; for example, here is the directory layout for the first three classes in the test set:</p>
 <pre><code>data/test/ALBATROSS/
  - data/test/ALBATROSS/1.jpg
@@ -366,16 +364,16 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
  - data/test/&#39;AMERICAN BITTERN&#39;/4.jpg
  - data/test/&#39;AMERICAN BITTERN&#39;/5.jpg</code></pre>
 <p>From those specifications, <code>dataloaders</code> are created. These objects, in addition to <em>what</em> to load and which transformations to apply, know things like: how many items to load per batch, whether they should be shuffled, and whether to parallelize the transformations.</p>
-<div class="sourceCode" id="cb158"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb158-1"><a href="image-classification.html#cb158-1"></a>train_dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(train_ds, <span class="dt">batch_size =</span> <span class="dv">16</span>, <span class="dt">shuffle =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb158-2"><a href="image-classification.html#cb158-2"></a>valid_dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(valid_ds, <span class="dt">batch_size =</span> <span class="dv">16</span>)</span>
-<span id="cb158-3"><a href="image-classification.html#cb158-3"></a>test_dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(test_ds, <span class="dt">batch_size =</span> <span class="dv">16</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb175"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb175-1"><a href="image-classification.html#cb175-1"></a>train_dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(train_ds, <span class="dt">batch_size =</span> <span class="dv">16</span>, <span class="dt">shuffle =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb175-2"><a href="image-classification.html#cb175-2"></a>valid_dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(valid_ds, <span class="dt">batch_size =</span> <span class="dv">16</span>)</span>
+<span id="cb175-3"><a href="image-classification.html#cb175-3"></a>test_dl &lt;-<span class="st"> </span><span class="kw">dataloader</span>(test_ds, <span class="dt">batch_size =</span> <span class="dv">16</span>)</span></code></pre></div>
 <p>How many items are there in each set?</p>
-<div class="sourceCode" id="cb159"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb159-1"><a href="image-classification.html#cb159-1"></a>train_dl<span class="op">$</span><span class="kw">.length</span>() <span class="co"># 1065</span></span>
-<span id="cb159-2"><a href="image-classification.html#cb159-2"></a>valid_dl<span class="op">$</span><span class="kw">.length</span>() <span class="co"># 41</span></span>
-<span id="cb159-3"><a href="image-classification.html#cb159-3"></a>test_dl<span class="op">$</span><span class="kw">.length</span>()  <span class="co"># 41</span></span></code></pre></div>
+<div class="sourceCode" id="cb176"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb176-1"><a href="image-classification.html#cb176-1"></a>train_dl<span class="op">$</span><span class="kw">.length</span>() <span class="co"># 1065</span></span>
+<span id="cb176-2"><a href="image-classification.html#cb176-2"></a>valid_dl<span class="op">$</span><span class="kw">.length</span>() <span class="co"># 41</span></span>
+<span id="cb176-3"><a href="image-classification.html#cb176-3"></a>test_dl<span class="op">$</span><span class="kw">.length</span>()  <span class="co"># 41</span></span></code></pre></div>
 <p>Datasets know what classes there are:</p>
-<div class="sourceCode" id="cb160"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb160-1"><a href="image-classification.html#cb160-1"></a>class_names &lt;-<span class="st"> </span>train_ds<span class="op">$</span>classes</span>
-<span id="cb160-2"><a href="image-classification.html#cb160-2"></a>class_names</span></code></pre></div>
+<div class="sourceCode" id="cb177"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb177-1"><a href="image-classification.html#cb177-1"></a>class_names &lt;-<span class="st"> </span>train_ds<span class="op">$</span>classes</span>
+<span id="cb177-2"><a href="image-classification.html#cb177-2"></a>class_names</span></code></pre></div>
 <pre><code> [1] &quot;ALBATROSS&quot;                  &quot;ALEXANDRINE PARAKEET&quot;     
  [3] &quot;AMERICAN BITTERN&quot;           &quot;AMERICAN GOLDFINCH&quot;       
  [5] &quot;AMERICAN KESTREL&quot;           &quot;AMERICAN REDSTART&quot;        
@@ -443,16 +441,16 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
 [129] &quot;WOOD DUCK&quot;                 &quot;YELLOW HEADED BLACKBIRD&quot;  
 &gt; </code></pre>
 <p>Next, let’s view a few images from the test set. We can retrieve the first batch – images and corresponding classes – by creating an iterator from the <code>dataloader</code> and calling <code>next()</code> on it:</p>
-<div class="sourceCode" id="cb162"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb162-1"><a href="image-classification.html#cb162-1"></a>batch &lt;-<span class="st"> </span>train_dl<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.next</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb179"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb179-1"><a href="image-classification.html#cb179-1"></a>batch &lt;-<span class="st"> </span>train_dl<span class="op">$</span><span class="kw">.iter</span>()<span class="op">$</span><span class="kw">.next</span>()</span></code></pre></div>
 <p><code>batch</code> is a list, the first item being the image tensors …</p>
-<div class="sourceCode" id="cb163"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb163-1"><a href="image-classification.html#cb163-1"></a>batch[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb180"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb180-1"><a href="image-classification.html#cb180-1"></a>batch[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">size</span>()</span></code></pre></div>
 <pre><code>[1]  16   3 224 224</code></pre>
 <p>… and the second, the classes:</p>
-<div class="sourceCode" id="cb165"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb165-1"><a href="image-classification.html#cb165-1"></a>batch[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">size</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb182-1"><a href="image-classification.html#cb182-1"></a>batch[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">size</span>()</span></code></pre></div>
 <pre><code>[1] 16</code></pre>
 <p>The classes are coded as integers, to be used as indexes into the vector of class names. We’ll use those for labeling the images.</p>
-<div class="sourceCode" id="cb167"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb167-1"><a href="image-classification.html#cb167-1"></a>classes &lt;-<span class="st"> </span>batch[[<span class="dv">2</span>]]</span>
-<span id="cb167-2"><a href="image-classification.html#cb167-2"></a>classes</span></code></pre></div>
+<div class="sourceCode" id="cb184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb184-1"><a href="image-classification.html#cb184-1"></a>classes &lt;-<span class="st"> </span>batch[[<span class="dv">2</span>]]</span>
+<span id="cb184-2"><a href="image-classification.html#cb184-2"></a>classes</span></code></pre></div>
 <pre><code>torch_tensor 
    3
   46
@@ -472,157 +470,157 @@ data/test/&#39;ALEXANDRINE PARAKEET&#39;/
   90
 [ CPULongType{16} ]</code></pre>
 <p>Now to visualization. The image tensors are of shape <code>batch_size x num_channels x height x width</code>. Since we want to use <code>as.raster</code> for plotting, we need to reshape images such that channels come last. Here are the first sixteen images:</p>
-<div class="sourceCode" id="cb169"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb169-1"><a href="image-classification.html#cb169-1"></a><span class="kw">library</span>(dplyr)</span>
-<span id="cb169-2"><a href="image-classification.html#cb169-2"></a></span>
-<span id="cb169-3"><a href="image-classification.html#cb169-3"></a>images &lt;-<span class="st"> </span><span class="kw">as_array</span>(batch[[<span class="dv">1</span>]]) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">aperm</span>(<span class="dt">perm =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
-<span id="cb169-4"><a href="image-classification.html#cb169-4"></a>mean &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>)</span>
-<span id="cb169-5"><a href="image-classification.html#cb169-5"></a>std &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>)</span>
-<span id="cb169-6"><a href="image-classification.html#cb169-6"></a>images &lt;-<span class="st"> </span>std <span class="op">*</span><span class="st"> </span>images <span class="op">+</span><span class="st"> </span>mean</span>
-<span id="cb169-7"><a href="image-classification.html#cb169-7"></a>images &lt;-<span class="st"> </span>images <span class="op">*</span><span class="st"> </span><span class="dv">255</span></span>
-<span id="cb169-8"><a href="image-classification.html#cb169-8"></a>images[images <span class="op">&gt;</span><span class="st"> </span><span class="dv">255</span>] &lt;-<span class="st"> </span><span class="dv">255</span></span>
-<span id="cb169-9"><a href="image-classification.html#cb169-9"></a>images[images <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb169-10"><a href="image-classification.html#cb169-10"></a></span>
-<span id="cb169-11"><a href="image-classification.html#cb169-11"></a><span class="kw">par</span>(<span class="dt">mfcol =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="dv">1</span>, <span class="dv">4</span>))</span>
-<span id="cb169-12"><a href="image-classification.html#cb169-12"></a></span>
-<span id="cb169-13"><a href="image-classification.html#cb169-13"></a>images <span class="op">%&gt;%</span></span>
-<span id="cb169-14"><a href="image-classification.html#cb169-14"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb169-15"><a href="image-classification.html#cb169-15"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">set_names</span>(class_names[<span class="kw">as_array</span>(classes)]) <span class="op">%&gt;%</span></span>
-<span id="cb169-16"><a href="image-classification.html#cb169-16"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster, <span class="dt">max =</span> <span class="dv">255</span>) <span class="op">%&gt;%</span></span>
-<span id="cb169-17"><a href="image-classification.html#cb169-17"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x); <span class="kw">title</span>(.y)})</span></code></pre></div>
-<div class="sourceCode" id="cb170"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb170-1"><a href="image-classification.html#cb170-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/image_classif_birds.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb186-1"><a href="image-classification.html#cb186-1"></a><span class="kw">library</span>(dplyr)</span>
+<span id="cb186-2"><a href="image-classification.html#cb186-2"></a></span>
+<span id="cb186-3"><a href="image-classification.html#cb186-3"></a>images &lt;-<span class="st"> </span><span class="kw">as_array</span>(batch[[<span class="dv">1</span>]]) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">aperm</span>(<span class="dt">perm =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb186-4"><a href="image-classification.html#cb186-4"></a>mean &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>)</span>
+<span id="cb186-5"><a href="image-classification.html#cb186-5"></a>std &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>)</span>
+<span id="cb186-6"><a href="image-classification.html#cb186-6"></a>images &lt;-<span class="st"> </span>std <span class="op">*</span><span class="st"> </span>images <span class="op">+</span><span class="st"> </span>mean</span>
+<span id="cb186-7"><a href="image-classification.html#cb186-7"></a>images &lt;-<span class="st"> </span>images <span class="op">*</span><span class="st"> </span><span class="dv">255</span></span>
+<span id="cb186-8"><a href="image-classification.html#cb186-8"></a>images[images <span class="op">&gt;</span><span class="st"> </span><span class="dv">255</span>] &lt;-<span class="st"> </span><span class="dv">255</span></span>
+<span id="cb186-9"><a href="image-classification.html#cb186-9"></a>images[images <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb186-10"><a href="image-classification.html#cb186-10"></a></span>
+<span id="cb186-11"><a href="image-classification.html#cb186-11"></a><span class="kw">par</span>(<span class="dt">mfcol =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="dt">mar =</span> <span class="kw">rep</span>(<span class="dv">1</span>, <span class="dv">4</span>))</span>
+<span id="cb186-12"><a href="image-classification.html#cb186-12"></a></span>
+<span id="cb186-13"><a href="image-classification.html#cb186-13"></a>images <span class="op">%&gt;%</span></span>
+<span id="cb186-14"><a href="image-classification.html#cb186-14"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">array_tree</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb186-15"><a href="image-classification.html#cb186-15"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">set_names</span>(class_names[<span class="kw">as_array</span>(classes)]) <span class="op">%&gt;%</span></span>
+<span id="cb186-16"><a href="image-classification.html#cb186-16"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(as.raster, <span class="dt">max =</span> <span class="dv">255</span>) <span class="op">%&gt;%</span></span>
+<span id="cb186-17"><a href="image-classification.html#cb186-17"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">iwalk</span>(<span class="op">~</span>{<span class="kw">plot</span>(.x); <span class="kw">title</span>(.y)})</span></code></pre></div>
+<div class="sourceCode" id="cb187"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb187-1"><a href="image-classification.html#cb187-1"></a>knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;images/image_classif_birds.png&quot;</span>)</span></code></pre></div>
 <p><img src="images/image_classif_birds.png" width="384" /></p>
 </div>
 <div id="model" class="section level2" number="7.2">
 <h2><span class="header-section-number">7.2</span> Model</h2>
 <p>The backbone of our model is a pre-trained instance of Resnet.</p>
-<div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="image-classification.html#cb171-1"></a>model &lt;-<span class="st"> </span><span class="kw">model_resnet18</span>(<span class="dt">pretrained =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb188-1"><a href="image-classification.html#cb188-1"></a>model &lt;-<span class="st"> </span><span class="kw">model_resnet18</span>(<span class="dt">pretrained =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 <p>We will modify the model’s output layer to distinguish between our 130 bird classes, instead of the 1000 ImageNet classes it was trained for. This means we only need to train a single layer – the one we’re going to add. We <em>could</em> perform backpropagation through the complete model, trying to fine-tune Resnet’s weights as well, but that would have a significant effect on training time. (Alternatively, we could try to fine-tune just a few of Resnet’s weights, those located in the layers directly preceding the output.)</p>
-<div class="sourceCode" id="cb172"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb172-1"><a href="image-classification.html#cb172-1"></a>model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb172-2"><a href="image-classification.html#cb172-2"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span>requires_grad &lt;-<span class="st"> </span><span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb189"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb189-1"><a href="image-classification.html#cb189-1"></a>model<span class="op">$</span>parameters <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb189-2"><a href="image-classification.html#cb189-2"></a><span class="st">  </span>purrr<span class="op">::</span><span class="kw">walk</span>(<span class="cf">function</span>(param) param<span class="op">$</span>requires_grad &lt;-<span class="st"> </span><span class="ot">FALSE</span>)</span></code></pre></div>
 <p>To replace the output layer, the model is just modified in-place:</p>
-<div class="sourceCode" id="cb173"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb173-1"><a href="image-classification.html#cb173-1"></a>num_features &lt;-<span class="st"> </span>model<span class="op">$</span>fc<span class="op">$</span>in_features</span>
-<span id="cb173-2"><a href="image-classification.html#cb173-2"></a></span>
-<span id="cb173-3"><a href="image-classification.html#cb173-3"></a>model<span class="op">$</span>fc &lt;-<span class="st"> </span><span class="kw">nn_linear</span>(<span class="dt">in_features =</span> num_features, <span class="dt">out_features =</span> <span class="kw">length</span>(class_names))</span></code></pre></div>
+<div class="sourceCode" id="cb190"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb190-1"><a href="image-classification.html#cb190-1"></a>num_features &lt;-<span class="st"> </span>model<span class="op">$</span>fc<span class="op">$</span>in_features</span>
+<span id="cb190-2"><a href="image-classification.html#cb190-2"></a></span>
+<span id="cb190-3"><a href="image-classification.html#cb190-3"></a>model<span class="op">$</span>fc &lt;-<span class="st"> </span><span class="kw">nn_linear</span>(<span class="dt">in_features =</span> num_features, <span class="dt">out_features =</span> <span class="kw">length</span>(class_names))</span></code></pre></div>
 <p>Now put the modified model on the GPU:</p>
-<div class="sourceCode" id="cb174"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb174-1"><a href="image-classification.html#cb174-1"></a>device &lt;-<span class="st"> </span><span class="cf">if</span> (<span class="kw">cuda_is_available</span>()) <span class="kw">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span>
-<span id="cb174-2"><a href="image-classification.html#cb174-2"></a></span>
-<span id="cb174-3"><a href="image-classification.html#cb174-3"></a>model &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
+<div class="sourceCode" id="cb191"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb191-1"><a href="image-classification.html#cb191-1"></a>device &lt;-<span class="st"> </span><span class="cf">if</span> (<span class="kw">cuda_is_available</span>()) <span class="kw">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb191-2"><a href="image-classification.html#cb191-2"></a></span>
+<span id="cb191-3"><a href="image-classification.html#cb191-3"></a>model &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> device)</span></code></pre></div>
 </div>
 <div id="training" class="section level2" number="7.3">
 <h2><span class="header-section-number">7.3</span> Training</h2>
 <p>For training, we use cross entropy loss and stochastic gradient descent.</p>
-<div class="sourceCode" id="cb175"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb175-1"><a href="image-classification.html#cb175-1"></a>criterion &lt;-<span class="st"> </span><span class="kw">nn_cross_entropy_loss</span>()</span>
-<span id="cb175-2"><a href="image-classification.html#cb175-2"></a></span>
-<span id="cb175-3"><a href="image-classification.html#cb175-3"></a>optimizer &lt;-<span class="st"> </span><span class="kw">optim_sgd</span>(model<span class="op">$</span>parameters, <span class="dt">lr =</span> <span class="fl">0.001</span>, <span class="dt">momentum =</span> <span class="fl">0.9</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb192-1"><a href="image-classification.html#cb192-1"></a>criterion &lt;-<span class="st"> </span><span class="kw">nn_cross_entropy_loss</span>()</span>
+<span id="cb192-2"><a href="image-classification.html#cb192-2"></a></span>
+<span id="cb192-3"><a href="image-classification.html#cb192-3"></a>optimizer &lt;-<span class="st"> </span><span class="kw">optim_sgd</span>(model<span class="op">$</span>parameters, <span class="dt">lr =</span> <span class="fl">0.001</span>, <span class="dt">momentum =</span> <span class="fl">0.9</span>)</span></code></pre></div>
 <p>We set the learning rate to 0.1, but that is just a formality. As became widely known due to <a href="">fast.ai’s deep learning lectures</a>, it always makes sense to spend some time upfront to determine a good learning rate, and then during training, evolve the learning rate according to some established algorithm. While out-of-the-box, <code>torch</code> does not provide a tool like fast.ai’s learning rate finder, the logic is straightforward to implement, and sample code is given on Sylvain Gugger’s blog.</p>
 <p>Algorithms like one-cycle learning <span class="citation">(Smith and Topin <a href="#ref-abs-1708-07120" role="doc-biblioref">2017</a>)</span>, cyclical learning rates <span class="citation">(Smith <a href="#ref-Smith15a" role="doc-biblioref">2015</a>)</span>, or cosine annealing with warm restarts <span class="citation">(Loshchilov and Hutter <a href="#ref-LoshchilovH16a" role="doc-biblioref">2016</a>)</span> are, however, implemented in <code>torch</code>, and we’ll make use of <code>lr_one_cycle</code> once we’ve determined an appropriate value for the required parameter <code>max_lr</code>.</p>
 <p>Here is how to find a good learning rate, translated to R from <a href="https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html">Sylvain Gugger’s post</a>:</p>
-<div class="sourceCode" id="cb176"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb176-1"><a href="image-classification.html#cb176-1"></a><span class="co"># ported from: https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html</span></span>
-<span id="cb176-2"><a href="image-classification.html#cb176-2"></a></span>
-<span id="cb176-3"><a href="image-classification.html#cb176-3"></a>losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb176-4"><a href="image-classification.html#cb176-4"></a>log_lrs &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb176-5"><a href="image-classification.html#cb176-5"></a></span>
-<span id="cb176-6"><a href="image-classification.html#cb176-6"></a>find_lr &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">init_value =</span> <span class="fl">1e-8</span>, <span class="dt">final_value =</span> <span class="dv">10</span>, <span class="dt">beta =</span> <span class="fl">0.98</span>) {</span>
-<span id="cb176-7"><a href="image-classification.html#cb176-7"></a></span>
-<span id="cb176-8"><a href="image-classification.html#cb176-8"></a>  num &lt;-<span class="st"> </span>train_dl<span class="op">$</span><span class="kw">.length</span>()</span>
-<span id="cb176-9"><a href="image-classification.html#cb176-9"></a>  mult =<span class="st"> </span>(final_value<span class="op">/</span>init_value)<span class="op">^</span>(<span class="dv">1</span><span class="op">/</span>num)</span>
-<span id="cb176-10"><a href="image-classification.html#cb176-10"></a>  lr &lt;-<span class="st"> </span>init_value</span>
-<span id="cb176-11"><a href="image-classification.html#cb176-11"></a>  optimizer<span class="op">$</span>param_groups[[<span class="dv">1</span>]]<span class="op">$</span>lr &lt;-<span class="st"> </span>lr</span>
-<span id="cb176-12"><a href="image-classification.html#cb176-12"></a>  avg_loss &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb176-13"><a href="image-classification.html#cb176-13"></a>  best_loss &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb176-14"><a href="image-classification.html#cb176-14"></a>  batch_num &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb176-15"><a href="image-classification.html#cb176-15"></a></span>
-<span id="cb176-16"><a href="image-classification.html#cb176-16"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(train_dl)) {</span>
-<span id="cb176-17"><a href="image-classification.html#cb176-17"></a></span>
-<span id="cb176-18"><a href="image-classification.html#cb176-18"></a>    batch_num &lt;-<span class="st"> </span>batch_num <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb176-19"><a href="image-classification.html#cb176-19"></a>    optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
-<span id="cb176-20"><a href="image-classification.html#cb176-20"></a>    output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
-<span id="cb176-21"><a href="image-classification.html#cb176-21"></a>    loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
-<span id="cb176-22"><a href="image-classification.html#cb176-22"></a></span>
-<span id="cb176-23"><a href="image-classification.html#cb176-23"></a>    <span class="co">#Compute the smoothed loss</span></span>
-<span id="cb176-24"><a href="image-classification.html#cb176-24"></a>    avg_loss &lt;-<span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>avg_loss <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>beta) <span class="op">*</span><span class="st"> </span>loss<span class="op">$</span><span class="kw">item</span>()</span>
-<span id="cb176-25"><a href="image-classification.html#cb176-25"></a>    smoothed_loss &lt;-<span class="st"> </span>avg_loss <span class="op">/</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>beta<span class="op">^</span>batch_num)</span>
-<span id="cb176-26"><a href="image-classification.html#cb176-26"></a>    <span class="co">#Stop if the loss is exploding</span></span>
-<span id="cb176-27"><a href="image-classification.html#cb176-27"></a>    <span class="cf">if</span> (batch_num <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;&amp;</span><span class="st"> </span>smoothed_loss <span class="op">&gt;</span><span class="st"> </span><span class="dv">4</span> <span class="op">*</span><span class="st"> </span>best_loss) <span class="cf">break</span></span>
-<span id="cb176-28"><a href="image-classification.html#cb176-28"></a>    <span class="co">#Record the best loss</span></span>
-<span id="cb176-29"><a href="image-classification.html#cb176-29"></a>    <span class="cf">if</span> (smoothed_loss <span class="op">&lt;</span><span class="st"> </span>best_loss <span class="op">||</span><span class="st"> </span>batch_num <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) best_loss &lt;-<span class="st"> </span>smoothed_loss</span>
-<span id="cb176-30"><a href="image-classification.html#cb176-30"></a></span>
-<span id="cb176-31"><a href="image-classification.html#cb176-31"></a>    <span class="co">#Store the values</span></span>
-<span id="cb176-32"><a href="image-classification.html#cb176-32"></a>    losses &lt;-<span class="st"> </span><span class="kw">c</span>(losses, smoothed_loss)</span>
-<span id="cb176-33"><a href="image-classification.html#cb176-33"></a>    log_lrs &lt;-<span class="st"> </span><span class="kw">c</span>(log_lrs, (<span class="kw">log</span>(lr, <span class="dv">10</span>)))</span>
-<span id="cb176-34"><a href="image-classification.html#cb176-34"></a></span>
-<span id="cb176-35"><a href="image-classification.html#cb176-35"></a>    loss<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb176-36"><a href="image-classification.html#cb176-36"></a>    optimizer<span class="op">$</span><span class="kw">step</span>()</span>
-<span id="cb176-37"><a href="image-classification.html#cb176-37"></a></span>
-<span id="cb176-38"><a href="image-classification.html#cb176-38"></a>    <span class="co">#Update the lr for the next step</span></span>
-<span id="cb176-39"><a href="image-classification.html#cb176-39"></a>    lr &lt;-<span class="st"> </span>lr <span class="op">*</span><span class="st"> </span>mult</span>
-<span id="cb176-40"><a href="image-classification.html#cb176-40"></a>    optimizer<span class="op">$</span>param_groups[[<span class="dv">1</span>]]<span class="op">$</span>lr &lt;-<span class="st"> </span>lr</span>
-<span id="cb176-41"><a href="image-classification.html#cb176-41"></a>  }</span>
-<span id="cb176-42"><a href="image-classification.html#cb176-42"></a>}</span>
-<span id="cb176-43"><a href="image-classification.html#cb176-43"></a></span>
-<span id="cb176-44"><a href="image-classification.html#cb176-44"></a><span class="kw">find_lr</span>()</span></code></pre></div>
-<div class="sourceCode" id="cb177"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb177-1"><a href="image-classification.html#cb177-1"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">log_lrs =</span> log_lrs, <span class="dt">losses =</span> losses)</span>
-<span id="cb177-2"><a href="image-classification.html#cb177-2"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb177-3"><a href="image-classification.html#cb177-3"></a><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(log_lrs, losses)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb193"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb193-1"><a href="image-classification.html#cb193-1"></a><span class="co"># ported from: https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html</span></span>
+<span id="cb193-2"><a href="image-classification.html#cb193-2"></a></span>
+<span id="cb193-3"><a href="image-classification.html#cb193-3"></a>losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb193-4"><a href="image-classification.html#cb193-4"></a>log_lrs &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb193-5"><a href="image-classification.html#cb193-5"></a></span>
+<span id="cb193-6"><a href="image-classification.html#cb193-6"></a>find_lr &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">init_value =</span> <span class="fl">1e-8</span>, <span class="dt">final_value =</span> <span class="dv">10</span>, <span class="dt">beta =</span> <span class="fl">0.98</span>) {</span>
+<span id="cb193-7"><a href="image-classification.html#cb193-7"></a></span>
+<span id="cb193-8"><a href="image-classification.html#cb193-8"></a>  num &lt;-<span class="st"> </span>train_dl<span class="op">$</span><span class="kw">.length</span>()</span>
+<span id="cb193-9"><a href="image-classification.html#cb193-9"></a>  mult =<span class="st"> </span>(final_value<span class="op">/</span>init_value)<span class="op">^</span>(<span class="dv">1</span><span class="op">/</span>num)</span>
+<span id="cb193-10"><a href="image-classification.html#cb193-10"></a>  lr &lt;-<span class="st"> </span>init_value</span>
+<span id="cb193-11"><a href="image-classification.html#cb193-11"></a>  optimizer<span class="op">$</span>param_groups[[<span class="dv">1</span>]]<span class="op">$</span>lr &lt;-<span class="st"> </span>lr</span>
+<span id="cb193-12"><a href="image-classification.html#cb193-12"></a>  avg_loss &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb193-13"><a href="image-classification.html#cb193-13"></a>  best_loss &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb193-14"><a href="image-classification.html#cb193-14"></a>  batch_num &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb193-15"><a href="image-classification.html#cb193-15"></a></span>
+<span id="cb193-16"><a href="image-classification.html#cb193-16"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(train_dl)) {</span>
+<span id="cb193-17"><a href="image-classification.html#cb193-17"></a></span>
+<span id="cb193-18"><a href="image-classification.html#cb193-18"></a>    batch_num &lt;-<span class="st"> </span>batch_num <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb193-19"><a href="image-classification.html#cb193-19"></a>    optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb193-20"><a href="image-classification.html#cb193-20"></a>    output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
+<span id="cb193-21"><a href="image-classification.html#cb193-21"></a>    loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
+<span id="cb193-22"><a href="image-classification.html#cb193-22"></a></span>
+<span id="cb193-23"><a href="image-classification.html#cb193-23"></a>    <span class="co">#Compute the smoothed loss</span></span>
+<span id="cb193-24"><a href="image-classification.html#cb193-24"></a>    avg_loss &lt;-<span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>avg_loss <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>beta) <span class="op">*</span><span class="st"> </span>loss<span class="op">$</span><span class="kw">item</span>()</span>
+<span id="cb193-25"><a href="image-classification.html#cb193-25"></a>    smoothed_loss &lt;-<span class="st"> </span>avg_loss <span class="op">/</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>beta<span class="op">^</span>batch_num)</span>
+<span id="cb193-26"><a href="image-classification.html#cb193-26"></a>    <span class="co">#Stop if the loss is exploding</span></span>
+<span id="cb193-27"><a href="image-classification.html#cb193-27"></a>    <span class="cf">if</span> (batch_num <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;&amp;</span><span class="st"> </span>smoothed_loss <span class="op">&gt;</span><span class="st"> </span><span class="dv">4</span> <span class="op">*</span><span class="st"> </span>best_loss) <span class="cf">break</span></span>
+<span id="cb193-28"><a href="image-classification.html#cb193-28"></a>    <span class="co">#Record the best loss</span></span>
+<span id="cb193-29"><a href="image-classification.html#cb193-29"></a>    <span class="cf">if</span> (smoothed_loss <span class="op">&lt;</span><span class="st"> </span>best_loss <span class="op">||</span><span class="st"> </span>batch_num <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) best_loss &lt;-<span class="st"> </span>smoothed_loss</span>
+<span id="cb193-30"><a href="image-classification.html#cb193-30"></a></span>
+<span id="cb193-31"><a href="image-classification.html#cb193-31"></a>    <span class="co">#Store the values</span></span>
+<span id="cb193-32"><a href="image-classification.html#cb193-32"></a>    losses &lt;-<span class="st"> </span><span class="kw">c</span>(losses, smoothed_loss)</span>
+<span id="cb193-33"><a href="image-classification.html#cb193-33"></a>    log_lrs &lt;-<span class="st"> </span><span class="kw">c</span>(log_lrs, (<span class="kw">log</span>(lr, <span class="dv">10</span>)))</span>
+<span id="cb193-34"><a href="image-classification.html#cb193-34"></a></span>
+<span id="cb193-35"><a href="image-classification.html#cb193-35"></a>    loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb193-36"><a href="image-classification.html#cb193-36"></a>    optimizer<span class="op">$</span><span class="kw">step</span>()</span>
+<span id="cb193-37"><a href="image-classification.html#cb193-37"></a></span>
+<span id="cb193-38"><a href="image-classification.html#cb193-38"></a>    <span class="co">#Update the lr for the next step</span></span>
+<span id="cb193-39"><a href="image-classification.html#cb193-39"></a>    lr &lt;-<span class="st"> </span>lr <span class="op">*</span><span class="st"> </span>mult</span>
+<span id="cb193-40"><a href="image-classification.html#cb193-40"></a>    optimizer<span class="op">$</span>param_groups[[<span class="dv">1</span>]]<span class="op">$</span>lr &lt;-<span class="st"> </span>lr</span>
+<span id="cb193-41"><a href="image-classification.html#cb193-41"></a>  }</span>
+<span id="cb193-42"><a href="image-classification.html#cb193-42"></a>}</span>
+<span id="cb193-43"><a href="image-classification.html#cb193-43"></a></span>
+<span id="cb193-44"><a href="image-classification.html#cb193-44"></a><span class="kw">find_lr</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb194-1"><a href="image-classification.html#cb194-1"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">log_lrs =</span> log_lrs, <span class="dt">losses =</span> losses)</span>
+<span id="cb194-2"><a href="image-classification.html#cb194-2"></a><span class="kw">library</span>(ggplot2)</span>
+<span id="cb194-3"><a href="image-classification.html#cb194-3"></a><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(log_lrs, losses)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">1</span>)</span></code></pre></div>
 <p>The best learning rate is not the exact one where loss is at a minimum, instead, it should be picked somewhat earlier on the curve, while loss still decreases. We’ll try 0.05 here.</p>
 <p><code>OneCycleLR</code> will then vary the learning rate continuously, performing just a single ramp-up and a single ramp-down over the whole training period:</p>
-<div class="sourceCode" id="cb178"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb178-1"><a href="image-classification.html#cb178-1"></a>num_epochs =<span class="st"> </span><span class="dv">10</span></span>
-<span id="cb178-2"><a href="image-classification.html#cb178-2"></a>scheduler &lt;-<span class="st"> </span>optimizer <span class="op">%&gt;%</span></span>
-<span id="cb178-3"><a href="image-classification.html#cb178-3"></a><span class="st">  </span><span class="kw">lr_one_cycle</span>(<span class="dt">max_lr =</span> <span class="fl">0.05</span>, <span class="dt">epochs =</span> num_epochs, <span class="dt">steps_per_epoch =</span> train_dl<span class="op">$</span><span class="kw">.length</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb195"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb195-1"><a href="image-classification.html#cb195-1"></a>num_epochs =<span class="st"> </span><span class="dv">10</span></span>
+<span id="cb195-2"><a href="image-classification.html#cb195-2"></a>scheduler &lt;-<span class="st"> </span>optimizer <span class="op">%&gt;%</span></span>
+<span id="cb195-3"><a href="image-classification.html#cb195-3"></a><span class="st">  </span><span class="kw">lr_one_cycle</span>(<span class="dt">max_lr =</span> <span class="fl">0.05</span>, <span class="dt">epochs =</span> num_epochs, <span class="dt">steps_per_epoch =</span> train_dl<span class="op">$</span><span class="kw">.length</span>())</span></code></pre></div>
 <p>Now we train for ten epochs. Every epoch, we iterate over both training and validation sets, performing optimization on the training set while just calculating accuracy on the test set. Note that <code>scheduler$step()</code> has to be called explicitly after each batch, and it has to be called <em>after</em> <code>optimizer$step()</code>.</p>
-<div class="sourceCode" id="cb179"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb179-1"><a href="image-classification.html#cb179-1"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>num_epochs) {</span>
-<span id="cb179-2"><a href="image-classification.html#cb179-2"></a></span>
-<span id="cb179-3"><a href="image-classification.html#cb179-3"></a>  model<span class="op">$</span><span class="kw">train</span>()</span>
-<span id="cb179-4"><a href="image-classification.html#cb179-4"></a>  train_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb179-5"><a href="image-classification.html#cb179-5"></a></span>
-<span id="cb179-6"><a href="image-classification.html#cb179-6"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(train_dl)) {</span>
-<span id="cb179-7"><a href="image-classification.html#cb179-7"></a>    optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
-<span id="cb179-8"><a href="image-classification.html#cb179-8"></a>    output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
-<span id="cb179-9"><a href="image-classification.html#cb179-9"></a>    loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
-<span id="cb179-10"><a href="image-classification.html#cb179-10"></a>    loss<span class="op">$</span><span class="kw">backward</span>()</span>
-<span id="cb179-11"><a href="image-classification.html#cb179-11"></a>    optimizer<span class="op">$</span><span class="kw">step</span>()</span>
-<span id="cb179-12"><a href="image-classification.html#cb179-12"></a>    scheduler<span class="op">$</span><span class="kw">step</span>()</span>
-<span id="cb179-13"><a href="image-classification.html#cb179-13"></a>    train_losses &lt;-<span class="st"> </span><span class="kw">c</span>(train_losses, loss<span class="op">$</span><span class="kw">item</span>())</span>
-<span id="cb179-14"><a href="image-classification.html#cb179-14"></a>  }</span>
-<span id="cb179-15"><a href="image-classification.html#cb179-15"></a></span>
-<span id="cb179-16"><a href="image-classification.html#cb179-16"></a>  model<span class="op">$</span><span class="kw">eval</span>()</span>
-<span id="cb179-17"><a href="image-classification.html#cb179-17"></a>  valid_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb179-18"><a href="image-classification.html#cb179-18"></a></span>
-<span id="cb179-19"><a href="image-classification.html#cb179-19"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(valid_dl)) {</span>
-<span id="cb179-20"><a href="image-classification.html#cb179-20"></a>    output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]])</span>
-<span id="cb179-21"><a href="image-classification.html#cb179-21"></a>    loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
-<span id="cb179-22"><a href="image-classification.html#cb179-22"></a>    valid_losses &lt;-<span class="st"> </span><span class="kw">c</span>(valid_losses, loss<span class="op">$</span><span class="kw">item</span>())</span>
-<span id="cb179-23"><a href="image-classification.html#cb179-23"></a>  }</span>
-<span id="cb179-24"><a href="image-classification.html#cb179-24"></a></span>
-<span id="cb179-25"><a href="image-classification.html#cb179-25"></a>  <span class="kw">cat</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Loss at epoch %d: training: %3f, validation: %3f</span><span class="ch">\n</span><span class="st">&quot;</span>, epoch, <span class="kw">mean</span>(train_losses), <span class="kw">mean</span>(valid_losses)))</span>
-<span id="cb179-26"><a href="image-classification.html#cb179-26"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb196"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb196-1"><a href="image-classification.html#cb196-1"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>num_epochs) {</span>
+<span id="cb196-2"><a href="image-classification.html#cb196-2"></a></span>
+<span id="cb196-3"><a href="image-classification.html#cb196-3"></a>  model<span class="op">$</span><span class="kw">train</span>()</span>
+<span id="cb196-4"><a href="image-classification.html#cb196-4"></a>  train_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb196-5"><a href="image-classification.html#cb196-5"></a></span>
+<span id="cb196-6"><a href="image-classification.html#cb196-6"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(train_dl)) {</span>
+<span id="cb196-7"><a href="image-classification.html#cb196-7"></a>    optimizer<span class="op">$</span><span class="kw">zero_grad</span>()</span>
+<span id="cb196-8"><a href="image-classification.html#cb196-8"></a>    output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
+<span id="cb196-9"><a href="image-classification.html#cb196-9"></a>    loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
+<span id="cb196-10"><a href="image-classification.html#cb196-10"></a>    loss<span class="op">$</span><span class="kw">backward</span>()</span>
+<span id="cb196-11"><a href="image-classification.html#cb196-11"></a>    optimizer<span class="op">$</span><span class="kw">step</span>()</span>
+<span id="cb196-12"><a href="image-classification.html#cb196-12"></a>    scheduler<span class="op">$</span><span class="kw">step</span>()</span>
+<span id="cb196-13"><a href="image-classification.html#cb196-13"></a>    train_losses &lt;-<span class="st"> </span><span class="kw">c</span>(train_losses, loss<span class="op">$</span><span class="kw">item</span>())</span>
+<span id="cb196-14"><a href="image-classification.html#cb196-14"></a>  }</span>
+<span id="cb196-15"><a href="image-classification.html#cb196-15"></a></span>
+<span id="cb196-16"><a href="image-classification.html#cb196-16"></a>  model<span class="op">$</span><span class="kw">eval</span>()</span>
+<span id="cb196-17"><a href="image-classification.html#cb196-17"></a>  valid_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb196-18"><a href="image-classification.html#cb196-18"></a></span>
+<span id="cb196-19"><a href="image-classification.html#cb196-19"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(valid_dl)) {</span>
+<span id="cb196-20"><a href="image-classification.html#cb196-20"></a>    output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]])</span>
+<span id="cb196-21"><a href="image-classification.html#cb196-21"></a>    loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
+<span id="cb196-22"><a href="image-classification.html#cb196-22"></a>    valid_losses &lt;-<span class="st"> </span><span class="kw">c</span>(valid_losses, loss<span class="op">$</span><span class="kw">item</span>())</span>
+<span id="cb196-23"><a href="image-classification.html#cb196-23"></a>  }</span>
+<span id="cb196-24"><a href="image-classification.html#cb196-24"></a></span>
+<span id="cb196-25"><a href="image-classification.html#cb196-25"></a>  <span class="kw">cat</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Loss at epoch %d: training: %3f, validation: %3f</span><span class="ch">\n</span><span class="st">&quot;</span>, epoch, <span class="kw">mean</span>(train_losses), <span class="kw">mean</span>(valid_losses)))</span>
+<span id="cb196-26"><a href="image-classification.html#cb196-26"></a>}</span></code></pre></div>
 </div>
 <div id="performance-on-the-test-set" class="section level2" number="7.4">
 <h2><span class="header-section-number">7.4</span> Performance on the test set</h2>
 <p>Finally, we calculate accuracy on the test set:</p>
-<div class="sourceCode" id="cb180"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb180-1"><a href="image-classification.html#cb180-1"></a>model<span class="op">$</span><span class="kw">eval</span>()</span>
-<span id="cb180-2"><a href="image-classification.html#cb180-2"></a></span>
-<span id="cb180-3"><a href="image-classification.html#cb180-3"></a>test_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
-<span id="cb180-4"><a href="image-classification.html#cb180-4"></a>total &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb180-5"><a href="image-classification.html#cb180-5"></a>correct &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb180-6"><a href="image-classification.html#cb180-6"></a></span>
-<span id="cb180-7"><a href="image-classification.html#cb180-7"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(test_dl)) {</span>
-<span id="cb180-8"><a href="image-classification.html#cb180-8"></a>  output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
-<span id="cb180-9"><a href="image-classification.html#cb180-9"></a>  labels &lt;-<span class="st"> </span>b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>)</span>
-<span id="cb180-10"><a href="image-classification.html#cb180-10"></a>  loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, labels)</span>
-<span id="cb180-11"><a href="image-classification.html#cb180-11"></a>  test_losses &lt;-<span class="st"> </span><span class="kw">c</span>(test_losses, loss<span class="op">$</span><span class="kw">item</span>())</span>
-<span id="cb180-12"><a href="image-classification.html#cb180-12"></a>  <span class="co"># torch_max returns a list, with position 1 containing the values</span></span>
-<span id="cb180-13"><a href="image-classification.html#cb180-13"></a>  <span class="co"># and position 2 containing the respective indices</span></span>
-<span id="cb180-14"><a href="image-classification.html#cb180-14"></a>  predicted &lt;-<span class="st"> </span><span class="kw">torch_max</span>(output<span class="op">$</span><span class="kw">data</span>(), <span class="dt">dim =</span> <span class="dv">2</span>)[[<span class="dv">2</span>]]</span>
-<span id="cb180-15"><a href="image-classification.html#cb180-15"></a>  total &lt;-<span class="st"> </span>total <span class="op">+</span><span class="st"> </span>labels<span class="op">$</span><span class="kw">size</span>(<span class="dv">1</span>)</span>
-<span id="cb180-16"><a href="image-classification.html#cb180-16"></a>  <span class="co"># add number of correct classifications in this batch to the aggregate</span></span>
-<span id="cb180-17"><a href="image-classification.html#cb180-17"></a>  correct &lt;-<span class="st"> </span>correct <span class="op">+</span><span class="st"> </span>(predicted <span class="op">==</span><span class="st"> </span>labels)<span class="op">$</span><span class="kw">sum</span>()<span class="op">$</span><span class="kw">item</span>()</span>
-<span id="cb180-18"><a href="image-classification.html#cb180-18"></a>}</span>
-<span id="cb180-19"><a href="image-classification.html#cb180-19"></a></span>
-<span id="cb180-20"><a href="image-classification.html#cb180-20"></a><span class="kw">mean</span>(test_losses)</span></code></pre></div>
+<div class="sourceCode" id="cb197"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb197-1"><a href="image-classification.html#cb197-1"></a>model<span class="op">$</span><span class="kw">eval</span>()</span>
+<span id="cb197-2"><a href="image-classification.html#cb197-2"></a></span>
+<span id="cb197-3"><a href="image-classification.html#cb197-3"></a>test_losses &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb197-4"><a href="image-classification.html#cb197-4"></a>total &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb197-5"><a href="image-classification.html#cb197-5"></a>correct &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb197-6"><a href="image-classification.html#cb197-6"></a></span>
+<span id="cb197-7"><a href="image-classification.html#cb197-7"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="kw">enumerate</span>(test_dl)) {</span>
+<span id="cb197-8"><a href="image-classification.html#cb197-8"></a>  output &lt;-<span class="st"> </span><span class="kw">model</span>(b[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>))</span>
+<span id="cb197-9"><a href="image-classification.html#cb197-9"></a>  labels &lt;-<span class="st"> </span>b[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">to</span>(<span class="dt">device =</span> <span class="st">&quot;cuda&quot;</span>)</span>
+<span id="cb197-10"><a href="image-classification.html#cb197-10"></a>  loss &lt;-<span class="st"> </span><span class="kw">criterion</span>(output, labels)</span>
+<span id="cb197-11"><a href="image-classification.html#cb197-11"></a>  test_losses &lt;-<span class="st"> </span><span class="kw">c</span>(test_losses, loss<span class="op">$</span><span class="kw">item</span>())</span>
+<span id="cb197-12"><a href="image-classification.html#cb197-12"></a>  <span class="co"># torch_max returns a list, with position 1 containing the values</span></span>
+<span id="cb197-13"><a href="image-classification.html#cb197-13"></a>  <span class="co"># and position 2 containing the respective indices</span></span>
+<span id="cb197-14"><a href="image-classification.html#cb197-14"></a>  predicted &lt;-<span class="st"> </span><span class="kw">torch_max</span>(output<span class="op">$</span><span class="kw">data</span>(), <span class="dt">dim =</span> <span class="dv">2</span>)[[<span class="dv">2</span>]]</span>
+<span id="cb197-15"><a href="image-classification.html#cb197-15"></a>  total &lt;-<span class="st"> </span>total <span class="op">+</span><span class="st"> </span>labels<span class="op">$</span><span class="kw">size</span>(<span class="dv">1</span>)</span>
+<span id="cb197-16"><a href="image-classification.html#cb197-16"></a>  <span class="co"># add number of correct classifications in this batch to the aggregate</span></span>
+<span id="cb197-17"><a href="image-classification.html#cb197-17"></a>  correct &lt;-<span class="st"> </span>correct <span class="op">+</span><span class="st"> </span>(predicted <span class="op">==</span><span class="st"> </span>labels)<span class="op">$</span><span class="kw">sum</span>()<span class="op">$</span><span class="kw">item</span>()</span>
+<span id="cb197-18"><a href="image-classification.html#cb197-18"></a>}</span>
+<span id="cb197-19"><a href="image-classification.html#cb197-19"></a></span>
+<span id="cb197-20"><a href="image-classification.html#cb197-20"></a><span class="kw">mean</span>(test_losses)</span></code></pre></div>
 <pre><code>tbd</code></pre>
-<div class="sourceCode" id="cb182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb182-1"><a href="image-classification.html#cb182-1"></a>test_accuracy &lt;-<span class="st">  </span>correct<span class="op">/</span>total</span>
-<span id="cb182-2"><a href="image-classification.html#cb182-2"></a>test_accuracy</span></code></pre></div>
+<div class="sourceCode" id="cb199"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb199-1"><a href="image-classification.html#cb199-1"></a>test_accuracy &lt;-<span class="st">  </span>correct<span class="op">/</span>total</span>
+<span id="cb199-2"><a href="image-classification.html#cb199-2"></a>test_accuracy</span></code></pre></div>
 <pre><code>tbd</code></pre>
 
 </div>

@@ -172,23 +172,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with <em>autograd</em></a></li>
 <li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using <em>autograd</em></a></li>
-<li class="chapter" data-level="4.3" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#outlook"><i class="fa fa-check"></i><b>4.3</b> Outlook</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
 <ul>
 <li class="chapter" data-level="5.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#modules"><i class="fa fa-check"></i><b>5.1</b> Modules</a>
 <ul>
-<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#layers-as-modules"><i class="fa fa-check"></i><b>5.1.1</b> Layers as modules</a></li>
-<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#models-as-modules"><i class="fa fa-check"></i><b>5.1.2</b> Models as modules</a></li>
+<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#base-modules-layers"><i class="fa fa-check"></i><b>5.1.1</b> Base modules (“layers”)</a></li>
+<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#container-modules-models"><i class="fa fa-check"></i><b>5.1.2</b> Container modules (“models”)</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
-<li class="chapter" data-level="5.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>5.3</b> Appendix: Python code</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
 <ul>
-<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#torch-optimizers"><i class="fa fa-check"></i><b>6.1</b> Torch optimizers</a></li>
-<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-net-with-optim"><i class="fa fa-check"></i><b>6.2</b> Simple net with <code>optim</code></a></li>
-<li class="chapter" data-level="6.3" data-path="simple-net-modules.html"><a href="simple-net-modules.html#appendix-python-code"><i class="fa fa-check"></i><b>6.3</b> Appendix: Python code</a></li>
+<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#losses-and-loss-functions"><i class="fa fa-check"></i><b>6.1</b> Losses and loss functions</a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#optimizers"><i class="fa fa-check"></i><b>6.2</b> Optimizers</a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-network-final-version"><i class="fa fa-check"></i><b>6.3</b> Simple network: final version</a></li>
 </ul></li>
 <li class="part"><span><b>II Image Recognition</b></span></li>
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
@@ -331,7 +329,7 @@ subspaces”.</p>
 <h4><span class="header-section-number">10.1.0.2</span> Overall architecture</h4>
 <p>Overall, transformer is an encoder stack, followed by a decoder stack. Both stacks are composed of several, identical
 submodules combining multi-head attention, layer normalization <span class="citation">(Lei Ba, Kiros, and Hinton <a href="#ref-2016arXiv160706450L" role="doc-biblioref">2016</a>)</span>, residual connections, and feedforward
-neural networks applied pointwise to each input.<a href="#fn9" class="footnote-ref" id="fnref9"><sup>9</sup></a> In addition to the self-attention mechanism (conceptually) shared with
+neural networks applied pointwise to each input.<a href="#fn11" class="footnote-ref" id="fnref11"><sup>11</sup></a> In addition to the self-attention mechanism (conceptually) shared with
 encoder layers, the decoder layers exercise a second form of attention: <em>encoder-decoder</em> attention allows them to
 differentially pay attention to the output passed by the encoder.</p>
 </div>
@@ -342,10 +340,10 @@ differentially pay attention to the output passed by the encoder.</p>
 instead, make use of <code>torch</code> layers that simplify the process significantly. <code>TransformerEncoderLayer</code> and
 <code>TransformerDecoderLayer</code> are the basic modules that make up encoder and decoder stacks, respectively.</p>
 <p>Here is a single encoder submodule comprising multi-head self-attention, layer normalization and feedforward networks:</p>
-<div class="sourceCode" id="cb232"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb232-1"><a href="transformer.html#cb232-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoderLayer</span>
-<span id="cb232-2"><a href="transformer.html#cb232-2"></a></span>
-<span id="cb232-3"><a href="transformer.html#cb232-3"></a>e <span class="op">=</span> TransformerEncoderLayer(d_model <span class="op">=</span> <span class="dv">256</span>, nhead <span class="op">=</span> <span class="dv">2</span>, dim_feedforward <span class="op">=</span> <span class="dv">256</span>, dropout <span class="op">=</span> <span class="fl">0.2</span>)</span>
-<span id="cb232-4"><a href="transformer.html#cb232-4"></a>e</span></code></pre></div>
+<div class="sourceCode" id="cb249"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb249-1"><a href="transformer.html#cb249-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoderLayer</span>
+<span id="cb249-2"><a href="transformer.html#cb249-2"></a></span>
+<span id="cb249-3"><a href="transformer.html#cb249-3"></a>e <span class="op">=</span> TransformerEncoderLayer(d_model <span class="op">=</span> <span class="dv">256</span>, nhead <span class="op">=</span> <span class="dv">2</span>, dim_feedforward <span class="op">=</span> <span class="dv">256</span>, dropout <span class="op">=</span> <span class="fl">0.2</span>)</span>
+<span id="cb249-4"><a href="transformer.html#cb249-4"></a>e</span></code></pre></div>
 <pre><code>TransformerEncoderLayer(
   (self_attn): MultiheadAttention(
     (out_proj): Linear(in_features=256, out_features=256, bias=True)
@@ -360,17 +358,17 @@ instead, make use of <code>torch</code> layers that simplify the process signifi
 )</code></pre>
 <p>A decoder submodule looks similar, apart from the fact that it has an additional <code>MultiHeadAttention</code> (sub-)submodule. One is
 for self-attention, the other, for attending to encoder input:</p>
-<div class="sourceCode" id="cb234"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb234-1"><a href="transformer.html#cb234-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoderLayer</span>
-<span id="cb234-2"><a href="transformer.html#cb234-2"></a></span>
-<span id="cb234-3"><a href="transformer.html#cb234-3"></a>d <span class="op">=</span> TransformerDecoderLayer(d_model <span class="op">=</span> <span class="dv">256</span>, nhead <span class="op">=</span> <span class="dv">2</span>, dim_feedforward <span class="op">=</span> <span class="dv">256</span>, dropout <span class="op">=</span> <span class="fl">0.2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb251"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb251-1"><a href="transformer.html#cb251-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoderLayer</span>
+<span id="cb251-2"><a href="transformer.html#cb251-2"></a></span>
+<span id="cb251-3"><a href="transformer.html#cb251-3"></a>d <span class="op">=</span> TransformerDecoderLayer(d_model <span class="op">=</span> <span class="dv">256</span>, nhead <span class="op">=</span> <span class="dv">2</span>, dim_feedforward <span class="op">=</span> <span class="dv">256</span>, dropout <span class="op">=</span> <span class="fl">0.2</span>)</span></code></pre></div>
 <p>Next up in the hierarchy are <code>TransformerEncoder</code> and <code>TransformerDecoder</code>. These are just containers, making up the
 respective stacks:</p>
-<div class="sourceCode" id="cb235"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb235-1"><a href="transformer.html#cb235-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoder</span>
-<span id="cb235-2"><a href="transformer.html#cb235-2"></a></span>
-<span id="cb235-3"><a href="transformer.html#cb235-3"></a>TransformerEncoder(encoder_layer <span class="op">=</span> e, num_layers <span class="op">=</span> <span class="dv">6</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb236"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb236-1"><a href="transformer.html#cb236-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoder</span>
-<span id="cb236-2"><a href="transformer.html#cb236-2"></a></span>
-<span id="cb236-3"><a href="transformer.html#cb236-3"></a>TransformerDecoder(decoder_layer <span class="op">=</span> d, num_layers <span class="op">=</span> <span class="dv">6</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb252"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb252-1"><a href="transformer.html#cb252-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoder</span>
+<span id="cb252-2"><a href="transformer.html#cb252-2"></a></span>
+<span id="cb252-3"><a href="transformer.html#cb252-3"></a>TransformerEncoder(encoder_layer <span class="op">=</span> e, num_layers <span class="op">=</span> <span class="dv">6</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb253"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb253-1"><a href="transformer.html#cb253-1"></a><span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoder</span>
+<span id="cb253-2"><a href="transformer.html#cb253-2"></a></span>
+<span id="cb253-3"><a href="transformer.html#cb253-3"></a>TransformerDecoder(decoder_layer <span class="op">=</span> d, num_layers <span class="op">=</span> <span class="dv">6</span>)</span></code></pre></div>
 <p>There is even a <code>Transformer</code> module that takes in parameters for the sublayers
 (<code>TransformerEncoderLayer</code>/<code>TransformerDecoderLayer</code>) as well as the containers (<code>TransformerEncoder</code>/<code>TransformerDecoder</code>).
 We won’t make use of that one though, as the overall architecture is more transparent when encoder and decoder stacks remain
@@ -378,56 +376,56 @@ clearly separated.</p>
 </div>
 <div id="a-transformer-for-natural-language-translation" class="section level2" number="10.3">
 <h2><span class="header-section-number">10.3</span> A Transformer for natural language translation</h2>
-<p>We use the same dataset as in the previous chapter, but this time, another language to translate to: Czech.<a href="#fn10" class="footnote-ref" id="fnref10"><sup>10</sup></a> You are very
+<p>We use the same dataset as in the previous chapter, but this time, another language to translate to: Czech.<a href="#fn12" class="footnote-ref" id="fnref12"><sup>12</sup></a> You are very
 welcome to compare architectures on identical splits, of course.</p>
 <div id="load-data" class="section level3" number="10.3.1">
 <h3><span class="header-section-number">10.3.1</span> Load data</h3>
 <p>As you see, the training set now is considerably smaller, resulting in significantly lower training time.</p>
-<div class="sourceCode" id="cb237"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb237-1"><a href="transformer.html#cb237-1"></a><span class="im">import</span> torch</span>
-<span id="cb237-2"><a href="transformer.html#cb237-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
-<span id="cb237-3"><a href="transformer.html#cb237-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
-<span id="cb237-4"><a href="transformer.html#cb237-4"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
-<span id="cb237-5"><a href="transformer.html#cb237-5"></a></span>
-<span id="cb237-6"><a href="transformer.html#cb237-6"></a><span class="im">from</span> torchtext.data <span class="im">import</span> Field, BucketIterator</span>
-<span id="cb237-7"><a href="transformer.html#cb237-7"></a><span class="im">from</span> torchtext.datasets <span class="im">import</span> IWSLT</span>
-<span id="cb237-8"><a href="transformer.html#cb237-8"></a></span>
-<span id="cb237-9"><a href="transformer.html#cb237-9"></a><span class="im">import</span> random</span>
-<span id="cb237-10"><a href="transformer.html#cb237-10"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb237-11"><a href="transformer.html#cb237-11"></a><span class="im">import</span> math</span>
-<span id="cb237-12"><a href="transformer.html#cb237-12"></a></span>
-<span id="cb237-13"><a href="transformer.html#cb237-13"></a><span class="co"># this time the model will expect to get the batch dimension first</span></span>
-<span id="cb237-14"><a href="transformer.html#cb237-14"></a>src_spec <span class="op">=</span> Field(</span>
-<span id="cb237-15"><a href="transformer.html#cb237-15"></a>    tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
-<span id="cb237-16"><a href="transformer.html#cb237-16"></a>    tokenizer_language<span class="op">=</span><span class="st">&quot;en&quot;</span>,</span>
-<span id="cb237-17"><a href="transformer.html#cb237-17"></a>    init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
-<span id="cb237-18"><a href="transformer.html#cb237-18"></a>    eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
-<span id="cb237-19"><a href="transformer.html#cb237-19"></a>    lower <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb237-20"><a href="transformer.html#cb237-20"></a>    batch_first <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb237-21"><a href="transformer.html#cb237-21"></a>    fix_length<span class="op">=</span><span class="dv">100</span></span>
-<span id="cb237-22"><a href="transformer.html#cb237-22"></a>    )</span>
-<span id="cb237-23"><a href="transformer.html#cb237-23"></a></span>
-<span id="cb237-24"><a href="transformer.html#cb237-24"></a>trg_spec <span class="op">=</span> Field(</span>
-<span id="cb237-25"><a href="transformer.html#cb237-25"></a>    tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
-<span id="cb237-26"><a href="transformer.html#cb237-26"></a>    <span class="co"># no language-specific tokenizer available for cz</span></span>
-<span id="cb237-27"><a href="transformer.html#cb237-27"></a>    tokenizer_language<span class="op">=</span><span class="st">&quot;xx&quot;</span>, </span>
-<span id="cb237-28"><a href="transformer.html#cb237-28"></a>    init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
-<span id="cb237-29"><a href="transformer.html#cb237-29"></a>    eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
-<span id="cb237-30"><a href="transformer.html#cb237-30"></a>    lower <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb237-31"><a href="transformer.html#cb237-31"></a>    batch_first <span class="op">=</span> <span class="va">True</span>,</span>
-<span id="cb237-32"><a href="transformer.html#cb237-32"></a>    fix_length<span class="op">=</span><span class="dv">100</span></span>
-<span id="cb237-33"><a href="transformer.html#cb237-33"></a>    )</span>
-<span id="cb237-34"><a href="transformer.html#cb237-34"></a>            </span>
-<span id="cb237-35"><a href="transformer.html#cb237-35"></a>train_data, valid_data, test_data <span class="op">=</span> IWSLT.splits(</span>
-<span id="cb237-36"><a href="transformer.html#cb237-36"></a>  exts <span class="op">=</span> (<span class="st">&#39;.en&#39;</span>, <span class="st">&#39;.cs&#39;</span>),</span>
-<span id="cb237-37"><a href="transformer.html#cb237-37"></a>  fields <span class="op">=</span> (src_spec, trg_spec),</span>
-<span id="cb237-38"><a href="transformer.html#cb237-38"></a>  test<span class="op">=</span><span class="st">&#39;IWSLT16.TED.tst2013&#39;</span>) <span class="co"># 2014 does not exist</span></span>
-<span id="cb237-39"><a href="transformer.html#cb237-39"></a></span>
-<span id="cb237-40"><a href="transformer.html#cb237-40"></a><span class="bu">len</span>(train_data.examples), <span class="bu">len</span>(valid_data.examples), <span class="bu">len</span>(test_data.examples)</span></code></pre></div>
+<div class="sourceCode" id="cb254"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb254-1"><a href="transformer.html#cb254-1"></a><span class="im">import</span> torch</span>
+<span id="cb254-2"><a href="transformer.html#cb254-2"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb254-3"><a href="transformer.html#cb254-3"></a><span class="im">import</span> torch.optim <span class="im">as</span> optim</span>
+<span id="cb254-4"><a href="transformer.html#cb254-4"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
+<span id="cb254-5"><a href="transformer.html#cb254-5"></a></span>
+<span id="cb254-6"><a href="transformer.html#cb254-6"></a><span class="im">from</span> torchtext.data <span class="im">import</span> Field, BucketIterator</span>
+<span id="cb254-7"><a href="transformer.html#cb254-7"></a><span class="im">from</span> torchtext.datasets <span class="im">import</span> IWSLT</span>
+<span id="cb254-8"><a href="transformer.html#cb254-8"></a></span>
+<span id="cb254-9"><a href="transformer.html#cb254-9"></a><span class="im">import</span> random</span>
+<span id="cb254-10"><a href="transformer.html#cb254-10"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb254-11"><a href="transformer.html#cb254-11"></a><span class="im">import</span> math</span>
+<span id="cb254-12"><a href="transformer.html#cb254-12"></a></span>
+<span id="cb254-13"><a href="transformer.html#cb254-13"></a><span class="co"># this time the model will expect to get the batch dimension first</span></span>
+<span id="cb254-14"><a href="transformer.html#cb254-14"></a>src_spec <span class="op">=</span> Field(</span>
+<span id="cb254-15"><a href="transformer.html#cb254-15"></a>    tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
+<span id="cb254-16"><a href="transformer.html#cb254-16"></a>    tokenizer_language<span class="op">=</span><span class="st">&quot;en&quot;</span>,</span>
+<span id="cb254-17"><a href="transformer.html#cb254-17"></a>    init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
+<span id="cb254-18"><a href="transformer.html#cb254-18"></a>    eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
+<span id="cb254-19"><a href="transformer.html#cb254-19"></a>    lower <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb254-20"><a href="transformer.html#cb254-20"></a>    batch_first <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb254-21"><a href="transformer.html#cb254-21"></a>    fix_length<span class="op">=</span><span class="dv">100</span></span>
+<span id="cb254-22"><a href="transformer.html#cb254-22"></a>    )</span>
+<span id="cb254-23"><a href="transformer.html#cb254-23"></a></span>
+<span id="cb254-24"><a href="transformer.html#cb254-24"></a>trg_spec <span class="op">=</span> Field(</span>
+<span id="cb254-25"><a href="transformer.html#cb254-25"></a>    tokenize <span class="op">=</span> <span class="st">&quot;spacy&quot;</span>,</span>
+<span id="cb254-26"><a href="transformer.html#cb254-26"></a>    <span class="co"># no language-specific tokenizer available for cz</span></span>
+<span id="cb254-27"><a href="transformer.html#cb254-27"></a>    tokenizer_language<span class="op">=</span><span class="st">&quot;xx&quot;</span>, </span>
+<span id="cb254-28"><a href="transformer.html#cb254-28"></a>    init_token <span class="op">=</span> <span class="st">&#39;&lt;sos&gt;&#39;</span>,</span>
+<span id="cb254-29"><a href="transformer.html#cb254-29"></a>    eos_token <span class="op">=</span> <span class="st">&#39;&lt;eos&gt;&#39;</span>,</span>
+<span id="cb254-30"><a href="transformer.html#cb254-30"></a>    lower <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb254-31"><a href="transformer.html#cb254-31"></a>    batch_first <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb254-32"><a href="transformer.html#cb254-32"></a>    fix_length<span class="op">=</span><span class="dv">100</span></span>
+<span id="cb254-33"><a href="transformer.html#cb254-33"></a>    )</span>
+<span id="cb254-34"><a href="transformer.html#cb254-34"></a>            </span>
+<span id="cb254-35"><a href="transformer.html#cb254-35"></a>train_data, valid_data, test_data <span class="op">=</span> IWSLT.splits(</span>
+<span id="cb254-36"><a href="transformer.html#cb254-36"></a>  exts <span class="op">=</span> (<span class="st">&#39;.en&#39;</span>, <span class="st">&#39;.cs&#39;</span>),</span>
+<span id="cb254-37"><a href="transformer.html#cb254-37"></a>  fields <span class="op">=</span> (src_spec, trg_spec),</span>
+<span id="cb254-38"><a href="transformer.html#cb254-38"></a>  test<span class="op">=</span><span class="st">&#39;IWSLT16.TED.tst2013&#39;</span>) <span class="co"># 2014 does not exist</span></span>
+<span id="cb254-39"><a href="transformer.html#cb254-39"></a></span>
+<span id="cb254-40"><a href="transformer.html#cb254-40"></a><span class="bu">len</span>(train_data.examples), <span class="bu">len</span>(valid_data.examples), <span class="bu">len</span>(test_data.examples)</span></code></pre></div>
 <pre><code>(114390, 1327, 1327)</code></pre>
 <p>This time too, let’s see a few examples:</p>
-<div class="sourceCode" id="cb239"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb239-1"><a href="transformer.html#cb239-1"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111</span>])</span>
-<span id="cb239-2"><a href="transformer.html#cb239-2"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">11111</span>])</span>
-<span id="cb239-3"><a href="transformer.html#cb239-3"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111111</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb256"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb256-1"><a href="transformer.html#cb256-1"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111</span>])</span>
+<span id="cb256-2"><a href="transformer.html#cb256-2"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">11111</span>])</span>
+<span id="cb256-3"><a href="transformer.html#cb256-3"></a><span class="bu">vars</span>(train_data.examples[<span class="dv">111111</span>])</span></code></pre></div>
 <pre><code>{&#39;src&#39;: [&#39;here&#39;, &#39;they&#39;, &#39;go&#39;, &#39;.&#39;], &#39;trg&#39;: [&#39;a&#39;, &#39;je&#39;, &#39;to&#39;, &#39;tady&#39;, &#39;.&#39;]}
 
 {&#39;src&#39;: [&#39;or&#39;, &#39;you&#39;, &#39;could&#39;, &#39;see&#39;, &#39;the&#39;, &#39;first&#39;, &#39;time&#39;, &#39;the&#39;, &#39;two&#39;, &#39;curves&#39;, &#39;diverged&#39;, &#39;,&#39;, &#39;as&#39;, &#39;shown&#39;, &#39;on&#39;, &#39;the&#39;, &#39;left&#39;, &#39;.&#39;], &#39;trg&#39;: [&#39;nalevo&#39;, &#39;můžete&#39;, &#39;vidět&#39;, &#39;,&#39;, &#39;kdy&#39;, &#39;se&#39;, &#39;ty&#39;, &#39;dvě&#39;, &#39;křivky&#39;, &#39;poprvé&#39;, &#39;rozchází&#39;, &#39;.&#39;]}
@@ -435,23 +433,23 @@ welcome to compare architectures on identical splits, of course.</p>
 {&#39;src&#39;: [&#39;i&#39;, &#39;hope&#39;, &#39;you&#39;, &quot;&#39;ll&quot;, &#39;each&#39;, &#39;take&#39;, &#39;a&#39;, &#39;moment&#39;, &#39;to&#39;, &#39;think&#39;, &#39;about&#39;, &#39;how&#39;, &#39;you&#39;, &#39;could&#39;, &#39;use&#39;, &#39;something&#39;, &#39;like&#39;, &#39;this&#39;, &#39;to&#39;, &#39;give&#39;, &#39;yourself&#39;, &#39;more&#39;, &#39;access&#39;, &#39;to&#39;, &#39;your&#39;, &#39;own&#39;, &#39;world&#39;, &#39;,&#39;, &#39;and&#39;, &#39;to&#39;, &#39;make&#39;, &#39;your&#39;, &#39;own&#39;, &#39;travel&#39;, &#39;more&#39;, &#39;convenient&#39;, &#39;and&#39;, &#39;more&#39;, &#39;fun&#39;, &#39;.&#39;], &#39;trg&#39;: [&#39;doufám&#39;, &#39;,&#39;, &#39;že&#39;, &#39;se&#39;, &#39;všichni&#39;, &#39;alespoň&#39;, &#39;na&#39;, &#39;chvíli&#39;, &#39;zamyslíte&#39;, &#39;,&#39;, &#39;jak&#39;, &#39;by&#39;, &#39;vám&#39;, &#39;mohlo&#39;, &#39;použití&#39;, &#39;tohoto&#39;, &#39;prostředku&#39;, &#39;pomoci&#39;, &#39;,&#39;, &#39;abyste&#39;, &#39;získali&#39;, &#39;lepší&#39;, &#39;přístup&#39;, &#39;k&#39;, &#39;vlastnímu&#39;, &#39;světu&#39;, &#39;,&#39;, &#39;a&#39;, &#39;abyste&#39;, &#39;své&#39;, &#39;cestování&#39;, &#39;učinili&#39;, &#39;pohodlnějším&#39;, &#39;a&#39;, &#39;zábavnějším&#39;, &#39;.&#39;]}</code></pre>
 <p>We construct the vocabularies and save away the indices used for the pad tokens, as we’ll want to exempt those locations from
 both attention mechanism and loss calculation.</p>
-<div class="sourceCode" id="cb241"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb241-1"><a href="transformer.html#cb241-1"></a>src_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb241-2"><a href="transformer.html#cb241-2"></a>trg_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb241-3"><a href="transformer.html#cb241-3"></a></span>
-<span id="cb241-4"><a href="transformer.html#cb241-4"></a>src_pad_idx <span class="op">=</span> src_spec.vocab.stoi[<span class="st">&quot;&lt;pad&gt;&quot;</span>]</span>
-<span id="cb241-5"><a href="transformer.html#cb241-5"></a>trg_pad_idx <span class="op">=</span> trg_spec.vocab.stoi[<span class="st">&quot;&lt;pad&gt;&quot;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb258"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb258-1"><a href="transformer.html#cb258-1"></a>src_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb258-2"><a href="transformer.html#cb258-2"></a>trg_spec.build_vocab(train_data, min_freq <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb258-3"><a href="transformer.html#cb258-3"></a></span>
+<span id="cb258-4"><a href="transformer.html#cb258-4"></a>src_pad_idx <span class="op">=</span> src_spec.vocab.stoi[<span class="st">&quot;&lt;pad&gt;&quot;</span>]</span>
+<span id="cb258-5"><a href="transformer.html#cb258-5"></a>trg_pad_idx <span class="op">=</span> trg_spec.vocab.stoi[<span class="st">&quot;&lt;pad&gt;&quot;</span>]</span></code></pre></div>
 <p>You might have noticed, in the <code>Field</code> specifications, that this time, we load the data batch-dimension first. Let’s verify:</p>
-<div class="sourceCode" id="cb242"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb242-1"><a href="transformer.html#cb242-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
-<span id="cb242-2"><a href="transformer.html#cb242-2"></a></span>
-<span id="cb242-3"><a href="transformer.html#cb242-3"></a>batch_size <span class="op">=</span> <span class="dv">8</span></span>
-<span id="cb242-4"><a href="transformer.html#cb242-4"></a></span>
-<span id="cb242-5"><a href="transformer.html#cb242-5"></a>train_iterator, valid_iterator, test_iterator <span class="op">=</span> BucketIterator.splits(</span>
-<span id="cb242-6"><a href="transformer.html#cb242-6"></a>    (train_data, valid_data, test_data),</span>
-<span id="cb242-7"><a href="transformer.html#cb242-7"></a>    batch_size <span class="op">=</span> batch_size,</span>
-<span id="cb242-8"><a href="transformer.html#cb242-8"></a>    device <span class="op">=</span> device)</span>
-<span id="cb242-9"><a href="transformer.html#cb242-9"></a>    </span>
-<span id="cb242-10"><a href="transformer.html#cb242-10"></a>batch <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(train_iterator))</span>
-<span id="cb242-11"><a href="transformer.html#cb242-11"></a>batch.src.shape, batch.trg.shape</span></code></pre></div>
+<div class="sourceCode" id="cb259"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb259-1"><a href="transformer.html#cb259-1"></a>device <span class="op">=</span> torch.device(<span class="st">&#39;cuda&#39;</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">&#39;cpu&#39;</span>)</span>
+<span id="cb259-2"><a href="transformer.html#cb259-2"></a></span>
+<span id="cb259-3"><a href="transformer.html#cb259-3"></a>batch_size <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb259-4"><a href="transformer.html#cb259-4"></a></span>
+<span id="cb259-5"><a href="transformer.html#cb259-5"></a>train_iterator, valid_iterator, test_iterator <span class="op">=</span> BucketIterator.splits(</span>
+<span id="cb259-6"><a href="transformer.html#cb259-6"></a>    (train_data, valid_data, test_data),</span>
+<span id="cb259-7"><a href="transformer.html#cb259-7"></a>    batch_size <span class="op">=</span> batch_size,</span>
+<span id="cb259-8"><a href="transformer.html#cb259-8"></a>    device <span class="op">=</span> device)</span>
+<span id="cb259-9"><a href="transformer.html#cb259-9"></a>    </span>
+<span id="cb259-10"><a href="transformer.html#cb259-10"></a>batch <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(train_iterator))</span>
+<span id="cb259-11"><a href="transformer.html#cb259-11"></a>batch.src.shape, batch.trg.shape</span></code></pre></div>
 <pre><code>(torch.Size([8, 100]), torch.Size([8, 100]))</code></pre>
 </div>
 <div id="encoder" class="section level3" number="10.3.2">
@@ -460,63 +458,63 @@ both attention mechanism and loss calculation.</p>
 <ul>
 <li>This time, we have two embedding layers: the habitual one, used to embed the input, and a second one that’s supposed to
 learn the position codes. Originally, fixed rules were used to construct position encodings; this approach, however, seems
-to have gotten superseded<a href="#fn11" class="footnote-ref" id="fnref11"><sup>11</sup></a> by the usual deep learning maxim: let the network learn the features.</li>
+to have gotten superseded<a href="#fn13" class="footnote-ref" id="fnref13"><sup>13</sup></a> by the usual deep learning maxim: let the network learn the features.</li>
 <li>Before calling the encoder stack, both embeddings are combined (scaling down the token embeddings, a heuristic said to
 help with training stability – you may want to experiment with this).</li>
 <li>The encoder stack is called with a <em>mask</em>, whose creation we’ll witness soon. Its function is to mask the <code>pad</code> tokens so
 no energy is wasted paying attention to them.</li>
 </ul>
-<div class="sourceCode" id="cb244"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb244-1"><a href="transformer.html#cb244-1"></a>num_input_features <span class="op">=</span> <span class="bu">len</span>(src_spec.vocab)</span>
-<span id="cb244-2"><a href="transformer.html#cb244-2"></a></span>
-<span id="cb244-3"><a href="transformer.html#cb244-3"></a>embedding_dim <span class="op">=</span> <span class="dv">256</span> </span>
-<span id="cb244-4"><a href="transformer.html#cb244-4"></a></span>
-<span id="cb244-5"><a href="transformer.html#cb244-5"></a><span class="co"># max number of positions to encode</span></span>
-<span id="cb244-6"><a href="transformer.html#cb244-6"></a>max_length <span class="op">=</span> <span class="dv">100</span> </span>
-<span id="cb244-7"><a href="transformer.html#cb244-7"></a></span>
-<span id="cb244-8"><a href="transformer.html#cb244-8"></a><span class="co"># the dimension of the feedforward network model in nn.TransformerEncoder</span></span>
-<span id="cb244-9"><a href="transformer.html#cb244-9"></a>hidden_dim <span class="op">=</span> <span class="dv">256</span> </span>
-<span id="cb244-10"><a href="transformer.html#cb244-10"></a></span>
-<span id="cb244-11"><a href="transformer.html#cb244-11"></a><span class="co"># number of nn.TransformerEncoderLayer in nn.TransformerEncoder</span></span>
-<span id="cb244-12"><a href="transformer.html#cb244-12"></a>n_layers <span class="op">=</span> <span class="dv">2</span></span>
-<span id="cb244-13"><a href="transformer.html#cb244-13"></a></span>
-<span id="cb244-14"><a href="transformer.html#cb244-14"></a><span class="co"># number of heads in the MultiheadAttention modules</span></span>
-<span id="cb244-15"><a href="transformer.html#cb244-15"></a>n_heads <span class="op">=</span> <span class="dv">2</span> </span>
-<span id="cb244-16"><a href="transformer.html#cb244-16"></a></span>
-<span id="cb244-17"><a href="transformer.html#cb244-17"></a>dropout <span class="op">=</span> <span class="fl">0.2</span> </span>
-<span id="cb244-18"><a href="transformer.html#cb244-18"></a></span>
-<span id="cb244-19"><a href="transformer.html#cb244-19"></a><span class="kw">class</span> Encoder(nn.Module):</span>
-<span id="cb244-20"><a href="transformer.html#cb244-20"></a>  </span>
-<span id="cb244-21"><a href="transformer.html#cb244-21"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):</span>
-<span id="cb244-22"><a href="transformer.html#cb244-22"></a>        <span class="bu">super</span>(Encoder, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb244-23"><a href="transformer.html#cb244-23"></a>        <span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoder, TransformerEncoderLayer</span>
-<span id="cb244-24"><a href="transformer.html#cb244-24"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
-<span id="cb244-25"><a href="transformer.html#cb244-25"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_input_features, embedding_dim)</span>
-<span id="cb244-26"><a href="transformer.html#cb244-26"></a>        <span class="va">self</span>.pos_embedding <span class="op">=</span> nn.Embedding(max_length, embedding_dim)</span>
-<span id="cb244-27"><a href="transformer.html#cb244-27"></a>        encoder_layers <span class="op">=</span> TransformerEncoderLayer(embedding_dim, n_heads, hidden_dim, dropout)</span>
-<span id="cb244-28"><a href="transformer.html#cb244-28"></a>        <span class="va">self</span>.transformer_encoder <span class="op">=</span> TransformerEncoder(encoder_layers, n_layers)</span>
-<span id="cb244-29"><a href="transformer.html#cb244-29"></a>        <span class="va">self</span>.init_weights()</span>
-<span id="cb244-30"><a href="transformer.html#cb244-30"></a>        </span>
-<span id="cb244-31"><a href="transformer.html#cb244-31"></a>    <span class="kw">def</span> init_weights(<span class="va">self</span>):</span>
-<span id="cb244-32"><a href="transformer.html#cb244-32"></a>        initrange <span class="op">=</span> <span class="fl">0.1</span></span>
-<span id="cb244-33"><a href="transformer.html#cb244-33"></a>        <span class="va">self</span>.embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
-<span id="cb244-34"><a href="transformer.html#cb244-34"></a>        <span class="va">self</span>.pos_embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
-<span id="cb244-35"><a href="transformer.html#cb244-35"></a>        </span>
-<span id="cb244-36"><a href="transformer.html#cb244-36"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src, src_key_padding_mask):</span>
-<span id="cb244-37"><a href="transformer.html#cb244-37"></a>        batch_size <span class="op">=</span> src.shape[<span class="dv">0</span>]</span>
-<span id="cb244-38"><a href="transformer.html#cb244-38"></a>        src_len <span class="op">=</span> src.shape[<span class="dv">1</span>]</span>
-<span id="cb244-39"><a href="transformer.html#cb244-39"></a>        <span class="co"># bs * src len</span></span>
-<span id="cb244-40"><a href="transformer.html#cb244-40"></a>        <span class="co"># repeat vector 0 ... 35 once for every batch item</span></span>
-<span id="cb244-41"><a href="transformer.html#cb244-41"></a>        <span class="co"># input for pos_embedding</span></span>
-<span id="cb244-42"><a href="transformer.html#cb244-42"></a>        pos <span class="op">=</span> torch.arange(<span class="dv">0</span>, src_len).unsqueeze(<span class="dv">0</span>).repeat(batch_size, <span class="dv">1</span>).to(device)</span>
-<span id="cb244-43"><a href="transformer.html#cb244-43"></a>        <span class="co"># bs * src len * hidden dim</span></span>
-<span id="cb244-44"><a href="transformer.html#cb244-44"></a>        src <span class="op">=</span> (<span class="va">self</span>.embedding(src) <span class="op">*</span> math.sqrt(<span class="va">self</span>.embedding_dim)) <span class="op">+</span> <span class="va">self</span>.pos_embedding(pos)</span>
-<span id="cb244-45"><a href="transformer.html#cb244-45"></a>        <span class="co"># apply transformer stack</span></span>
-<span id="cb244-46"><a href="transformer.html#cb244-46"></a>        src <span class="op">=</span> torch.transpose(src, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb244-47"><a href="transformer.html#cb244-47"></a>        output <span class="op">=</span> <span class="va">self</span>.transformer_encoder(src, src_key_padding_mask <span class="op">=</span> src_key_padding_mask)</span>
-<span id="cb244-48"><a href="transformer.html#cb244-48"></a>        <span class="co"># bs * src len * hidden dim</span></span>
-<span id="cb244-49"><a href="transformer.html#cb244-49"></a>        <span class="cf">return</span> output</span>
-<span id="cb244-50"><a href="transformer.html#cb244-50"></a></span>
-<span id="cb244-51"><a href="transformer.html#cb244-51"></a>encoder <span class="op">=</span> Encoder(num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)</span></code></pre></div>
+<div class="sourceCode" id="cb261"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb261-1"><a href="transformer.html#cb261-1"></a>num_input_features <span class="op">=</span> <span class="bu">len</span>(src_spec.vocab)</span>
+<span id="cb261-2"><a href="transformer.html#cb261-2"></a></span>
+<span id="cb261-3"><a href="transformer.html#cb261-3"></a>embedding_dim <span class="op">=</span> <span class="dv">256</span> </span>
+<span id="cb261-4"><a href="transformer.html#cb261-4"></a></span>
+<span id="cb261-5"><a href="transformer.html#cb261-5"></a><span class="co"># max number of positions to encode</span></span>
+<span id="cb261-6"><a href="transformer.html#cb261-6"></a>max_length <span class="op">=</span> <span class="dv">100</span> </span>
+<span id="cb261-7"><a href="transformer.html#cb261-7"></a></span>
+<span id="cb261-8"><a href="transformer.html#cb261-8"></a><span class="co"># the dimension of the feedforward network model in nn.TransformerEncoder</span></span>
+<span id="cb261-9"><a href="transformer.html#cb261-9"></a>hidden_dim <span class="op">=</span> <span class="dv">256</span> </span>
+<span id="cb261-10"><a href="transformer.html#cb261-10"></a></span>
+<span id="cb261-11"><a href="transformer.html#cb261-11"></a><span class="co"># number of nn.TransformerEncoderLayer in nn.TransformerEncoder</span></span>
+<span id="cb261-12"><a href="transformer.html#cb261-12"></a>n_layers <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb261-13"><a href="transformer.html#cb261-13"></a></span>
+<span id="cb261-14"><a href="transformer.html#cb261-14"></a><span class="co"># number of heads in the MultiheadAttention modules</span></span>
+<span id="cb261-15"><a href="transformer.html#cb261-15"></a>n_heads <span class="op">=</span> <span class="dv">2</span> </span>
+<span id="cb261-16"><a href="transformer.html#cb261-16"></a></span>
+<span id="cb261-17"><a href="transformer.html#cb261-17"></a>dropout <span class="op">=</span> <span class="fl">0.2</span> </span>
+<span id="cb261-18"><a href="transformer.html#cb261-18"></a></span>
+<span id="cb261-19"><a href="transformer.html#cb261-19"></a><span class="kw">class</span> Encoder(nn.Module):</span>
+<span id="cb261-20"><a href="transformer.html#cb261-20"></a>  </span>
+<span id="cb261-21"><a href="transformer.html#cb261-21"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):</span>
+<span id="cb261-22"><a href="transformer.html#cb261-22"></a>        <span class="bu">super</span>(Encoder, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb261-23"><a href="transformer.html#cb261-23"></a>        <span class="im">from</span> torch.nn <span class="im">import</span> TransformerEncoder, TransformerEncoderLayer</span>
+<span id="cb261-24"><a href="transformer.html#cb261-24"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
+<span id="cb261-25"><a href="transformer.html#cb261-25"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_input_features, embedding_dim)</span>
+<span id="cb261-26"><a href="transformer.html#cb261-26"></a>        <span class="va">self</span>.pos_embedding <span class="op">=</span> nn.Embedding(max_length, embedding_dim)</span>
+<span id="cb261-27"><a href="transformer.html#cb261-27"></a>        encoder_layers <span class="op">=</span> TransformerEncoderLayer(embedding_dim, n_heads, hidden_dim, dropout)</span>
+<span id="cb261-28"><a href="transformer.html#cb261-28"></a>        <span class="va">self</span>.transformer_encoder <span class="op">=</span> TransformerEncoder(encoder_layers, n_layers)</span>
+<span id="cb261-29"><a href="transformer.html#cb261-29"></a>        <span class="va">self</span>.init_weights()</span>
+<span id="cb261-30"><a href="transformer.html#cb261-30"></a>        </span>
+<span id="cb261-31"><a href="transformer.html#cb261-31"></a>    <span class="kw">def</span> init_weights(<span class="va">self</span>):</span>
+<span id="cb261-32"><a href="transformer.html#cb261-32"></a>        initrange <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb261-33"><a href="transformer.html#cb261-33"></a>        <span class="va">self</span>.embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
+<span id="cb261-34"><a href="transformer.html#cb261-34"></a>        <span class="va">self</span>.pos_embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
+<span id="cb261-35"><a href="transformer.html#cb261-35"></a>        </span>
+<span id="cb261-36"><a href="transformer.html#cb261-36"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src, src_key_padding_mask):</span>
+<span id="cb261-37"><a href="transformer.html#cb261-37"></a>        batch_size <span class="op">=</span> src.shape[<span class="dv">0</span>]</span>
+<span id="cb261-38"><a href="transformer.html#cb261-38"></a>        src_len <span class="op">=</span> src.shape[<span class="dv">1</span>]</span>
+<span id="cb261-39"><a href="transformer.html#cb261-39"></a>        <span class="co"># bs * src len</span></span>
+<span id="cb261-40"><a href="transformer.html#cb261-40"></a>        <span class="co"># repeat vector 0 ... 35 once for every batch item</span></span>
+<span id="cb261-41"><a href="transformer.html#cb261-41"></a>        <span class="co"># input for pos_embedding</span></span>
+<span id="cb261-42"><a href="transformer.html#cb261-42"></a>        pos <span class="op">=</span> torch.arange(<span class="dv">0</span>, src_len).unsqueeze(<span class="dv">0</span>).repeat(batch_size, <span class="dv">1</span>).to(device)</span>
+<span id="cb261-43"><a href="transformer.html#cb261-43"></a>        <span class="co"># bs * src len * hidden dim</span></span>
+<span id="cb261-44"><a href="transformer.html#cb261-44"></a>        src <span class="op">=</span> (<span class="va">self</span>.embedding(src) <span class="op">*</span> math.sqrt(<span class="va">self</span>.embedding_dim)) <span class="op">+</span> <span class="va">self</span>.pos_embedding(pos)</span>
+<span id="cb261-45"><a href="transformer.html#cb261-45"></a>        <span class="co"># apply transformer stack</span></span>
+<span id="cb261-46"><a href="transformer.html#cb261-46"></a>        src <span class="op">=</span> torch.transpose(src, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb261-47"><a href="transformer.html#cb261-47"></a>        output <span class="op">=</span> <span class="va">self</span>.transformer_encoder(src, src_key_padding_mask <span class="op">=</span> src_key_padding_mask)</span>
+<span id="cb261-48"><a href="transformer.html#cb261-48"></a>        <span class="co"># bs * src len * hidden dim</span></span>
+<span id="cb261-49"><a href="transformer.html#cb261-49"></a>        <span class="cf">return</span> output</span>
+<span id="cb261-50"><a href="transformer.html#cb261-50"></a></span>
+<span id="cb261-51"><a href="transformer.html#cb261-51"></a>encoder <span class="op">=</span> Encoder(num_input_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)</span></code></pre></div>
 </div>
 <div id="decoder" class="section level3" number="10.3.3">
 <h3><span class="header-section-number">10.3.3</span> Decoder</h3>
@@ -527,180 +525,180 @@ selectively to what we already generated.</p>
 <p>Notice how the stack of <code>TransformerDecoderLayer</code>s is called with two masks: One, again, hides the artificial <em>pad</em> tokens;
 the other is destined to modulate decoder-encoder attention, making sure that the decoder only ever looks at current or past,
 but not <em>future</em> encoder input.</p>
-<div class="sourceCode" id="cb245"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb245-1"><a href="transformer.html#cb245-1"></a>num_output_features <span class="op">=</span> <span class="bu">len</span>(trg_spec.vocab)</span>
-<span id="cb245-2"><a href="transformer.html#cb245-2"></a></span>
-<span id="cb245-3"><a href="transformer.html#cb245-3"></a><span class="kw">class</span> Decoder(nn.Module):</span>
-<span id="cb245-4"><a href="transformer.html#cb245-4"></a>  </span>
-<span id="cb245-5"><a href="transformer.html#cb245-5"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):</span>
-<span id="cb245-6"><a href="transformer.html#cb245-6"></a>        <span class="bu">super</span>(Decoder, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb245-7"><a href="transformer.html#cb245-7"></a>        <span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoder, TransformerDecoderLayer</span>
-<span id="cb245-8"><a href="transformer.html#cb245-8"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
-<span id="cb245-9"><a href="transformer.html#cb245-9"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_output_features, embedding_dim)</span>
-<span id="cb245-10"><a href="transformer.html#cb245-10"></a>        <span class="co"># learn positional encoding</span></span>
-<span id="cb245-11"><a href="transformer.html#cb245-11"></a>        <span class="va">self</span>.pos_embedding <span class="op">=</span> nn.Embedding(max_length, embedding_dim)</span>
-<span id="cb245-12"><a href="transformer.html#cb245-12"></a>        decoder_layers <span class="op">=</span> TransformerDecoderLayer(embedding_dim, n_heads, hidden_dim, dropout)</span>
-<span id="cb245-13"><a href="transformer.html#cb245-13"></a>        <span class="va">self</span>.transformer_decoder <span class="op">=</span> TransformerDecoder(decoder_layers, n_layers)</span>
-<span id="cb245-14"><a href="transformer.html#cb245-14"></a>        <span class="va">self</span>.fc <span class="op">=</span> nn.Linear(hidden_dim, num_output_features)</span>
-<span id="cb245-15"><a href="transformer.html#cb245-15"></a>        <span class="va">self</span>.init_weights()</span>
-<span id="cb245-16"><a href="transformer.html#cb245-16"></a>        </span>
-<span id="cb245-17"><a href="transformer.html#cb245-17"></a>    <span class="kw">def</span> init_weights(<span class="va">self</span>):</span>
-<span id="cb245-18"><a href="transformer.html#cb245-18"></a>        initrange <span class="op">=</span> <span class="fl">0.1</span></span>
-<span id="cb245-19"><a href="transformer.html#cb245-19"></a>        <span class="va">self</span>.embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
-<span id="cb245-20"><a href="transformer.html#cb245-20"></a>        <span class="va">self</span>.pos_embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
-<span id="cb245-21"><a href="transformer.html#cb245-21"></a>        </span>
-<span id="cb245-22"><a href="transformer.html#cb245-22"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, trg, encoder_outputs, tgt_mask, tgt_key_padding_mask):</span>
-<span id="cb245-23"><a href="transformer.html#cb245-23"></a>        batch_size <span class="op">=</span> trg.shape[<span class="dv">0</span>]</span>
-<span id="cb245-24"><a href="transformer.html#cb245-24"></a>        trg_len <span class="op">=</span> trg.shape[<span class="dv">1</span>]</span>
-<span id="cb245-25"><a href="transformer.html#cb245-25"></a>        <span class="co"># bs * trg len</span></span>
-<span id="cb245-26"><a href="transformer.html#cb245-26"></a>        <span class="co"># input for pos_embedding</span></span>
-<span id="cb245-27"><a href="transformer.html#cb245-27"></a>        pos <span class="op">=</span> torch.arange(<span class="dv">0</span>, trg_len).unsqueeze(<span class="dv">0</span>).repeat(batch_size, <span class="dv">1</span>).to(device)</span>
-<span id="cb245-28"><a href="transformer.html#cb245-28"></a>        <span class="co"># bs * trg len * hidden dim</span></span>
-<span id="cb245-29"><a href="transformer.html#cb245-29"></a>        trg <span class="op">=</span> (<span class="va">self</span>.embedding(trg) <span class="op">*</span> math.sqrt(<span class="va">self</span>.embedding_dim)) <span class="op">+</span> <span class="va">self</span>.pos_embedding(pos)</span>
-<span id="cb245-30"><a href="transformer.html#cb245-30"></a>        <span class="co"># apply transformer stack</span></span>
-<span id="cb245-31"><a href="transformer.html#cb245-31"></a>        <span class="co"># bs * trg len * hidden dim</span></span>
-<span id="cb245-32"><a href="transformer.html#cb245-32"></a>        trg <span class="op">=</span> torch.transpose(trg, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb245-33"><a href="transformer.html#cb245-33"></a>        output <span class="op">=</span> <span class="va">self</span>.transformer_decoder(trg, encoder_outputs,</span>
-<span id="cb245-34"><a href="transformer.html#cb245-34"></a>          tgt_mask <span class="op">=</span> tgt_mask, tgt_key_padding_mask <span class="op">=</span> tgt_key_padding_mask)</span>
-<span id="cb245-35"><a href="transformer.html#cb245-35"></a>        output <span class="op">=</span> <span class="va">self</span>.fc(output)</span>
-<span id="cb245-36"><a href="transformer.html#cb245-36"></a>        <span class="cf">return</span> output</span>
-<span id="cb245-37"><a href="transformer.html#cb245-37"></a></span>
-<span id="cb245-38"><a href="transformer.html#cb245-38"></a>decoder <span class="op">=</span> Decoder(num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)</span></code></pre></div>
+<div class="sourceCode" id="cb262"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb262-1"><a href="transformer.html#cb262-1"></a>num_output_features <span class="op">=</span> <span class="bu">len</span>(trg_spec.vocab)</span>
+<span id="cb262-2"><a href="transformer.html#cb262-2"></a></span>
+<span id="cb262-3"><a href="transformer.html#cb262-3"></a><span class="kw">class</span> Decoder(nn.Module):</span>
+<span id="cb262-4"><a href="transformer.html#cb262-4"></a>  </span>
+<span id="cb262-5"><a href="transformer.html#cb262-5"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout):</span>
+<span id="cb262-6"><a href="transformer.html#cb262-6"></a>        <span class="bu">super</span>(Decoder, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb262-7"><a href="transformer.html#cb262-7"></a>        <span class="im">from</span> torch.nn <span class="im">import</span> TransformerDecoder, TransformerDecoderLayer</span>
+<span id="cb262-8"><a href="transformer.html#cb262-8"></a>        <span class="va">self</span>.embedding_dim <span class="op">=</span> embedding_dim</span>
+<span id="cb262-9"><a href="transformer.html#cb262-9"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(num_output_features, embedding_dim)</span>
+<span id="cb262-10"><a href="transformer.html#cb262-10"></a>        <span class="co"># learn positional encoding</span></span>
+<span id="cb262-11"><a href="transformer.html#cb262-11"></a>        <span class="va">self</span>.pos_embedding <span class="op">=</span> nn.Embedding(max_length, embedding_dim)</span>
+<span id="cb262-12"><a href="transformer.html#cb262-12"></a>        decoder_layers <span class="op">=</span> TransformerDecoderLayer(embedding_dim, n_heads, hidden_dim, dropout)</span>
+<span id="cb262-13"><a href="transformer.html#cb262-13"></a>        <span class="va">self</span>.transformer_decoder <span class="op">=</span> TransformerDecoder(decoder_layers, n_layers)</span>
+<span id="cb262-14"><a href="transformer.html#cb262-14"></a>        <span class="va">self</span>.fc <span class="op">=</span> nn.Linear(hidden_dim, num_output_features)</span>
+<span id="cb262-15"><a href="transformer.html#cb262-15"></a>        <span class="va">self</span>.init_weights()</span>
+<span id="cb262-16"><a href="transformer.html#cb262-16"></a>        </span>
+<span id="cb262-17"><a href="transformer.html#cb262-17"></a>    <span class="kw">def</span> init_weights(<span class="va">self</span>):</span>
+<span id="cb262-18"><a href="transformer.html#cb262-18"></a>        initrange <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb262-19"><a href="transformer.html#cb262-19"></a>        <span class="va">self</span>.embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
+<span id="cb262-20"><a href="transformer.html#cb262-20"></a>        <span class="va">self</span>.pos_embedding.weight.data.uniform_(<span class="op">-</span>initrange, initrange)</span>
+<span id="cb262-21"><a href="transformer.html#cb262-21"></a>        </span>
+<span id="cb262-22"><a href="transformer.html#cb262-22"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, trg, encoder_outputs, tgt_mask, tgt_key_padding_mask):</span>
+<span id="cb262-23"><a href="transformer.html#cb262-23"></a>        batch_size <span class="op">=</span> trg.shape[<span class="dv">0</span>]</span>
+<span id="cb262-24"><a href="transformer.html#cb262-24"></a>        trg_len <span class="op">=</span> trg.shape[<span class="dv">1</span>]</span>
+<span id="cb262-25"><a href="transformer.html#cb262-25"></a>        <span class="co"># bs * trg len</span></span>
+<span id="cb262-26"><a href="transformer.html#cb262-26"></a>        <span class="co"># input for pos_embedding</span></span>
+<span id="cb262-27"><a href="transformer.html#cb262-27"></a>        pos <span class="op">=</span> torch.arange(<span class="dv">0</span>, trg_len).unsqueeze(<span class="dv">0</span>).repeat(batch_size, <span class="dv">1</span>).to(device)</span>
+<span id="cb262-28"><a href="transformer.html#cb262-28"></a>        <span class="co"># bs * trg len * hidden dim</span></span>
+<span id="cb262-29"><a href="transformer.html#cb262-29"></a>        trg <span class="op">=</span> (<span class="va">self</span>.embedding(trg) <span class="op">*</span> math.sqrt(<span class="va">self</span>.embedding_dim)) <span class="op">+</span> <span class="va">self</span>.pos_embedding(pos)</span>
+<span id="cb262-30"><a href="transformer.html#cb262-30"></a>        <span class="co"># apply transformer stack</span></span>
+<span id="cb262-31"><a href="transformer.html#cb262-31"></a>        <span class="co"># bs * trg len * hidden dim</span></span>
+<span id="cb262-32"><a href="transformer.html#cb262-32"></a>        trg <span class="op">=</span> torch.transpose(trg, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb262-33"><a href="transformer.html#cb262-33"></a>        output <span class="op">=</span> <span class="va">self</span>.transformer_decoder(trg, encoder_outputs,</span>
+<span id="cb262-34"><a href="transformer.html#cb262-34"></a>          tgt_mask <span class="op">=</span> tgt_mask, tgt_key_padding_mask <span class="op">=</span> tgt_key_padding_mask)</span>
+<span id="cb262-35"><a href="transformer.html#cb262-35"></a>        output <span class="op">=</span> <span class="va">self</span>.fc(output)</span>
+<span id="cb262-36"><a href="transformer.html#cb262-36"></a>        <span class="cf">return</span> output</span>
+<span id="cb262-37"><a href="transformer.html#cb262-37"></a></span>
+<span id="cb262-38"><a href="transformer.html#cb262-38"></a>decoder <span class="op">=</span> Decoder(num_output_features, embedding_dim, n_heads, hidden_dim, n_layers, max_length, dropout).to(device)</span></code></pre></div>
 </div>
 <div id="overall-model" class="section level3" number="10.3.4">
 <h3><span class="header-section-number">10.3.4</span> Overall model</h3>
 <p>As before, we organize encoder and decoder in a <code>Seq2Seq</code> module. Apart from being a convenient container, this one also makes
 sure that at each step, its submodules get called with up-to-date masks.</p>
-<div class="sourceCode" id="cb246"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb246-1"><a href="transformer.html#cb246-1"></a><span class="kw">class</span> Seq2Seq(nn.Module):</span>
-<span id="cb246-2"><a href="transformer.html#cb246-2"></a>  </span>
-<span id="cb246-3"><a href="transformer.html#cb246-3"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, encoder, decoder, device):</span>
-<span id="cb246-4"><a href="transformer.html#cb246-4"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb246-5"><a href="transformer.html#cb246-5"></a>        <span class="va">self</span>.encoder <span class="op">=</span> encoder</span>
-<span id="cb246-6"><a href="transformer.html#cb246-6"></a>        <span class="va">self</span>.decoder <span class="op">=</span> decoder</span>
-<span id="cb246-7"><a href="transformer.html#cb246-7"></a>        <span class="va">self</span>.device <span class="op">=</span> device</span>
-<span id="cb246-8"><a href="transformer.html#cb246-8"></a>        </span>
-<span id="cb246-9"><a href="transformer.html#cb246-9"></a>    <span class="kw">def</span> make_src_key_padding_mask(<span class="va">self</span>, src):</span>
-<span id="cb246-10"><a href="transformer.html#cb246-10"></a>        <span class="co"># bs * src_len</span></span>
-<span id="cb246-11"><a href="transformer.html#cb246-11"></a>        src_mask <span class="op">=</span> src <span class="op">==</span> src_pad_idx</span>
-<span id="cb246-12"><a href="transformer.html#cb246-12"></a>        <span class="cf">return</span> src_mask</span>
-<span id="cb246-13"><a href="transformer.html#cb246-13"></a>      </span>
-<span id="cb246-14"><a href="transformer.html#cb246-14"></a>    <span class="kw">def</span> make_trg_key_padding_mask(<span class="va">self</span>, trg):</span>
-<span id="cb246-15"><a href="transformer.html#cb246-15"></a>        <span class="co"># bs * trg_len</span></span>
-<span id="cb246-16"><a href="transformer.html#cb246-16"></a>        trg_mask <span class="op">=</span> trg <span class="op">==</span> trg_pad_idx</span>
-<span id="cb246-17"><a href="transformer.html#cb246-17"></a>        <span class="cf">return</span> trg_mask</span>
-<span id="cb246-18"><a href="transformer.html#cb246-18"></a>      </span>
-<span id="cb246-19"><a href="transformer.html#cb246-19"></a>    <span class="kw">def</span> make_trg_mask(<span class="va">self</span>, trg):</span>
-<span id="cb246-20"><a href="transformer.html#cb246-20"></a>        trg_len <span class="op">=</span> trg.shape[<span class="dv">1</span>]</span>
-<span id="cb246-21"><a href="transformer.html#cb246-21"></a>        mask <span class="op">=</span> (torch.triu(torch.ones(trg_len, trg_len)) <span class="op">==</span> <span class="dv">1</span>).transpose(<span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb246-22"><a href="transformer.html#cb246-22"></a>        mask <span class="op">=</span> mask.<span class="bu">float</span>().masked_fill(mask <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">&#39;-inf&#39;</span>)).masked_fill(mask <span class="op">==</span> <span class="dv">1</span>, <span class="bu">float</span>(<span class="fl">0.0</span>))</span>
-<span id="cb246-23"><a href="transformer.html#cb246-23"></a>        <span class="cf">return</span> mask.to(device)</span>
-<span id="cb246-24"><a href="transformer.html#cb246-24"></a>      </span>
-<span id="cb246-25"><a href="transformer.html#cb246-25"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src, trg):</span>
-<span id="cb246-26"><a href="transformer.html#cb246-26"></a>        encoded <span class="op">=</span> <span class="va">self</span>.encoder(src, <span class="va">self</span>.make_src_key_padding_mask(src))</span>
-<span id="cb246-27"><a href="transformer.html#cb246-27"></a>        output <span class="op">=</span> <span class="va">self</span>.decoder(trg, encoded,  <span class="va">self</span>.make_trg_mask(trg), <span class="va">self</span>.make_trg_key_padding_mask(trg))</span>
-<span id="cb246-28"><a href="transformer.html#cb246-28"></a>        <span class="cf">return</span> output</span>
-<span id="cb246-29"><a href="transformer.html#cb246-29"></a></span>
-<span id="cb246-30"><a href="transformer.html#cb246-30"></a>model <span class="op">=</span> Seq2Seq(encoder, decoder, device).to(device)</span>
-<span id="cb246-31"><a href="transformer.html#cb246-31"></a>model(src, trg)</span></code></pre></div>
+<div class="sourceCode" id="cb263"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb263-1"><a href="transformer.html#cb263-1"></a><span class="kw">class</span> Seq2Seq(nn.Module):</span>
+<span id="cb263-2"><a href="transformer.html#cb263-2"></a>  </span>
+<span id="cb263-3"><a href="transformer.html#cb263-3"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, encoder, decoder, device):</span>
+<span id="cb263-4"><a href="transformer.html#cb263-4"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb263-5"><a href="transformer.html#cb263-5"></a>        <span class="va">self</span>.encoder <span class="op">=</span> encoder</span>
+<span id="cb263-6"><a href="transformer.html#cb263-6"></a>        <span class="va">self</span>.decoder <span class="op">=</span> decoder</span>
+<span id="cb263-7"><a href="transformer.html#cb263-7"></a>        <span class="va">self</span>.device <span class="op">=</span> device</span>
+<span id="cb263-8"><a href="transformer.html#cb263-8"></a>        </span>
+<span id="cb263-9"><a href="transformer.html#cb263-9"></a>    <span class="kw">def</span> make_src_key_padding_mask(<span class="va">self</span>, src):</span>
+<span id="cb263-10"><a href="transformer.html#cb263-10"></a>        <span class="co"># bs * src_len</span></span>
+<span id="cb263-11"><a href="transformer.html#cb263-11"></a>        src_mask <span class="op">=</span> src <span class="op">==</span> src_pad_idx</span>
+<span id="cb263-12"><a href="transformer.html#cb263-12"></a>        <span class="cf">return</span> src_mask</span>
+<span id="cb263-13"><a href="transformer.html#cb263-13"></a>      </span>
+<span id="cb263-14"><a href="transformer.html#cb263-14"></a>    <span class="kw">def</span> make_trg_key_padding_mask(<span class="va">self</span>, trg):</span>
+<span id="cb263-15"><a href="transformer.html#cb263-15"></a>        <span class="co"># bs * trg_len</span></span>
+<span id="cb263-16"><a href="transformer.html#cb263-16"></a>        trg_mask <span class="op">=</span> trg <span class="op">==</span> trg_pad_idx</span>
+<span id="cb263-17"><a href="transformer.html#cb263-17"></a>        <span class="cf">return</span> trg_mask</span>
+<span id="cb263-18"><a href="transformer.html#cb263-18"></a>      </span>
+<span id="cb263-19"><a href="transformer.html#cb263-19"></a>    <span class="kw">def</span> make_trg_mask(<span class="va">self</span>, trg):</span>
+<span id="cb263-20"><a href="transformer.html#cb263-20"></a>        trg_len <span class="op">=</span> trg.shape[<span class="dv">1</span>]</span>
+<span id="cb263-21"><a href="transformer.html#cb263-21"></a>        mask <span class="op">=</span> (torch.triu(torch.ones(trg_len, trg_len)) <span class="op">==</span> <span class="dv">1</span>).transpose(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb263-22"><a href="transformer.html#cb263-22"></a>        mask <span class="op">=</span> mask.<span class="bu">float</span>().masked_fill(mask <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">&#39;-inf&#39;</span>)).masked_fill(mask <span class="op">==</span> <span class="dv">1</span>, <span class="bu">float</span>(<span class="fl">0.0</span>))</span>
+<span id="cb263-23"><a href="transformer.html#cb263-23"></a>        <span class="cf">return</span> mask.to(device)</span>
+<span id="cb263-24"><a href="transformer.html#cb263-24"></a>      </span>
+<span id="cb263-25"><a href="transformer.html#cb263-25"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, src, trg):</span>
+<span id="cb263-26"><a href="transformer.html#cb263-26"></a>        encoded <span class="op">=</span> <span class="va">self</span>.encoder(src, <span class="va">self</span>.make_src_key_padding_mask(src))</span>
+<span id="cb263-27"><a href="transformer.html#cb263-27"></a>        output <span class="op">=</span> <span class="va">self</span>.decoder(trg, encoded,  <span class="va">self</span>.make_trg_mask(trg), <span class="va">self</span>.make_trg_key_padding_mask(trg))</span>
+<span id="cb263-28"><a href="transformer.html#cb263-28"></a>        <span class="cf">return</span> output</span>
+<span id="cb263-29"><a href="transformer.html#cb263-29"></a></span>
+<span id="cb263-30"><a href="transformer.html#cb263-30"></a>model <span class="op">=</span> Seq2Seq(encoder, decoder, device).to(device)</span>
+<span id="cb263-31"><a href="transformer.html#cb263-31"></a>model(src, trg)</span></code></pre></div>
 <p>Training and evaluation look pretty much like in the previous model, apart from operations on tensor shapes.</p>
-<div class="sourceCode" id="cb247"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb247-1"><a href="transformer.html#cb247-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.0005</span></span>
-<span id="cb247-2"><a href="transformer.html#cb247-2"></a></span>
-<span id="cb247-3"><a href="transformer.html#cb247-3"></a>optimizer <span class="op">=</span> torch.optim.Adam(model.parameters(), lr <span class="op">=</span> learning_rate)</span>
-<span id="cb247-4"><a href="transformer.html#cb247-4"></a>pad_idx <span class="op">=</span> trg_spec.vocab.stoi[<span class="st">&#39;&lt;pad&gt;&#39;</span>]</span>
-<span id="cb247-5"><a href="transformer.html#cb247-5"></a>criterion <span class="op">=</span> nn.CrossEntropyLoss(ignore_index <span class="op">=</span> pad_idx)</span>
-<span id="cb247-6"><a href="transformer.html#cb247-6"></a></span>
-<span id="cb247-7"><a href="transformer.html#cb247-7"></a></span>
-<span id="cb247-8"><a href="transformer.html#cb247-8"></a><span class="kw">def</span> train(model, iterator, optimizer, criterion, clip):</span>
-<span id="cb247-9"><a href="transformer.html#cb247-9"></a>    model.train()</span>
-<span id="cb247-10"><a href="transformer.html#cb247-10"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb247-11"><a href="transformer.html#cb247-11"></a>    <span class="cf">for</span> i, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
-<span id="cb247-12"><a href="transformer.html#cb247-12"></a>        src <span class="op">=</span> batch.src</span>
-<span id="cb247-13"><a href="transformer.html#cb247-13"></a>        trg <span class="op">=</span> batch.trg</span>
-<span id="cb247-14"><a href="transformer.html#cb247-14"></a>        optimizer.zero_grad()</span>
-<span id="cb247-15"><a href="transformer.html#cb247-15"></a>        output <span class="op">=</span> model(src, trg[:,:<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb247-16"><a href="transformer.html#cb247-16"></a>        <span class="co"># bs * (trg len - 1) * num_output_features</span></span>
-<span id="cb247-17"><a href="transformer.html#cb247-17"></a>        output <span class="op">=</span> torch.transpose(output, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb247-18"><a href="transformer.html#cb247-18"></a>        output_dim <span class="op">=</span> output.shape[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb247-19"><a href="transformer.html#cb247-19"></a>        <span class="co"># (bs * (trg len - 1)) * num_output_features</span></span>
-<span id="cb247-20"><a href="transformer.html#cb247-20"></a>        output <span class="op">=</span> output.contiguous().view(<span class="op">-</span><span class="dv">1</span>, output_dim)</span>
-<span id="cb247-21"><a href="transformer.html#cb247-21"></a>        <span class="co"># (bs * trg len)</span></span>
-<span id="cb247-22"><a href="transformer.html#cb247-22"></a>        trg <span class="op">=</span> trg[:,<span class="dv">1</span>:].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb247-23"><a href="transformer.html#cb247-23"></a>        loss <span class="op">=</span> criterion(output, trg)</span>
-<span id="cb247-24"><a href="transformer.html#cb247-24"></a>        <span class="bu">print</span>(loss)</span>
-<span id="cb247-25"><a href="transformer.html#cb247-25"></a>        loss.backward()</span>
-<span id="cb247-26"><a href="transformer.html#cb247-26"></a>        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)</span>
-<span id="cb247-27"><a href="transformer.html#cb247-27"></a>        optimizer.step()</span>
-<span id="cb247-28"><a href="transformer.html#cb247-28"></a>        epoch_loss <span class="op">+=</span> loss.item()</span>
-<span id="cb247-29"><a href="transformer.html#cb247-29"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span>
-<span id="cb247-30"><a href="transformer.html#cb247-30"></a></span>
-<span id="cb247-31"><a href="transformer.html#cb247-31"></a><span class="kw">def</span> evaluate(model, iterator, criterion):</span>
-<span id="cb247-32"><a href="transformer.html#cb247-32"></a>    model.<span class="bu">eval</span>()</span>
-<span id="cb247-33"><a href="transformer.html#cb247-33"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb247-34"><a href="transformer.html#cb247-34"></a>    <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb247-35"><a href="transformer.html#cb247-35"></a>        <span class="cf">for</span> i, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
-<span id="cb247-36"><a href="transformer.html#cb247-36"></a>            src <span class="op">=</span> batch.src</span>
-<span id="cb247-37"><a href="transformer.html#cb247-37"></a>            trg <span class="op">=</span> batch.trg</span>
-<span id="cb247-38"><a href="transformer.html#cb247-38"></a>            output <span class="op">=</span> model(src, trg[:,:<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb247-39"><a href="transformer.html#cb247-39"></a>            output <span class="op">=</span> torch.transpose(output, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb247-40"><a href="transformer.html#cb247-40"></a>            output_dim <span class="op">=</span> output.shape[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb247-41"><a href="transformer.html#cb247-41"></a>            output <span class="op">=</span> output.contiguous().view(<span class="op">-</span><span class="dv">1</span>, output_dim)</span>
-<span id="cb247-42"><a href="transformer.html#cb247-42"></a>            trg <span class="op">=</span> trg[:,<span class="dv">1</span>:].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb247-43"><a href="transformer.html#cb247-43"></a>            loss <span class="op">=</span> criterion(output, trg)</span>
-<span id="cb247-44"><a href="transformer.html#cb247-44"></a>            epoch_loss <span class="op">+=</span> loss.item()</span>
-<span id="cb247-45"><a href="transformer.html#cb247-45"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span></code></pre></div>
+<div class="sourceCode" id="cb264"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb264-1"><a href="transformer.html#cb264-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.0005</span></span>
+<span id="cb264-2"><a href="transformer.html#cb264-2"></a></span>
+<span id="cb264-3"><a href="transformer.html#cb264-3"></a>optimizer <span class="op">=</span> torch.optim.Adam(model.parameters(), lr <span class="op">=</span> learning_rate)</span>
+<span id="cb264-4"><a href="transformer.html#cb264-4"></a>pad_idx <span class="op">=</span> trg_spec.vocab.stoi[<span class="st">&#39;&lt;pad&gt;&#39;</span>]</span>
+<span id="cb264-5"><a href="transformer.html#cb264-5"></a>criterion <span class="op">=</span> nn.CrossEntropyLoss(ignore_index <span class="op">=</span> pad_idx)</span>
+<span id="cb264-6"><a href="transformer.html#cb264-6"></a></span>
+<span id="cb264-7"><a href="transformer.html#cb264-7"></a></span>
+<span id="cb264-8"><a href="transformer.html#cb264-8"></a><span class="kw">def</span> train(model, iterator, optimizer, criterion, clip):</span>
+<span id="cb264-9"><a href="transformer.html#cb264-9"></a>    model.train()</span>
+<span id="cb264-10"><a href="transformer.html#cb264-10"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb264-11"><a href="transformer.html#cb264-11"></a>    <span class="cf">for</span> i, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
+<span id="cb264-12"><a href="transformer.html#cb264-12"></a>        src <span class="op">=</span> batch.src</span>
+<span id="cb264-13"><a href="transformer.html#cb264-13"></a>        trg <span class="op">=</span> batch.trg</span>
+<span id="cb264-14"><a href="transformer.html#cb264-14"></a>        optimizer.zero_grad()</span>
+<span id="cb264-15"><a href="transformer.html#cb264-15"></a>        output <span class="op">=</span> model(src, trg[:,:<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb264-16"><a href="transformer.html#cb264-16"></a>        <span class="co"># bs * (trg len - 1) * num_output_features</span></span>
+<span id="cb264-17"><a href="transformer.html#cb264-17"></a>        output <span class="op">=</span> torch.transpose(output, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb264-18"><a href="transformer.html#cb264-18"></a>        output_dim <span class="op">=</span> output.shape[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb264-19"><a href="transformer.html#cb264-19"></a>        <span class="co"># (bs * (trg len - 1)) * num_output_features</span></span>
+<span id="cb264-20"><a href="transformer.html#cb264-20"></a>        output <span class="op">=</span> output.contiguous().view(<span class="op">-</span><span class="dv">1</span>, output_dim)</span>
+<span id="cb264-21"><a href="transformer.html#cb264-21"></a>        <span class="co"># (bs * trg len)</span></span>
+<span id="cb264-22"><a href="transformer.html#cb264-22"></a>        trg <span class="op">=</span> trg[:,<span class="dv">1</span>:].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb264-23"><a href="transformer.html#cb264-23"></a>        loss <span class="op">=</span> criterion(output, trg)</span>
+<span id="cb264-24"><a href="transformer.html#cb264-24"></a>        <span class="bu">print</span>(loss)</span>
+<span id="cb264-25"><a href="transformer.html#cb264-25"></a>        loss.backward()</span>
+<span id="cb264-26"><a href="transformer.html#cb264-26"></a>        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)</span>
+<span id="cb264-27"><a href="transformer.html#cb264-27"></a>        optimizer.step()</span>
+<span id="cb264-28"><a href="transformer.html#cb264-28"></a>        epoch_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb264-29"><a href="transformer.html#cb264-29"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span>
+<span id="cb264-30"><a href="transformer.html#cb264-30"></a></span>
+<span id="cb264-31"><a href="transformer.html#cb264-31"></a><span class="kw">def</span> evaluate(model, iterator, criterion):</span>
+<span id="cb264-32"><a href="transformer.html#cb264-32"></a>    model.<span class="bu">eval</span>()</span>
+<span id="cb264-33"><a href="transformer.html#cb264-33"></a>    epoch_loss <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb264-34"><a href="transformer.html#cb264-34"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb264-35"><a href="transformer.html#cb264-35"></a>        <span class="cf">for</span> i, batch <span class="kw">in</span> <span class="bu">enumerate</span>(iterator):</span>
+<span id="cb264-36"><a href="transformer.html#cb264-36"></a>            src <span class="op">=</span> batch.src</span>
+<span id="cb264-37"><a href="transformer.html#cb264-37"></a>            trg <span class="op">=</span> batch.trg</span>
+<span id="cb264-38"><a href="transformer.html#cb264-38"></a>            output <span class="op">=</span> model(src, trg[:,:<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb264-39"><a href="transformer.html#cb264-39"></a>            output <span class="op">=</span> torch.transpose(output, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb264-40"><a href="transformer.html#cb264-40"></a>            output_dim <span class="op">=</span> output.shape[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb264-41"><a href="transformer.html#cb264-41"></a>            output <span class="op">=</span> output.contiguous().view(<span class="op">-</span><span class="dv">1</span>, output_dim)</span>
+<span id="cb264-42"><a href="transformer.html#cb264-42"></a>            trg <span class="op">=</span> trg[:,<span class="dv">1</span>:].contiguous().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb264-43"><a href="transformer.html#cb264-43"></a>            loss <span class="op">=</span> criterion(output, trg)</span>
+<span id="cb264-44"><a href="transformer.html#cb264-44"></a>            epoch_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb264-45"><a href="transformer.html#cb264-45"></a>    <span class="cf">return</span> epoch_loss <span class="op">/</span> <span class="bu">len</span>(iterator)</span></code></pre></div>
 <p>Again, we look at how translations evolve during training.</p>
-<div class="sourceCode" id="cb248"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb248-1"><a href="transformer.html#cb248-1"></a><span class="kw">def</span> translate_sentence(sentence, src_field, trg_field, model, device, max_len <span class="op">=</span> <span class="dv">50</span>):</span>
-<span id="cb248-2"><a href="transformer.html#cb248-2"></a>  </span>
-<span id="cb248-3"><a href="transformer.html#cb248-3"></a>    model.<span class="bu">eval</span>()</span>
-<span id="cb248-4"><a href="transformer.html#cb248-4"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(sentence, <span class="bu">str</span>):</span>
-<span id="cb248-5"><a href="transformer.html#cb248-5"></a>        nlp <span class="op">=</span> spacy.load(<span class="st">&#39;en&#39;</span>)</span>
-<span id="cb248-6"><a href="transformer.html#cb248-6"></a>        tokens <span class="op">=</span> [token.text.lower() <span class="cf">for</span> token <span class="kw">in</span> nlp(sentence)]</span>
-<span id="cb248-7"><a href="transformer.html#cb248-7"></a>    <span class="cf">else</span>:</span>
-<span id="cb248-8"><a href="transformer.html#cb248-8"></a>        tokens <span class="op">=</span> [token.lower() <span class="cf">for</span> token <span class="kw">in</span> sentence]</span>
-<span id="cb248-9"><a href="transformer.html#cb248-9"></a>    tokens <span class="op">=</span> [src_field.init_token] <span class="op">+</span> tokens <span class="op">+</span> [src_field.eos_token]</span>
-<span id="cb248-10"><a href="transformer.html#cb248-10"></a>    src_indexes <span class="op">=</span> [src_field.vocab.stoi[token] <span class="cf">for</span> token <span class="kw">in</span> tokens]</span>
-<span id="cb248-11"><a href="transformer.html#cb248-11"></a>    src_tensor <span class="op">=</span> torch.LongTensor(src_indexes).unsqueeze(<span class="dv">0</span>).to(device)</span>
-<span id="cb248-12"><a href="transformer.html#cb248-12"></a>    src_mask <span class="op">=</span> model.make_src_key_padding_mask(src_tensor)</span>
-<span id="cb248-13"><a href="transformer.html#cb248-13"></a>    </span>
-<span id="cb248-14"><a href="transformer.html#cb248-14"></a>    <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb248-15"><a href="transformer.html#cb248-15"></a>        enc_src <span class="op">=</span> model.encoder(src_tensor, src_mask)</span>
-<span id="cb248-16"><a href="transformer.html#cb248-16"></a>    trg_indexes <span class="op">=</span> [trg_field.vocab.stoi[trg_field.init_token]]</span>
-<span id="cb248-17"><a href="transformer.html#cb248-17"></a>    </span>
-<span id="cb248-18"><a href="transformer.html#cb248-18"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(max_len):</span>
-<span id="cb248-19"><a href="transformer.html#cb248-19"></a>        trg_tensor <span class="op">=</span> torch.LongTensor(trg_indexes).unsqueeze(<span class="dv">0</span>).to(device)</span>
-<span id="cb248-20"><a href="transformer.html#cb248-20"></a>        trg_key_padding_mask <span class="op">=</span> model.make_trg_key_padding_mask(trg_tensor)</span>
-<span id="cb248-21"><a href="transformer.html#cb248-21"></a>        trg_mask <span class="op">=</span> model.make_trg_mask(trg_tensor)</span>
-<span id="cb248-22"><a href="transformer.html#cb248-22"></a>        <span class="cf">with</span> torch.no_grad():</span>
-<span id="cb248-23"><a href="transformer.html#cb248-23"></a>            output <span class="op">=</span> model.decoder(trg_tensor, enc_src, trg_mask, trg_key_padding_mask)</span>
-<span id="cb248-24"><a href="transformer.html#cb248-24"></a>            output <span class="op">=</span> torch.transpose(output, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb248-25"><a href="transformer.html#cb248-25"></a>            pred_token <span class="op">=</span> output.argmax(<span class="dv">2</span>)[:,<span class="op">-</span><span class="dv">1</span>].item()</span>
-<span id="cb248-26"><a href="transformer.html#cb248-26"></a>            trg_indexes.append(pred_token)</span>
-<span id="cb248-27"><a href="transformer.html#cb248-27"></a>            <span class="cf">if</span> pred_token <span class="op">==</span> trg_field.vocab.stoi[trg_field.eos_token]: <span class="cf">break</span></span>
-<span id="cb248-28"><a href="transformer.html#cb248-28"></a>    trg_tokens <span class="op">=</span> [trg_field.vocab.itos[i] <span class="cf">for</span> i <span class="kw">in</span> trg_indexes]</span>
-<span id="cb248-29"><a href="transformer.html#cb248-29"></a>    <span class="cf">return</span> trg_tokens[<span class="dv">1</span>:<span class="op">-</span><span class="dv">2</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb265"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb265-1"><a href="transformer.html#cb265-1"></a><span class="kw">def</span> translate_sentence(sentence, src_field, trg_field, model, device, max_len <span class="op">=</span> <span class="dv">50</span>):</span>
+<span id="cb265-2"><a href="transformer.html#cb265-2"></a>  </span>
+<span id="cb265-3"><a href="transformer.html#cb265-3"></a>    model.<span class="bu">eval</span>()</span>
+<span id="cb265-4"><a href="transformer.html#cb265-4"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(sentence, <span class="bu">str</span>):</span>
+<span id="cb265-5"><a href="transformer.html#cb265-5"></a>        nlp <span class="op">=</span> spacy.load(<span class="st">&#39;en&#39;</span>)</span>
+<span id="cb265-6"><a href="transformer.html#cb265-6"></a>        tokens <span class="op">=</span> [token.text.lower() <span class="cf">for</span> token <span class="kw">in</span> nlp(sentence)]</span>
+<span id="cb265-7"><a href="transformer.html#cb265-7"></a>    <span class="cf">else</span>:</span>
+<span id="cb265-8"><a href="transformer.html#cb265-8"></a>        tokens <span class="op">=</span> [token.lower() <span class="cf">for</span> token <span class="kw">in</span> sentence]</span>
+<span id="cb265-9"><a href="transformer.html#cb265-9"></a>    tokens <span class="op">=</span> [src_field.init_token] <span class="op">+</span> tokens <span class="op">+</span> [src_field.eos_token]</span>
+<span id="cb265-10"><a href="transformer.html#cb265-10"></a>    src_indexes <span class="op">=</span> [src_field.vocab.stoi[token] <span class="cf">for</span> token <span class="kw">in</span> tokens]</span>
+<span id="cb265-11"><a href="transformer.html#cb265-11"></a>    src_tensor <span class="op">=</span> torch.LongTensor(src_indexes).unsqueeze(<span class="dv">0</span>).to(device)</span>
+<span id="cb265-12"><a href="transformer.html#cb265-12"></a>    src_mask <span class="op">=</span> model.make_src_key_padding_mask(src_tensor)</span>
+<span id="cb265-13"><a href="transformer.html#cb265-13"></a>    </span>
+<span id="cb265-14"><a href="transformer.html#cb265-14"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb265-15"><a href="transformer.html#cb265-15"></a>        enc_src <span class="op">=</span> model.encoder(src_tensor, src_mask)</span>
+<span id="cb265-16"><a href="transformer.html#cb265-16"></a>    trg_indexes <span class="op">=</span> [trg_field.vocab.stoi[trg_field.init_token]]</span>
+<span id="cb265-17"><a href="transformer.html#cb265-17"></a>    </span>
+<span id="cb265-18"><a href="transformer.html#cb265-18"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(max_len):</span>
+<span id="cb265-19"><a href="transformer.html#cb265-19"></a>        trg_tensor <span class="op">=</span> torch.LongTensor(trg_indexes).unsqueeze(<span class="dv">0</span>).to(device)</span>
+<span id="cb265-20"><a href="transformer.html#cb265-20"></a>        trg_key_padding_mask <span class="op">=</span> model.make_trg_key_padding_mask(trg_tensor)</span>
+<span id="cb265-21"><a href="transformer.html#cb265-21"></a>        trg_mask <span class="op">=</span> model.make_trg_mask(trg_tensor)</span>
+<span id="cb265-22"><a href="transformer.html#cb265-22"></a>        <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb265-23"><a href="transformer.html#cb265-23"></a>            output <span class="op">=</span> model.decoder(trg_tensor, enc_src, trg_mask, trg_key_padding_mask)</span>
+<span id="cb265-24"><a href="transformer.html#cb265-24"></a>            output <span class="op">=</span> torch.transpose(output, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb265-25"><a href="transformer.html#cb265-25"></a>            pred_token <span class="op">=</span> output.argmax(<span class="dv">2</span>)[:,<span class="op">-</span><span class="dv">1</span>].item()</span>
+<span id="cb265-26"><a href="transformer.html#cb265-26"></a>            trg_indexes.append(pred_token)</span>
+<span id="cb265-27"><a href="transformer.html#cb265-27"></a>            <span class="cf">if</span> pred_token <span class="op">==</span> trg_field.vocab.stoi[trg_field.eos_token]: <span class="cf">break</span></span>
+<span id="cb265-28"><a href="transformer.html#cb265-28"></a>    trg_tokens <span class="op">=</span> [trg_field.vocab.itos[i] <span class="cf">for</span> i <span class="kw">in</span> trg_indexes]</span>
+<span id="cb265-29"><a href="transformer.html#cb265-29"></a>    <span class="cf">return</span> trg_tokens[<span class="dv">1</span>:<span class="op">-</span><span class="dv">2</span>]</span></code></pre></div>
 <p>Here, finally, the main loop:</p>
-<div class="sourceCode" id="cb249"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb249-1"><a href="transformer.html#cb249-1"></a>n_epochs <span class="op">=</span> <span class="dv">9</span></span>
-<span id="cb249-2"><a href="transformer.html#cb249-2"></a>clip <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb249-3"><a href="transformer.html#cb249-3"></a></span>
-<span id="cb249-4"><a href="transformer.html#cb249-4"></a>example_idx <span class="op">=</span> [<span class="dv">11</span>, <span class="dv">77</span>, <span class="dv">133</span>, <span class="dv">241</span>, <span class="dv">333</span>, <span class="dv">477</span>, <span class="dv">555</span>, <span class="dv">777</span>]</span>
-<span id="cb249-5"><a href="transformer.html#cb249-5"></a></span>
-<span id="cb249-6"><a href="transformer.html#cb249-6"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(n_epochs):</span>
-<span id="cb249-7"><a href="transformer.html#cb249-7"></a>    train_loss <span class="op">=</span> train(model, train_iterator, optimizer, criterion, clip)</span>
-<span id="cb249-8"><a href="transformer.html#cb249-8"></a>    valid_loss <span class="op">=</span> evaluate(model, valid_iterator, criterion)</span>
-<span id="cb249-9"><a href="transformer.html#cb249-9"></a>    test_loss <span class="op">=</span> evaluate(model, test_iterator, criterion)</span>
-<span id="cb249-10"><a href="transformer.html#cb249-10"></a>    <span class="bu">print</span>(<span class="ss">f&#39;Epoch: </span><span class="sc">{</span>epoch<span class="op">+</span><span class="dv">1</span><span class="sc">:02}</span><span class="ss">&#39;</span>)</span>
-<span id="cb249-11"><a href="transformer.html#cb249-11"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Train Loss: </span><span class="sc">{</span>train_loss<span class="sc">:.3f}</span><span class="ss"> | Train PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(train_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
-<span id="cb249-12"><a href="transformer.html#cb249-12"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss"> Val. Loss: </span><span class="sc">{</span>valid_loss<span class="sc">:.3f}</span><span class="ss"> |  Val. PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(valid_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
-<span id="cb249-13"><a href="transformer.html#cb249-13"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Test Loss: </span><span class="sc">{</span>test_loss<span class="sc">:.3f}</span><span class="ss"> | Test PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(test_loss)<span class="sc">:7.3f}</span><span class="ss"> |&#39;</span>)</span>
-<span id="cb249-14"><a href="transformer.html#cb249-14"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>):</span>
-<span id="cb249-15"><a href="transformer.html#cb249-15"></a>        example_src <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;src&#39;</span>]</span>
-<span id="cb249-16"><a href="transformer.html#cb249-16"></a>        example_trg <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;trg&#39;</span>]</span>
-<span id="cb249-17"><a href="transformer.html#cb249-17"></a>        translation <span class="op">=</span> translate_sentence(example_src, src_spec, trg_spec, model, device)</span>
-<span id="cb249-18"><a href="transformer.html#cb249-18"></a>        src_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_src)</span>
-<span id="cb249-19"><a href="transformer.html#cb249-19"></a>        target_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_trg)</span>
-<span id="cb249-20"><a href="transformer.html#cb249-20"></a>        translated_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> translation)</span>
-<span id="cb249-21"><a href="transformer.html#cb249-21"></a>        <span class="bu">print</span>(<span class="st">&quot;Source: &quot;</span> <span class="op">+</span> src_sentence)</span>
-<span id="cb249-22"><a href="transformer.html#cb249-22"></a>        <span class="bu">print</span>(<span class="st">&quot;Target: &quot;</span> <span class="op">+</span> target_sentence)</span>
-<span id="cb249-23"><a href="transformer.html#cb249-23"></a>        <span class="bu">print</span>(<span class="st">&quot;Predicted: &quot;</span> <span class="op">+</span> translated_sentence <span class="op">+</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb266"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb266-1"><a href="transformer.html#cb266-1"></a>n_epochs <span class="op">=</span> <span class="dv">9</span></span>
+<span id="cb266-2"><a href="transformer.html#cb266-2"></a>clip <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb266-3"><a href="transformer.html#cb266-3"></a></span>
+<span id="cb266-4"><a href="transformer.html#cb266-4"></a>example_idx <span class="op">=</span> [<span class="dv">11</span>, <span class="dv">77</span>, <span class="dv">133</span>, <span class="dv">241</span>, <span class="dv">333</span>, <span class="dv">477</span>, <span class="dv">555</span>, <span class="dv">777</span>]</span>
+<span id="cb266-5"><a href="transformer.html#cb266-5"></a></span>
+<span id="cb266-6"><a href="transformer.html#cb266-6"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(n_epochs):</span>
+<span id="cb266-7"><a href="transformer.html#cb266-7"></a>    train_loss <span class="op">=</span> train(model, train_iterator, optimizer, criterion, clip)</span>
+<span id="cb266-8"><a href="transformer.html#cb266-8"></a>    valid_loss <span class="op">=</span> evaluate(model, valid_iterator, criterion)</span>
+<span id="cb266-9"><a href="transformer.html#cb266-9"></a>    test_loss <span class="op">=</span> evaluate(model, test_iterator, criterion)</span>
+<span id="cb266-10"><a href="transformer.html#cb266-10"></a>    <span class="bu">print</span>(<span class="ss">f&#39;Epoch: </span><span class="sc">{</span>epoch<span class="op">+</span><span class="dv">1</span><span class="sc">:02}</span><span class="ss">&#39;</span>)</span>
+<span id="cb266-11"><a href="transformer.html#cb266-11"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Train Loss: </span><span class="sc">{</span>train_loss<span class="sc">:.3f}</span><span class="ss"> | Train PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(train_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
+<span id="cb266-12"><a href="transformer.html#cb266-12"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss"> Val. Loss: </span><span class="sc">{</span>valid_loss<span class="sc">:.3f}</span><span class="ss"> |  Val. PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(valid_loss)<span class="sc">:7.3f}</span><span class="ss">&#39;</span>)</span>
+<span id="cb266-13"><a href="transformer.html#cb266-13"></a>    <span class="bu">print</span>(<span class="ss">f&#39;</span><span class="ch">\t</span><span class="ss">Test Loss: </span><span class="sc">{</span>test_loss<span class="sc">:.3f}</span><span class="ss"> | Test PPL: </span><span class="sc">{</span>math<span class="sc">.</span>exp(test_loss)<span class="sc">:7.3f}</span><span class="ss"> |&#39;</span>)</span>
+<span id="cb266-14"><a href="transformer.html#cb266-14"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>):</span>
+<span id="cb266-15"><a href="transformer.html#cb266-15"></a>        example_src <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;src&#39;</span>]</span>
+<span id="cb266-16"><a href="transformer.html#cb266-16"></a>        example_trg <span class="op">=</span> <span class="bu">vars</span>(train_data.examples[example_idx[i]])[<span class="st">&#39;trg&#39;</span>]</span>
+<span id="cb266-17"><a href="transformer.html#cb266-17"></a>        translation <span class="op">=</span> translate_sentence(example_src, src_spec, trg_spec, model, device)</span>
+<span id="cb266-18"><a href="transformer.html#cb266-18"></a>        src_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_src)</span>
+<span id="cb266-19"><a href="transformer.html#cb266-19"></a>        target_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> example_trg)</span>
+<span id="cb266-20"><a href="transformer.html#cb266-20"></a>        translated_sentence <span class="op">=</span> <span class="st">&quot; &quot;</span>.join(i <span class="cf">for</span> i <span class="kw">in</span> translation)</span>
+<span id="cb266-21"><a href="transformer.html#cb266-21"></a>        <span class="bu">print</span>(<span class="st">&quot;Source: &quot;</span> <span class="op">+</span> src_sentence)</span>
+<span id="cb266-22"><a href="transformer.html#cb266-22"></a>        <span class="bu">print</span>(<span class="st">&quot;Target: &quot;</span> <span class="op">+</span> target_sentence)</span>
+<span id="cb266-23"><a href="transformer.html#cb266-23"></a>        <span class="bu">print</span>(<span class="st">&quot;Predicted: &quot;</span> <span class="op">+</span> translated_sentence <span class="op">+</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <p>And now, let’s see! How well did that work?</p>
 </div>
 </div>
@@ -998,11 +996,11 @@ opinion on a dataset of your choice!</p>
 </div>
 <div class="footnotes">
 <hr />
-<ol start="9">
-<li id="fn9"><p>Here “pointwise” implies that the weights are the same for every input fed into the layer. These feedforward neural
-networks would therefore be analogous to convolutional layers with kernel siez 1.<a href="transformer.html#fnref9" class="footnote-back">↩︎</a></p></li>
-<li id="fn10"><p>There are four different language pairings in the dataset overall, each involving English.<a href="transformer.html#fnref10" class="footnote-back">↩︎</a></p></li>
-<li id="fn11"><p>e.g., in <span class="citation">(Devlin et al. <a href="#ref-abs-1810-04805" role="doc-biblioref">2018</a>)</span><a href="transformer.html#fnref11" class="footnote-back">↩︎</a></p></li>
+<ol start="11">
+<li id="fn11"><p>Here “pointwise” implies that the weights are the same for every input fed into the layer. These feedforward neural
+networks would therefore be analogous to convolutional layers with kernel siez 1.<a href="transformer.html#fnref11" class="footnote-back">↩︎</a></p></li>
+<li id="fn12"><p>There are four different language pairings in the dataset overall, each involving English.<a href="transformer.html#fnref12" class="footnote-back">↩︎</a></p></li>
+<li id="fn13"><p>e.g., in <span class="citation">(Devlin et al. <a href="#ref-abs-1810-04805" role="doc-biblioref">2018</a>)</span><a href="transformer.html#fnref13" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>
