@@ -1,37 +1,40 @@
 library(torch)
 library(torchvision)
 library(dplyr)
+library(pins)
+library(torchdatasets)
+
+device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
 
 train_transforms <- function(img) {
   img %>%
+    transform_to_tensor() %>%
+    (function(x) x$to(device = device)) %>%
     transform_random_resized_crop(size = c(224, 224)) %>%
     transform_color_jitter() %>%
     transform_random_horizontal_flip() %>%
-    transform_to_tensor() %>%
     transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
 valid_transforms <- function(img) {
   img %>%
+    transform_to_tensor() %>%
+    (function(x) x$to(device = device)) %>%
     transform_resize(256) %>%
     transform_center_crop(224) %>%
-    transform_to_tensor() %>%
     transform_normalize(mean = c(0.485, 0.456, 0.406), std = c(0.229, 0.224, 0.225))
 }
 
 test_transforms <- valid_transforms
 
+# https://www.kaggle.com/gpiosenka/100-bird-species
+train_ds <- bird_species_dataset("data", download = TRUE, transform = train_transforms)
+valid_ds <- bird_species_dataset("data", split = "valid", download = FALSE, transform = valid_transforms)
+test_ds <- bird_species_dataset("data", split = "test", download = FALSE, transform = test_transforms)
 
-# https://www.kaggle.com/gpiosenka/100-bird-species/data
-data_dir = 'data/bird_species'
-
-train_ds <- image_folder_dataset(file.path(data_dir, "train"),
-                                 transform = train_transforms)
-valid_ds <- image_folder_dataset(file.path(data_dir, "valid"),
-                                 transform = valid_transforms)
-test_ds <-
-  image_folder_dataset(file.path(data_dir, "test"),
-                       transform = test_transforms)
+train_ds$.length()
+valid_ds$.length()
+test_ds$.length()
 
 class_names <- train_ds$classes
 class_names
@@ -39,7 +42,7 @@ class_names
 batch_size <- 4
 train_dl <- dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
 valid_dl <- dataloader(valid_ds, batch_size = batch_size)
-test_dl <- dataloader(test_ds, batch_size = batch_size)
+test_dl <- dataloader(test_ds, batch_size = 16)
 
 train_dl$.length()
 valid_dl$.length()
@@ -51,7 +54,7 @@ batch[[2]]$size()
 
 classes <- batch[[2]]
 
-images <- as_array(batch[[1]]) %>%
+images <- as_array(batch[[1]]$cpu()) %>%
   aperm(perm = c(1, 3, 4, 2))
 mean <- c(0.485, 0.456, 0.406)
 std <- c(0.229, 0.224, 0.225)
@@ -75,7 +78,6 @@ num_features <- model$fc$in_features
 
 model$fc <- nn_linear(in_features = num_features, out_features = length(class_names))
 
-device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
 
 model <- model$to(device = device)
 
@@ -135,7 +137,7 @@ find_lr <- function(init_value = 1e-8, final_value = 10, beta = 0.98) {
 # library(ggplot2)
 # ggplot(df, aes(log_lrs, losses)) + geom_point(size = 1)
 
-num_epochs <- 10
+num_epochs <- 3
 
 scheduler <- optimizer %>%
   lr_one_cycle(max_lr = 0.05, epochs = num_epochs, steps_per_epoch = train_dl$.length())
@@ -145,17 +147,19 @@ for (epoch in 1:num_epochs) {
 
   model$train()
   train_losses <- c()
+  it <- 0
 
   for (b in enumerate(train_dl)) {
+    it <<- it + 1
     optimizer$zero_grad()
-    output <- model(b[[1]]$to(device = "cuda"))
-    loss <- criterion(output, b[[2]]$to(device = "cuda"))
+    output <- model(b[[1]])
+    loss <- criterion(output, b[[2]]$to(device = device))
     loss$backward()
     optimizer$step()
     scheduler$step()
     train_losses <- c(train_losses, loss$item())
     batch_lrs <<- c(batch_lrs, optimizer$param_groups[[1]]$lr)
-    #cat(".")
+    if (it %% 100 == 0) cat(".")
   }
 
   cat("\nstarting eval\n")
@@ -163,11 +167,10 @@ for (epoch in 1:num_epochs) {
   valid_losses <- c()
 
   for (b in enumerate(valid_dl)) {
-    output <- model(b[[1]]$to(device = "cuda"))
-    loss <- criterion(output, b[[2]]$to(device = "cuda"))
+    output <- model(b[[1]])
+    loss <- criterion(output, b[[2]]$to(device = device))
     valid_losses <- c(valid_losses, loss$item())
   }
-  #cat("+")
 
   cat(sprintf("\nLoss at epoch %d: training: %3f, validation: %3f\n", epoch, mean(train_losses), mean(valid_losses)))
 }
