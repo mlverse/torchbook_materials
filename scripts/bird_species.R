@@ -1,10 +1,13 @@
 library(torch)
 library(torchvision)
-library(dplyr)
-library(pins)
 library(torchdatasets)
 
+library(dplyr)
+library(pins)
+library(ggplot2)
+
 device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
+device <- "cpu"
 
 train_transforms <- function(img) {
   img %>%
@@ -27,10 +30,9 @@ valid_transforms <- function(img) {
 
 test_transforms <- valid_transforms
 
-# https://www.kaggle.com/gpiosenka/100-bird-species
 train_ds <- bird_species_dataset("data", download = TRUE, transform = train_transforms)
-valid_ds <- bird_species_dataset("data", split = "valid", download = FALSE, transform = valid_transforms)
-test_ds <- bird_species_dataset("data", split = "test", download = FALSE, transform = test_transforms)
+valid_ds <- bird_species_dataset("data", split = "valid", transform = valid_transforms)
+test_ds <- bird_species_dataset("data", split = "test", transform = test_transforms)
 
 train_ds$.length()
 valid_ds$.length()
@@ -39,40 +41,40 @@ test_ds$.length()
 class_names <- train_ds$classes
 class_names
 
-batch_size <- 4
+batch_size <- 16
 train_dl <- dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
 valid_dl <- dataloader(valid_ds, batch_size = batch_size)
-test_dl <- dataloader(test_ds, batch_size = 16)
+test_dl <- dataloader(test_ds, batch_size = batch_size)
 
 train_dl$.length()
 valid_dl$.length()
 test_dl$.length()
 
-batch <-test_dl$.iter()$.next()
-batch[[1]]$size()
-batch[[2]]$size()
+# batch <-test_dl$.iter()$.next()
+# batch[[1]]$size()
+# batch[[2]]$size()
+#
+# classes <- batch[[2]]
+#
+# images <- as_array(batch[[1]]$cpu()) %>%
+#   aperm(perm = c(1, 3, 4, 2))
+# mean <- c(0.485, 0.456, 0.406)
+# std <- c(0.229, 0.224, 0.225)
+# images <- std * images + mean
+# images <- images * 255
+# images[images > 255] <- 255
+# images[images < 0] <- 0
 
-classes <- batch[[2]]
-
-images <- as_array(batch[[1]]$cpu()) %>%
-  aperm(perm = c(1, 3, 4, 2))
-mean <- c(0.485, 0.456, 0.406)
-std <- c(0.229, 0.224, 0.225)
-images <- std * images + mean
-images <- images * 255
-images[images > 255] <- 255
-images[images < 0] <- 0
-
-par(mfcol = c(4,4), mar = rep(1, 4))
-
-images %>%
-  purrr::array_tree(1) %>%
-  purrr::set_names(class_names[as_array(classes)]) %>%
-  purrr::map(as.raster, max = 255) %>%
-  purrr::iwalk(~{plot(.x); title(.y)})
+# par(mfcol = c(4,4), mar = rep(1, 4))
+#
+# images %>%
+#   purrr::array_tree(1) %>%
+#   purrr::set_names(class_names[as_array(classes)]) %>%
+#   purrr::map(as.raster, max = 255) %>%
+#   purrr::iwalk(~{plot(.x); title(.y)})
 
 model <- model_resnet18(pretrained = TRUE)
-model$parameters %>% purrr::walk(function(param) param$requires_grad <- FALSE)
+model$parameters %>% purrr::walk(function(param) param$requires_grad_(FALSE))
 
 num_features <- model$fc$in_features
 
@@ -131,13 +133,13 @@ find_lr <- function(init_value = 1e-8, final_value = 10, beta = 0.98) {
   }
 }
 
-# find_lr()
+#find_lr()
 
-# df <- data.frame(log_lrs = log_lrs, losses = losses)
-# library(ggplot2)
-# ggplot(df, aes(log_lrs, losses)) + geom_point(size = 1)
+#df <- data.frame(log_lrs = log_lrs, losses = losses)
+#ggplot(df, aes(log_lrs, losses)) +
+#  geom_point(size = 1)
 
-num_epochs <- 3
+num_epochs <- 10
 
 scheduler <- optimizer %>%
   lr_one_cycle(max_lr = 0.05, epochs = num_epochs, steps_per_epoch = train_dl$.length())
@@ -160,6 +162,7 @@ for (epoch in 1:num_epochs) {
     train_losses <- c(train_losses, loss$item())
     batch_lrs <<- c(batch_lrs, optimizer$param_groups[[1]]$lr)
     if (it %% 100 == 0) cat(".")
+    gc(full = TRUE)
   }
 
   cat("\nstarting eval\n")
@@ -170,10 +173,19 @@ for (epoch in 1:num_epochs) {
     output <- model(b[[1]])
     loss <- criterion(output, b[[2]]$to(device = device))
     valid_losses <- c(valid_losses, loss$item())
+    if (it %% 100 == 0) cat(".")
+    gc(full = TRUE)
   }
 
   cat(sprintf("\nLoss at epoch %d: training: %3f, validation: %3f\n", epoch, mean(train_losses), mean(valid_losses)))
 }
+
+df <- data.frame(x = 1:length(batch_lrs), y = batch_lrs)
+df %>% ggplot(aes(x, y)) + geom_point(size = 1) +
+  xlab("batch") +
+  ylab("learning rate") +
+  ggtitle("Learning rates (3 epochs / ~6000 batches)") +
+  theme_classic()
 
 model$eval()
 
@@ -182,8 +194,8 @@ total <- 0
 correct <- 0
 
 for (b in enumerate(test_dl)) {
-  output <- model(b[[1]]$to(device = "cuda"))
-  labels <- b[[2]]$to(device = "cuda")
+  output <- model(b[[1]])
+  labels <- b[[2]]$to(device = device)
   loss <- criterion(output, labels)
   test_losses <- c(test_losses, loss$item())
   # torch_max returns a list, with position 1 containing the values
@@ -192,6 +204,7 @@ for (b in enumerate(test_dl)) {
   total <- total + labels$size(1)
   # add number of correct classifications in this batch to the aggregate
   correct <- correct + (predicted == labels)$sum()$item()
+  gc(full = TRUE)
 }
 
 mean(test_losses)
