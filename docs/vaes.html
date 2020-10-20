@@ -193,10 +193,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
 <li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
 <ul>
-<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-transformation"><i class="fa fa-check"></i><b>7.1</b> Data loading and transformation</a></li>
+<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-preprocessing"><i class="fa fa-check"></i><b>7.1</b> Data loading and preprocessing</a></li>
 <li class="chapter" data-level="7.2" data-path="image-classification.html"><a href="image-classification.html#model"><i class="fa fa-check"></i><b>7.2</b> Model</a></li>
 <li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
-<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
+<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#test-set-accuracy"><i class="fa fa-check"></i><b>7.4</b> Test set accuracy</a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="unet.html"><a href="unet.html"><i class="fa fa-check"></i><b>8</b> Brain Image Segmentation with U-Net</a>
 <ul>
@@ -255,7 +255,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>11.2.2</b> Discriminator</a></li>
 <li class="chapter" data-level="11.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>11.2.3</b> Optimizers and loss function</a></li>
 </ul></li>
-<li class="chapter" data-level="11.3" data-path="gans.html"><a href="gans.html#training-loop-2"><i class="fa fa-check"></i><b>11.3</b> Training loop</a></li>
+<li class="chapter" data-level="11.3" data-path="gans.html"><a href="gans.html#training-loop-3"><i class="fa fa-check"></i><b>11.3</b> Training loop</a></li>
 <li class="chapter" data-level="11.4" data-path="gans.html"><a href="gans.html#artifacts"><i class="fa fa-check"></i><b>11.4</b> Artifacts</a></li>
 </ul></li>
 <li class="chapter" data-level="12" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>12</b> Variational autoencoders</a>
@@ -311,19 +311,19 @@ respectively. In the former case, we also take a look at the two-dimensional gri
 <div id="dataset-1" class="section level2" number="12.1">
 <h2><span class="header-section-number">12.1</span> Dataset</h2>
 <p>For comparability with the GAN model shown in the last chapter, we use the same dataset, Kuzushiji-MNIST.</p>
-<div class="sourceCode" id="cb282"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb282-1"><a href="vaes.html#cb282-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(zeallot)</span>
-<span id="cb282-2"><a href="vaes.html#cb282-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb282-3"><a href="vaes.html#cb282-3" aria-hidden="true" tabindex="-1"></a>kmnist <span class="ot">&lt;-</span> <span class="fu">kmnist_dataset</span>(</span>
-<span id="cb282-4"><a href="vaes.html#cb282-4" aria-hidden="true" tabindex="-1"></a>    dir,</span>
-<span id="cb282-5"><a href="vaes.html#cb282-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">download =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb282-6"><a href="vaes.html#cb282-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb282-7"><a href="vaes.html#cb282-7" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> x<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>())<span class="sc">/</span><span class="dv">256</span></span>
-<span id="cb282-8"><a href="vaes.html#cb282-8" aria-hidden="true" tabindex="-1"></a>        x[newaxis,..]</span>
-<span id="cb282-9"><a href="vaes.html#cb282-9" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb282-10"><a href="vaes.html#cb282-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb282-11"><a href="vaes.html#cb282-11" aria-hidden="true" tabindex="-1"></a>dl <span class="ot">&lt;-</span> <span class="fu">dataloader</span>(kmnist, <span class="at">batch_size =</span> <span class="dv">128</span>, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb282-12"><a href="vaes.html#cb282-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb282-13"><a href="vaes.html#cb282-13" aria-hidden="true" tabindex="-1"></a>device <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">cuda_is_available</span>()) <span class="fu">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb286"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb286-1"><a href="vaes.html#cb286-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(zeallot)</span>
+<span id="cb286-2"><a href="vaes.html#cb286-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb286-3"><a href="vaes.html#cb286-3" aria-hidden="true" tabindex="-1"></a>kmnist <span class="ot">&lt;-</span> <span class="fu">kmnist_dataset</span>(</span>
+<span id="cb286-4"><a href="vaes.html#cb286-4" aria-hidden="true" tabindex="-1"></a>    dir,</span>
+<span id="cb286-5"><a href="vaes.html#cb286-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">download =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb286-6"><a href="vaes.html#cb286-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb286-7"><a href="vaes.html#cb286-7" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> x<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>())<span class="sc">/</span><span class="dv">256</span></span>
+<span id="cb286-8"><a href="vaes.html#cb286-8" aria-hidden="true" tabindex="-1"></a>        x[newaxis,..]</span>
+<span id="cb286-9"><a href="vaes.html#cb286-9" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb286-10"><a href="vaes.html#cb286-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb286-11"><a href="vaes.html#cb286-11" aria-hidden="true" tabindex="-1"></a>dl <span class="ot">&lt;-</span> <span class="fu">dataloader</span>(kmnist, <span class="at">batch_size =</span> <span class="dv">128</span>, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb286-12"><a href="vaes.html#cb286-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb286-13"><a href="vaes.html#cb286-13" aria-hidden="true" tabindex="-1"></a>device <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">cuda_is_available</span>()) <span class="fu">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span></code></pre></div>
 </div>
 <div id="model-3" class="section level2" number="12.2">
 <h2><span class="header-section-number">12.2</span> Model</h2>
@@ -333,211 +333,211 @@ utility function to sample images.</p>
 <p>The model uses the famous <em>reparameterization trick</em> <span class="citation">(<a href="references.html#ref-kingma2013autoencoding" role="doc-biblioref">Diederik P. Kingma and Welling 2013</a>)</span> to reduce variance during optimization. Instead
 of sampling directly from the latent space, using its mean and variance, we introduce a new standard-normal random variable
 <span class="math inline">\(\epsilon\)</span> and transform this into non-standard normals using the learned means and standard deviations from latent space.</p>
-<div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="vaes.html#cb283-1" aria-hidden="true" tabindex="-1"></a>image_size <span class="ot">&lt;-</span> <span class="dv">28</span></span>
-<span id="cb283-2"><a href="vaes.html#cb283-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-3"><a href="vaes.html#cb283-3" aria-hidden="true" tabindex="-1"></a>view <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
-<span id="cb283-4"><a href="vaes.html#cb283-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;View&quot;</span>,</span>
-<span id="cb283-5"><a href="vaes.html#cb283-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(shape) {</span>
-<span id="cb283-6"><a href="vaes.html#cb283-6" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>shape <span class="ot">&lt;-</span> shape</span>
-<span id="cb283-7"><a href="vaes.html#cb283-7" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-8"><a href="vaes.html#cb283-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb283-9"><a href="vaes.html#cb283-9" aria-hidden="true" tabindex="-1"></a>        x<span class="sc">$</span><span class="fu">view</span>(self<span class="sc">$</span>shape)</span>
-<span id="cb283-10"><a href="vaes.html#cb283-10" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb283-11"><a href="vaes.html#cb283-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb283-12"><a href="vaes.html#cb283-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-13"><a href="vaes.html#cb283-13" aria-hidden="true" tabindex="-1"></a>vae <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
-<span id="cb283-14"><a href="vaes.html#cb283-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;VAE&quot;</span>,</span>
-<span id="cb283-15"><a href="vaes.html#cb283-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-16"><a href="vaes.html#cb283-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(latent_dim) {</span>
-<span id="cb283-17"><a href="vaes.html#cb283-17" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>latent_dim <span class="ot">&lt;-</span> latent_dim</span>
-<span id="cb283-18"><a href="vaes.html#cb283-18" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>latent_mean <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(<span class="dv">896</span>, latent_dim)</span>
-<span id="cb283-19"><a href="vaes.html#cb283-19" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>latent_log_var <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(<span class="dv">896</span>, latent_dim)</span>
-<span id="cb283-20"><a href="vaes.html#cb283-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-21"><a href="vaes.html#cb283-21" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>encoder <span class="ot">&lt;-</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb283-22"><a href="vaes.html#cb283-22" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(<span class="dv">1</span>, image_size, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
-<span id="cb283-23"><a href="vaes.html#cb283-23" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size),</span>
-<span id="cb283-24"><a href="vaes.html#cb283-24" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
-<span id="cb283-25"><a href="vaes.html#cb283-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(image_size, image_size <span class="sc">*</span> <span class="dv">2</span>, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
-<span id="cb283-26"><a href="vaes.html#cb283-26" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>),</span>
-<span id="cb283-27"><a href="vaes.html#cb283-27" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
-<span id="cb283-28"><a href="vaes.html#cb283-28" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>, image_size <span class="sc">*</span> <span class="dv">4</span>, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
-<span id="cb283-29"><a href="vaes.html#cb283-29" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>),</span>
-<span id="cb283-30"><a href="vaes.html#cb283-30" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
-<span id="cb283-31"><a href="vaes.html#cb283-31" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>, image_size <span class="sc">*</span> <span class="dv">8</span>, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
-<span id="cb283-32"><a href="vaes.html#cb283-32" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">8</span>),</span>
-<span id="cb283-33"><a href="vaes.html#cb283-33" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>()</span>
-<span id="cb283-34"><a href="vaes.html#cb283-34" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb283-35"><a href="vaes.html#cb283-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-36"><a href="vaes.html#cb283-36" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>decoder <span class="ot">&lt;-</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb283-37"><a href="vaes.html#cb283-37" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_linear</span>(latent_dim, image_size <span class="sc">*</span> <span class="dv">8</span>),</span>
-<span id="cb283-38"><a href="vaes.html#cb283-38" aria-hidden="true" tabindex="-1"></a>            <span class="fu">view</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, image_size <span class="sc">*</span> <span class="dv">8</span>, <span class="dv">1</span>, <span class="dv">1</span>)),</span>
-<span id="cb283-39"><a href="vaes.html#cb283-39" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size <span class="sc">*</span> <span class="dv">8</span>, image_size <span class="sc">*</span> <span class="dv">4</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">1</span>, <span class="at">padding =</span> <span class="dv">0</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb283-40"><a href="vaes.html#cb283-40" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>),</span>
-<span id="cb283-41"><a href="vaes.html#cb283-41" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
-<span id="cb283-42"><a href="vaes.html#cb283-42" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 8 * 8</span></span>
-<span id="cb283-43"><a href="vaes.html#cb283-43" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>, image_size <span class="sc">*</span> <span class="dv">2</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">2</span>, <span class="at">padding =</span> <span class="dv">1</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb283-44"><a href="vaes.html#cb283-44" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>),</span>
-<span id="cb283-45"><a href="vaes.html#cb283-45" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
-<span id="cb283-46"><a href="vaes.html#cb283-46" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 16 x 16</span></span>
-<span id="cb283-47"><a href="vaes.html#cb283-47" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>, image_size, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">2</span>, <span class="at">padding =</span> <span class="dv">2</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb283-48"><a href="vaes.html#cb283-48" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size),</span>
-<span id="cb283-49"><a href="vaes.html#cb283-49" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
-<span id="cb283-50"><a href="vaes.html#cb283-50" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 28 x 28</span></span>
-<span id="cb283-51"><a href="vaes.html#cb283-51" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size, <span class="dv">1</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">2</span>, <span class="at">padding =</span> <span class="dv">1</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb283-52"><a href="vaes.html#cb283-52" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_sigmoid</span>()</span>
-<span id="cb283-53"><a href="vaes.html#cb283-53" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb283-54"><a href="vaes.html#cb283-54" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-55"><a href="vaes.html#cb283-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-56"><a href="vaes.html#cb283-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">encode =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb283-57"><a href="vaes.html#cb283-57" aria-hidden="true" tabindex="-1"></a>        result <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">encoder</span>(x) <span class="sc">%&gt;%</span></span>
-<span id="cb283-58"><a href="vaes.html#cb283-58" aria-hidden="true" tabindex="-1"></a>            <span class="fu">torch_flatten</span>(<span class="at">start_dim =</span> <span class="dv">1</span>)</span>
-<span id="cb283-59"><a href="vaes.html#cb283-59" aria-hidden="true" tabindex="-1"></a>        mean <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">latent_mean</span>(result)</span>
-<span id="cb283-60"><a href="vaes.html#cb283-60" aria-hidden="true" tabindex="-1"></a>        log_var <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">latent_log_var</span>(result)</span>
-<span id="cb283-61"><a href="vaes.html#cb283-61" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span>(mean, log_var)</span>
-<span id="cb283-62"><a href="vaes.html#cb283-62" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-63"><a href="vaes.html#cb283-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-64"><a href="vaes.html#cb283-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">decode =</span> <span class="cf">function</span>(z) {</span>
-<span id="cb283-65"><a href="vaes.html#cb283-65" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span><span class="fu">decoder</span>(z)</span>
-<span id="cb283-66"><a href="vaes.html#cb283-66" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-67"><a href="vaes.html#cb283-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-68"><a href="vaes.html#cb283-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">reparameterize =</span> <span class="cf">function</span>(mean, logvar) {</span>
-<span id="cb283-69"><a href="vaes.html#cb283-69" aria-hidden="true" tabindex="-1"></a>        std <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="fl">0.5</span>, <span class="at">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="sc">*</span> logvar</span>
-<span id="cb283-70"><a href="vaes.html#cb283-70" aria-hidden="true" tabindex="-1"></a>        eps <span class="ot">&lt;-</span> <span class="fu">torch_randn_like</span>(std)</span>
-<span id="cb283-71"><a href="vaes.html#cb283-71" aria-hidden="true" tabindex="-1"></a>        eps <span class="sc">*</span> std <span class="sc">+</span> mean</span>
-<span id="cb283-72"><a href="vaes.html#cb283-72" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-73"><a href="vaes.html#cb283-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-74"><a href="vaes.html#cb283-74" aria-hidden="true" tabindex="-1"></a>    <span class="at">loss_function =</span> <span class="cf">function</span>(reconstruction, input, mean, log_var) {</span>
-<span id="cb283-75"><a href="vaes.html#cb283-75" aria-hidden="true" tabindex="-1"></a>        reconstruction_loss <span class="ot">&lt;-</span> <span class="fu">nnf_binary_cross_entropy</span>(reconstruction, input, <span class="at">reduction =</span> <span class="st">&quot;sum&quot;</span>)</span>
-<span id="cb283-76"><a href="vaes.html#cb283-76" aria-hidden="true" tabindex="-1"></a>        kl_loss <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="at">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="sc">*</span> <span class="fu">torch_sum</span>(<span class="fu">torch_tensor</span>(<span class="dv">1</span>, <span class="at">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="sc">+</span> log_var <span class="sc">-</span> mean<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> log_var<span class="sc">$</span><span class="fu">exp</span>())</span>
-<span id="cb283-77"><a href="vaes.html#cb283-77" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">&lt;-</span> reconstruction_loss <span class="sc">+</span> kl_loss</span>
-<span id="cb283-78"><a href="vaes.html#cb283-78" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span>(loss, reconstruction_loss, kl_loss)</span>
-<span id="cb283-79"><a href="vaes.html#cb283-79" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-80"><a href="vaes.html#cb283-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-81"><a href="vaes.html#cb283-81" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb283-82"><a href="vaes.html#cb283-82" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(mean, log_var) <span class="sc">%&lt;-%</span> self<span class="sc">$</span><span class="fu">encode</span>(x)</span>
-<span id="cb283-83"><a href="vaes.html#cb283-83" aria-hidden="true" tabindex="-1"></a>        z <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">reparameterize</span>(mean, log_var)</span>
-<span id="cb283-84"><a href="vaes.html#cb283-84" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span> (self<span class="sc">$</span><span class="fu">decode</span>(z), x, mean, log_var)</span>
-<span id="cb283-85"><a href="vaes.html#cb283-85" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb283-86"><a href="vaes.html#cb283-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-87"><a href="vaes.html#cb283-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample =</span> <span class="cf">function</span>(num_samples, current_device) {</span>
-<span id="cb283-88"><a href="vaes.html#cb283-88" aria-hidden="true" tabindex="-1"></a>        z <span class="ot">&lt;-</span> <span class="fu">torch_randn</span>(num_samples, self<span class="sc">$</span>latent_dim)</span>
-<span id="cb283-89"><a href="vaes.html#cb283-89" aria-hidden="true" tabindex="-1"></a>        z <span class="ot">&lt;-</span> z<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> current_device)</span>
-<span id="cb283-90"><a href="vaes.html#cb283-90" aria-hidden="true" tabindex="-1"></a>        samples <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">decode</span>(z)</span>
-<span id="cb283-91"><a href="vaes.html#cb283-91" aria-hidden="true" tabindex="-1"></a>        samples</span>
-<span id="cb283-92"><a href="vaes.html#cb283-92" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb283-93"><a href="vaes.html#cb283-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-94"><a href="vaes.html#cb283-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-95"><a href="vaes.html#cb283-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-96"><a href="vaes.html#cb283-96" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">vae</span>(<span class="at">latent_dim =</span> <span class="dv">128</span>)<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span></code></pre></div>
+<div class="sourceCode" id="cb287"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb287-1"><a href="vaes.html#cb287-1" aria-hidden="true" tabindex="-1"></a>image_size <span class="ot">&lt;-</span> <span class="dv">28</span></span>
+<span id="cb287-2"><a href="vaes.html#cb287-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-3"><a href="vaes.html#cb287-3" aria-hidden="true" tabindex="-1"></a>view <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
+<span id="cb287-4"><a href="vaes.html#cb287-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;View&quot;</span>,</span>
+<span id="cb287-5"><a href="vaes.html#cb287-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(shape) {</span>
+<span id="cb287-6"><a href="vaes.html#cb287-6" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>shape <span class="ot">&lt;-</span> shape</span>
+<span id="cb287-7"><a href="vaes.html#cb287-7" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-8"><a href="vaes.html#cb287-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb287-9"><a href="vaes.html#cb287-9" aria-hidden="true" tabindex="-1"></a>        x<span class="sc">$</span><span class="fu">view</span>(self<span class="sc">$</span>shape)</span>
+<span id="cb287-10"><a href="vaes.html#cb287-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb287-11"><a href="vaes.html#cb287-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb287-12"><a href="vaes.html#cb287-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-13"><a href="vaes.html#cb287-13" aria-hidden="true" tabindex="-1"></a>vae <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
+<span id="cb287-14"><a href="vaes.html#cb287-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;VAE&quot;</span>,</span>
+<span id="cb287-15"><a href="vaes.html#cb287-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-16"><a href="vaes.html#cb287-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(latent_dim) {</span>
+<span id="cb287-17"><a href="vaes.html#cb287-17" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>latent_dim <span class="ot">&lt;-</span> latent_dim</span>
+<span id="cb287-18"><a href="vaes.html#cb287-18" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>latent_mean <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(<span class="dv">896</span>, latent_dim)</span>
+<span id="cb287-19"><a href="vaes.html#cb287-19" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>latent_log_var <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(<span class="dv">896</span>, latent_dim)</span>
+<span id="cb287-20"><a href="vaes.html#cb287-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-21"><a href="vaes.html#cb287-21" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>encoder <span class="ot">&lt;-</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb287-22"><a href="vaes.html#cb287-22" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(<span class="dv">1</span>, image_size, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb287-23"><a href="vaes.html#cb287-23" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size),</span>
+<span id="cb287-24"><a href="vaes.html#cb287-24" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
+<span id="cb287-25"><a href="vaes.html#cb287-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(image_size, image_size <span class="sc">*</span> <span class="dv">2</span>, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb287-26"><a href="vaes.html#cb287-26" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>),</span>
+<span id="cb287-27"><a href="vaes.html#cb287-27" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
+<span id="cb287-28"><a href="vaes.html#cb287-28" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>, image_size <span class="sc">*</span> <span class="dv">4</span>, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb287-29"><a href="vaes.html#cb287-29" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>),</span>
+<span id="cb287-30"><a href="vaes.html#cb287-30" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
+<span id="cb287-31"><a href="vaes.html#cb287-31" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>, image_size <span class="sc">*</span> <span class="dv">8</span>, <span class="at">kernel_size=</span> <span class="dv">3</span>, <span class="at">stride=</span> <span class="dv">2</span>, <span class="at">padding  =</span> <span class="dv">1</span>),</span>
+<span id="cb287-32"><a href="vaes.html#cb287-32" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">8</span>),</span>
+<span id="cb287-33"><a href="vaes.html#cb287-33" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>()</span>
+<span id="cb287-34"><a href="vaes.html#cb287-34" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb287-35"><a href="vaes.html#cb287-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-36"><a href="vaes.html#cb287-36" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span>decoder <span class="ot">&lt;-</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb287-37"><a href="vaes.html#cb287-37" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_linear</span>(latent_dim, image_size <span class="sc">*</span> <span class="dv">8</span>),</span>
+<span id="cb287-38"><a href="vaes.html#cb287-38" aria-hidden="true" tabindex="-1"></a>            <span class="fu">view</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, image_size <span class="sc">*</span> <span class="dv">8</span>, <span class="dv">1</span>, <span class="dv">1</span>)),</span>
+<span id="cb287-39"><a href="vaes.html#cb287-39" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size <span class="sc">*</span> <span class="dv">8</span>, image_size <span class="sc">*</span> <span class="dv">4</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">1</span>, <span class="at">padding =</span> <span class="dv">0</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb287-40"><a href="vaes.html#cb287-40" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>),</span>
+<span id="cb287-41"><a href="vaes.html#cb287-41" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
+<span id="cb287-42"><a href="vaes.html#cb287-42" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 8 * 8</span></span>
+<span id="cb287-43"><a href="vaes.html#cb287-43" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size <span class="sc">*</span> <span class="dv">4</span>, image_size <span class="sc">*</span> <span class="dv">2</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">2</span>, <span class="at">padding =</span> <span class="dv">1</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb287-44"><a href="vaes.html#cb287-44" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>),</span>
+<span id="cb287-45"><a href="vaes.html#cb287-45" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
+<span id="cb287-46"><a href="vaes.html#cb287-46" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 16 x 16</span></span>
+<span id="cb287-47"><a href="vaes.html#cb287-47" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size <span class="sc">*</span> <span class="dv">2</span>, image_size, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">2</span>, <span class="at">padding =</span> <span class="dv">2</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb287-48"><a href="vaes.html#cb287-48" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_batch_norm2d</span>(image_size),</span>
+<span id="cb287-49"><a href="vaes.html#cb287-49" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_leaky_relu</span>(),</span>
+<span id="cb287-50"><a href="vaes.html#cb287-50" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 28 x 28</span></span>
+<span id="cb287-51"><a href="vaes.html#cb287-51" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_conv_transpose2d</span>(image_size, <span class="dv">1</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="at">stride =</span> <span class="dv">2</span>, <span class="at">padding =</span> <span class="dv">1</span>, <span class="at">bias =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb287-52"><a href="vaes.html#cb287-52" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nn_sigmoid</span>()</span>
+<span id="cb287-53"><a href="vaes.html#cb287-53" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb287-54"><a href="vaes.html#cb287-54" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-55"><a href="vaes.html#cb287-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-56"><a href="vaes.html#cb287-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">encode =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb287-57"><a href="vaes.html#cb287-57" aria-hidden="true" tabindex="-1"></a>        result <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">encoder</span>(x) <span class="sc">%&gt;%</span></span>
+<span id="cb287-58"><a href="vaes.html#cb287-58" aria-hidden="true" tabindex="-1"></a>            <span class="fu">torch_flatten</span>(<span class="at">start_dim =</span> <span class="dv">1</span>)</span>
+<span id="cb287-59"><a href="vaes.html#cb287-59" aria-hidden="true" tabindex="-1"></a>        mean <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">latent_mean</span>(result)</span>
+<span id="cb287-60"><a href="vaes.html#cb287-60" aria-hidden="true" tabindex="-1"></a>        log_var <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">latent_log_var</span>(result)</span>
+<span id="cb287-61"><a href="vaes.html#cb287-61" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span>(mean, log_var)</span>
+<span id="cb287-62"><a href="vaes.html#cb287-62" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-63"><a href="vaes.html#cb287-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-64"><a href="vaes.html#cb287-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">decode =</span> <span class="cf">function</span>(z) {</span>
+<span id="cb287-65"><a href="vaes.html#cb287-65" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span><span class="fu">decoder</span>(z)</span>
+<span id="cb287-66"><a href="vaes.html#cb287-66" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-67"><a href="vaes.html#cb287-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-68"><a href="vaes.html#cb287-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">reparameterize =</span> <span class="cf">function</span>(mean, logvar) {</span>
+<span id="cb287-69"><a href="vaes.html#cb287-69" aria-hidden="true" tabindex="-1"></a>        std <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="fl">0.5</span>, <span class="at">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="sc">*</span> logvar</span>
+<span id="cb287-70"><a href="vaes.html#cb287-70" aria-hidden="true" tabindex="-1"></a>        eps <span class="ot">&lt;-</span> <span class="fu">torch_randn_like</span>(std)</span>
+<span id="cb287-71"><a href="vaes.html#cb287-71" aria-hidden="true" tabindex="-1"></a>        eps <span class="sc">*</span> std <span class="sc">+</span> mean</span>
+<span id="cb287-72"><a href="vaes.html#cb287-72" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-73"><a href="vaes.html#cb287-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-74"><a href="vaes.html#cb287-74" aria-hidden="true" tabindex="-1"></a>    <span class="at">loss_function =</span> <span class="cf">function</span>(reconstruction, input, mean, log_var) {</span>
+<span id="cb287-75"><a href="vaes.html#cb287-75" aria-hidden="true" tabindex="-1"></a>        reconstruction_loss <span class="ot">&lt;-</span> <span class="fu">nnf_binary_cross_entropy</span>(reconstruction, input, <span class="at">reduction =</span> <span class="st">&quot;sum&quot;</span>)</span>
+<span id="cb287-76"><a href="vaes.html#cb287-76" aria-hidden="true" tabindex="-1"></a>        kl_loss <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="at">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="sc">*</span> <span class="fu">torch_sum</span>(<span class="fu">torch_tensor</span>(<span class="dv">1</span>, <span class="at">device =</span> <span class="st">&quot;cuda&quot;</span>) <span class="sc">+</span> log_var <span class="sc">-</span> mean<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> log_var<span class="sc">$</span><span class="fu">exp</span>())</span>
+<span id="cb287-77"><a href="vaes.html#cb287-77" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">&lt;-</span> reconstruction_loss <span class="sc">+</span> kl_loss</span>
+<span id="cb287-78"><a href="vaes.html#cb287-78" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span>(loss, reconstruction_loss, kl_loss)</span>
+<span id="cb287-79"><a href="vaes.html#cb287-79" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-80"><a href="vaes.html#cb287-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-81"><a href="vaes.html#cb287-81" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb287-82"><a href="vaes.html#cb287-82" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(mean, log_var) <span class="sc">%&lt;-%</span> self<span class="sc">$</span><span class="fu">encode</span>(x)</span>
+<span id="cb287-83"><a href="vaes.html#cb287-83" aria-hidden="true" tabindex="-1"></a>        z <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">reparameterize</span>(mean, log_var)</span>
+<span id="cb287-84"><a href="vaes.html#cb287-84" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span> (self<span class="sc">$</span><span class="fu">decode</span>(z), x, mean, log_var)</span>
+<span id="cb287-85"><a href="vaes.html#cb287-85" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb287-86"><a href="vaes.html#cb287-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-87"><a href="vaes.html#cb287-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample =</span> <span class="cf">function</span>(num_samples, current_device) {</span>
+<span id="cb287-88"><a href="vaes.html#cb287-88" aria-hidden="true" tabindex="-1"></a>        z <span class="ot">&lt;-</span> <span class="fu">torch_randn</span>(num_samples, self<span class="sc">$</span>latent_dim)</span>
+<span id="cb287-89"><a href="vaes.html#cb287-89" aria-hidden="true" tabindex="-1"></a>        z <span class="ot">&lt;-</span> z<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> current_device)</span>
+<span id="cb287-90"><a href="vaes.html#cb287-90" aria-hidden="true" tabindex="-1"></a>        samples <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">decode</span>(z)</span>
+<span id="cb287-91"><a href="vaes.html#cb287-91" aria-hidden="true" tabindex="-1"></a>        samples</span>
+<span id="cb287-92"><a href="vaes.html#cb287-92" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb287-93"><a href="vaes.html#cb287-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-94"><a href="vaes.html#cb287-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-95"><a href="vaes.html#cb287-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-96"><a href="vaes.html#cb287-96" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">vae</span>(<span class="at">latent_dim =</span> <span class="dv">128</span>)<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span></code></pre></div>
 </div>
 <div id="training-the-vae" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Training the VAE</h2>
 <p>We train the model for 3 epochs. Training code is just a few lines, as the model itself contains all the logic.</p>
-<div class="sourceCode" id="cb284"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb284-1"><a href="vaes.html#cb284-1" aria-hidden="true" tabindex="-1"></a>optimizer <span class="ot">&lt;-</span> <span class="fu">optim_adam</span>(model<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.001</span>)</span>
-<span id="cb284-2"><a href="vaes.html#cb284-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb284-3"><a href="vaes.html#cb284-3" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb284-4"><a href="vaes.html#cb284-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb284-5"><a href="vaes.html#cb284-5" aria-hidden="true" tabindex="-1"></a>img_num <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb284-6"><a href="vaes.html#cb284-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num_epochs) {</span>
-<span id="cb284-7"><a href="vaes.html#cb284-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb284-8"><a href="vaes.html#cb284-8" aria-hidden="true" tabindex="-1"></a>    batchnum <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb284-9"><a href="vaes.html#cb284-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (b <span class="cf">in</span> <span class="fu">enumerate</span>(dl)) {</span>
-<span id="cb284-10"><a href="vaes.html#cb284-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb284-11"><a href="vaes.html#cb284-11" aria-hidden="true" tabindex="-1"></a>        batchnum <span class="ot">&lt;-</span> batchnum <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb284-12"><a href="vaes.html#cb284-12" aria-hidden="true" tabindex="-1"></a>        input <span class="ot">&lt;-</span> b[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
-<span id="cb284-13"><a href="vaes.html#cb284-13" aria-hidden="true" tabindex="-1"></a>        optimizer<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
-<span id="cb284-14"><a href="vaes.html#cb284-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(reconstruction, input, mean, log_var) <span class="sc">%&lt;-%</span> <span class="fu">model</span>(input)</span>
-<span id="cb284-15"><a href="vaes.html#cb284-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(loss, reconstruction_loss, kl_loss) <span class="sc">%&lt;-%</span> model<span class="sc">$</span><span class="fu">loss_function</span>(reconstruction, input, mean, log_var)</span>
-<span id="cb284-16"><a href="vaes.html#cb284-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb284-17"><a href="vaes.html#cb284-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(batchnum <span class="sc">%%</span> <span class="dv">50</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb284-18"><a href="vaes.html#cb284-18" aria-hidden="true" tabindex="-1"></a>            img_num <span class="ot">&lt;-</span> img_num <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb284-19"><a href="vaes.html#cb284-19" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, epoch,</span>
-<span id="cb284-20"><a href="vaes.html#cb284-20" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    batch: &quot;</span>, batchnum,</span>
-<span id="cb284-21"><a href="vaes.html#cb284-21" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    loss: &quot;</span>, <span class="fu">as.numeric</span>(loss<span class="sc">$</span><span class="fu">cpu</span>()),</span>
-<span id="cb284-22"><a href="vaes.html#cb284-22" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    recon loss: &quot;</span>, <span class="fu">as.numeric</span>(reconstruction_loss<span class="sc">$</span><span class="fu">cpu</span>()),</span>
-<span id="cb284-23"><a href="vaes.html#cb284-23" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    KL loss: &quot;</span>, <span class="fu">as.numeric</span>(kl_loss<span class="sc">$</span><span class="fu">cpu</span>()),</span>
-<span id="cb284-24"><a href="vaes.html#cb284-24" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb284-25"><a href="vaes.html#cb284-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">with_no_grad</span>({</span>
-<span id="cb284-26"><a href="vaes.html#cb284-26" aria-hidden="true" tabindex="-1"></a>                generated <span class="ot">&lt;-</span> model<span class="sc">$</span><span class="fu">sample</span>(<span class="dv">64</span>, device)</span>
-<span id="cb284-27"><a href="vaes.html#cb284-27" aria-hidden="true" tabindex="-1"></a>                grid <span class="ot">&lt;-</span> <span class="fu">vision_make_grid</span>(generated)</span>
-<span id="cb284-28"><a href="vaes.html#cb284-28" aria-hidden="true" tabindex="-1"></a>                img_list[[img_num]] <span class="ot">&lt;-</span> <span class="fu">as_array</span>(grid<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
-<span id="cb284-29"><a href="vaes.html#cb284-29" aria-hidden="true" tabindex="-1"></a>            })</span>
-<span id="cb284-30"><a href="vaes.html#cb284-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb284-31"><a href="vaes.html#cb284-31" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb284-32"><a href="vaes.html#cb284-32" aria-hidden="true" tabindex="-1"></a>        loss<span class="sc">$</span><span class="fu">backward</span>()</span>
-<span id="cb284-33"><a href="vaes.html#cb284-33" aria-hidden="true" tabindex="-1"></a>        optimizer<span class="sc">$</span><span class="fu">step</span>()</span>
-<span id="cb284-34"><a href="vaes.html#cb284-34" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb284-35"><a href="vaes.html#cb284-35" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb288"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb288-1"><a href="vaes.html#cb288-1" aria-hidden="true" tabindex="-1"></a>optimizer <span class="ot">&lt;-</span> <span class="fu">optim_adam</span>(model<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.001</span>)</span>
+<span id="cb288-2"><a href="vaes.html#cb288-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb288-3"><a href="vaes.html#cb288-3" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb288-4"><a href="vaes.html#cb288-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb288-5"><a href="vaes.html#cb288-5" aria-hidden="true" tabindex="-1"></a>img_num <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb288-6"><a href="vaes.html#cb288-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num_epochs) {</span>
+<span id="cb288-7"><a href="vaes.html#cb288-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb288-8"><a href="vaes.html#cb288-8" aria-hidden="true" tabindex="-1"></a>    batchnum <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb288-9"><a href="vaes.html#cb288-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (b <span class="cf">in</span> <span class="fu">enumerate</span>(dl)) {</span>
+<span id="cb288-10"><a href="vaes.html#cb288-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb288-11"><a href="vaes.html#cb288-11" aria-hidden="true" tabindex="-1"></a>        batchnum <span class="ot">&lt;-</span> batchnum <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb288-12"><a href="vaes.html#cb288-12" aria-hidden="true" tabindex="-1"></a>        input <span class="ot">&lt;-</span> b[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb288-13"><a href="vaes.html#cb288-13" aria-hidden="true" tabindex="-1"></a>        optimizer<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb288-14"><a href="vaes.html#cb288-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(reconstruction, input, mean, log_var) <span class="sc">%&lt;-%</span> <span class="fu">model</span>(input)</span>
+<span id="cb288-15"><a href="vaes.html#cb288-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(loss, reconstruction_loss, kl_loss) <span class="sc">%&lt;-%</span> model<span class="sc">$</span><span class="fu">loss_function</span>(reconstruction, input, mean, log_var)</span>
+<span id="cb288-16"><a href="vaes.html#cb288-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb288-17"><a href="vaes.html#cb288-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(batchnum <span class="sc">%%</span> <span class="dv">50</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb288-18"><a href="vaes.html#cb288-18" aria-hidden="true" tabindex="-1"></a>            img_num <span class="ot">&lt;-</span> img_num <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb288-19"><a href="vaes.html#cb288-19" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, epoch,</span>
+<span id="cb288-20"><a href="vaes.html#cb288-20" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    batch: &quot;</span>, batchnum,</span>
+<span id="cb288-21"><a href="vaes.html#cb288-21" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    loss: &quot;</span>, <span class="fu">as.numeric</span>(loss<span class="sc">$</span><span class="fu">cpu</span>()),</span>
+<span id="cb288-22"><a href="vaes.html#cb288-22" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    recon loss: &quot;</span>, <span class="fu">as.numeric</span>(reconstruction_loss<span class="sc">$</span><span class="fu">cpu</span>()),</span>
+<span id="cb288-23"><a href="vaes.html#cb288-23" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;    KL loss: &quot;</span>, <span class="fu">as.numeric</span>(kl_loss<span class="sc">$</span><span class="fu">cpu</span>()),</span>
+<span id="cb288-24"><a href="vaes.html#cb288-24" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb288-25"><a href="vaes.html#cb288-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">with_no_grad</span>({</span>
+<span id="cb288-26"><a href="vaes.html#cb288-26" aria-hidden="true" tabindex="-1"></a>                generated <span class="ot">&lt;-</span> model<span class="sc">$</span><span class="fu">sample</span>(<span class="dv">64</span>, device)</span>
+<span id="cb288-27"><a href="vaes.html#cb288-27" aria-hidden="true" tabindex="-1"></a>                grid <span class="ot">&lt;-</span> <span class="fu">vision_make_grid</span>(generated)</span>
+<span id="cb288-28"><a href="vaes.html#cb288-28" aria-hidden="true" tabindex="-1"></a>                img_list[[img_num]] <span class="ot">&lt;-</span> <span class="fu">as_array</span>(grid<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> <span class="st">&quot;cpu&quot;</span>))</span>
+<span id="cb288-29"><a href="vaes.html#cb288-29" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb288-30"><a href="vaes.html#cb288-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb288-31"><a href="vaes.html#cb288-31" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb288-32"><a href="vaes.html#cb288-32" aria-hidden="true" tabindex="-1"></a>        loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb288-33"><a href="vaes.html#cb288-33" aria-hidden="true" tabindex="-1"></a>        optimizer<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb288-34"><a href="vaes.html#cb288-34" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb288-35"><a href="vaes.html#cb288-35" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>Above, we chose a latent dimension of 128 for the VAE. This is how generated images look as training progresses:</p>
-<div class="sourceCode" id="cb285"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb285-1"><a href="vaes.html#cb285-1" aria-hidden="true" tabindex="-1"></a>index <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">length</span>(img_list), <span class="at">length.out =</span> <span class="dv">16</span>)</span>
-<span id="cb285-2"><a href="vaes.html#cb285-2" aria-hidden="true" tabindex="-1"></a>images <span class="ot">&lt;-</span> img_list[index]</span>
-<span id="cb285-3"><a href="vaes.html#cb285-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb285-4"><a href="vaes.html#cb285-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="at">mar =</span> <span class="fu">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
-<span id="cb285-5"><a href="vaes.html#cb285-5" aria-hidden="true" tabindex="-1"></a>rasterize <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb285-6"><a href="vaes.html#cb285-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.raster</span>(x[<span class="dv">1</span>, , ])</span>
-<span id="cb285-7"><a href="vaes.html#cb285-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb285-8"><a href="vaes.html#cb285-8" aria-hidden="true" tabindex="-1"></a>images <span class="sc">%&gt;%</span></span>
-<span id="cb285-9"><a href="vaes.html#cb285-9" aria-hidden="true" tabindex="-1"></a>    purrr<span class="sc">::</span><span class="fu">map</span>(rasterize) <span class="sc">%&gt;%</span></span>
-<span id="cb285-10"><a href="vaes.html#cb285-10" aria-hidden="true" tabindex="-1"></a>    purrr<span class="sc">::</span><span class="fu">iwalk</span>(<span class="sc">~</span>{<span class="fu">plot</span>(.x)})</span></code></pre></div>
-<div class="sourceCode" id="cb286"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb286-1"><a href="vaes.html#cb286-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_128.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb289"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb289-1"><a href="vaes.html#cb289-1" aria-hidden="true" tabindex="-1"></a>index <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">length</span>(img_list), <span class="at">length.out =</span> <span class="dv">16</span>)</span>
+<span id="cb289-2"><a href="vaes.html#cb289-2" aria-hidden="true" tabindex="-1"></a>images <span class="ot">&lt;-</span> img_list[index]</span>
+<span id="cb289-3"><a href="vaes.html#cb289-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb289-4"><a href="vaes.html#cb289-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">4</span>), <span class="at">mar =</span> <span class="fu">rep</span>(<span class="fl">0.2</span>, <span class="dv">4</span>))</span>
+<span id="cb289-5"><a href="vaes.html#cb289-5" aria-hidden="true" tabindex="-1"></a>rasterize <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb289-6"><a href="vaes.html#cb289-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.raster</span>(x[<span class="dv">1</span>, , ])</span>
+<span id="cb289-7"><a href="vaes.html#cb289-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb289-8"><a href="vaes.html#cb289-8" aria-hidden="true" tabindex="-1"></a>images <span class="sc">%&gt;%</span></span>
+<span id="cb289-9"><a href="vaes.html#cb289-9" aria-hidden="true" tabindex="-1"></a>    purrr<span class="sc">::</span><span class="fu">map</span>(rasterize) <span class="sc">%&gt;%</span></span>
+<span id="cb289-10"><a href="vaes.html#cb289-10" aria-hidden="true" tabindex="-1"></a>    purrr<span class="sc">::</span><span class="fu">iwalk</span>(<span class="sc">~</span>{<span class="fu">plot</span>(.x)})</span></code></pre></div>
+<div class="sourceCode" id="cb290"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb290-1"><a href="vaes.html#cb290-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_128.png&quot;</span>)</span></code></pre></div>
 <p>For comparison, let’s re-run training with a latent space dimensionality of 2. This is how artifacts over time look now:</p>
-<div class="sourceCode" id="cb287"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb287-1"><a href="vaes.html#cb287-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_2.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb291"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb291-1"><a href="vaes.html#cb291-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_2.png&quot;</span>)</span></code></pre></div>
 <p>Not surprisingly, latent space size significantly affects artifact quality. On the other hand, we can now visualize the latent
 space.</p>
 </div>
 <div id="latent-space" class="section level2" number="12.4">
 <h2><span class="header-section-number">12.4</span> Latent space</h2>
-<div class="sourceCode" id="cb288"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb288-1"><a href="vaes.html#cb288-1" aria-hidden="true" tabindex="-1"></a>kmnist_test <span class="ot">&lt;-</span> <span class="fu">kmnist_dataset</span>(</span>
-<span id="cb288-2"><a href="vaes.html#cb288-2" aria-hidden="true" tabindex="-1"></a>    dir,</span>
-<span id="cb288-3"><a href="vaes.html#cb288-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">train =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb288-4"><a href="vaes.html#cb288-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">download =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb288-5"><a href="vaes.html#cb288-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb288-6"><a href="vaes.html#cb288-6" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> x<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>())<span class="sc">/</span><span class="dv">256</span></span>
-<span id="cb288-7"><a href="vaes.html#cb288-7" aria-hidden="true" tabindex="-1"></a>        x[newaxis,..]</span>
-<span id="cb288-8"><a href="vaes.html#cb288-8" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb288-9"><a href="vaes.html#cb288-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb288-10"><a href="vaes.html#cb288-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb288-11"><a href="vaes.html#cb288-11" aria-hidden="true" tabindex="-1"></a>dl_test <span class="ot">&lt;-</span> <span class="fu">dataloader</span>(kmnist_test, <span class="at">batch_size =</span> <span class="dv">10000</span>, <span class="at">shuffle =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb288-12"><a href="vaes.html#cb288-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb288-13"><a href="vaes.html#cb288-13" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">eval</span>()</span>
-<span id="cb288-14"><a href="vaes.html#cb288-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb288-15"><a href="vaes.html#cb288-15" aria-hidden="true" tabindex="-1"></a><span class="fu">with_no_grad</span>({</span>
-<span id="cb288-16"><a href="vaes.html#cb288-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(inputs, labels) <span class="sc">%&lt;-%</span> dl_test<span class="sc">$</span><span class="fu">.iter</span>()<span class="sc">$</span><span class="fu">.next</span>()</span>
-<span id="cb288-17"><a href="vaes.html#cb288-17" aria-hidden="true" tabindex="-1"></a>    inputs <span class="ot">&lt;-</span> inputs<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
-<span id="cb288-18"><a href="vaes.html#cb288-18" aria-hidden="true" tabindex="-1"></a>    encoded <span class="ot">&lt;-</span> model<span class="sc">$</span><span class="fu">encode</span>(inputs)</span>
-<span id="cb288-19"><a href="vaes.html#cb288-19" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
-<div class="sourceCode" id="cb289"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb289-1"><a href="vaes.html#cb289-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb289-2"><a href="vaes.html#cb289-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb289-3"><a href="vaes.html#cb289-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb289-4"><a href="vaes.html#cb289-4" aria-hidden="true" tabindex="-1"></a>encoded <span class="ot">&lt;-</span> encoded[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">cpu</span>() <span class="sc">%&gt;%</span> <span class="fu">as_array</span>()</span>
-<span id="cb289-5"><a href="vaes.html#cb289-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TBD</span><span class="co"> remove dtype conversion when #149 works</span></span>
-<span id="cb289-6"><a href="vaes.html#cb289-6" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(labels<span class="sc">$</span><span class="fu">cpu</span>()<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_int32</span>()))</span>
-<span id="cb289-7"><a href="vaes.html#cb289-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb289-8"><a href="vaes.html#cb289-8" aria-hidden="true" tabindex="-1"></a>encoded <span class="sc">%&gt;%</span></span>
-<span id="cb289-9"><a href="vaes.html#cb289-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb289-10"><a href="vaes.html#cb289-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">class =</span> <span class="fu">as.factor</span>(labels)) <span class="sc">%&gt;%</span></span>
-<span id="cb289-11"><a href="vaes.html#cb289-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> V1, <span class="at">y =</span> V2, <span class="at">colour =</span> class)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb289-12"><a href="vaes.html#cb289-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_fixed</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">4</span>, <span class="dv">4</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">4</span>, <span class="dv">4</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb290"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb290-1"><a href="vaes.html#cb290-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_2_latent.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb292"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb292-1"><a href="vaes.html#cb292-1" aria-hidden="true" tabindex="-1"></a>kmnist_test <span class="ot">&lt;-</span> <span class="fu">kmnist_dataset</span>(</span>
+<span id="cb292-2"><a href="vaes.html#cb292-2" aria-hidden="true" tabindex="-1"></a>    dir,</span>
+<span id="cb292-3"><a href="vaes.html#cb292-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">train =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb292-4"><a href="vaes.html#cb292-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">download =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb292-5"><a href="vaes.html#cb292-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb292-6"><a href="vaes.html#cb292-6" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> x<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>())<span class="sc">/</span><span class="dv">256</span></span>
+<span id="cb292-7"><a href="vaes.html#cb292-7" aria-hidden="true" tabindex="-1"></a>        x[newaxis,..]</span>
+<span id="cb292-8"><a href="vaes.html#cb292-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb292-9"><a href="vaes.html#cb292-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb292-10"><a href="vaes.html#cb292-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb292-11"><a href="vaes.html#cb292-11" aria-hidden="true" tabindex="-1"></a>dl_test <span class="ot">&lt;-</span> <span class="fu">dataloader</span>(kmnist_test, <span class="at">batch_size =</span> <span class="dv">10000</span>, <span class="at">shuffle =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb292-12"><a href="vaes.html#cb292-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb292-13"><a href="vaes.html#cb292-13" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb292-14"><a href="vaes.html#cb292-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb292-15"><a href="vaes.html#cb292-15" aria-hidden="true" tabindex="-1"></a><span class="fu">with_no_grad</span>({</span>
+<span id="cb292-16"><a href="vaes.html#cb292-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(inputs, labels) <span class="sc">%&lt;-%</span> dl_test<span class="sc">$</span><span class="fu">.iter</span>()<span class="sc">$</span><span class="fu">.next</span>()</span>
+<span id="cb292-17"><a href="vaes.html#cb292-17" aria-hidden="true" tabindex="-1"></a>    inputs <span class="ot">&lt;-</span> inputs<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb292-18"><a href="vaes.html#cb292-18" aria-hidden="true" tabindex="-1"></a>    encoded <span class="ot">&lt;-</span> model<span class="sc">$</span><span class="fu">encode</span>(inputs)</span>
+<span id="cb292-19"><a href="vaes.html#cb292-19" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<div class="sourceCode" id="cb293"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb293-1"><a href="vaes.html#cb293-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb293-2"><a href="vaes.html#cb293-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb293-3"><a href="vaes.html#cb293-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb293-4"><a href="vaes.html#cb293-4" aria-hidden="true" tabindex="-1"></a>encoded <span class="ot">&lt;-</span> encoded[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">cpu</span>() <span class="sc">%&gt;%</span> <span class="fu">as_array</span>()</span>
+<span id="cb293-5"><a href="vaes.html#cb293-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TBD</span><span class="co"> remove dtype conversion when #149 works</span></span>
+<span id="cb293-6"><a href="vaes.html#cb293-6" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(labels<span class="sc">$</span><span class="fu">cpu</span>()<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_int32</span>()))</span>
+<span id="cb293-7"><a href="vaes.html#cb293-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb293-8"><a href="vaes.html#cb293-8" aria-hidden="true" tabindex="-1"></a>encoded <span class="sc">%&gt;%</span></span>
+<span id="cb293-9"><a href="vaes.html#cb293-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb293-10"><a href="vaes.html#cb293-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">class =</span> <span class="fu">as.factor</span>(labels)) <span class="sc">%&gt;%</span></span>
+<span id="cb293-11"><a href="vaes.html#cb293-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> V1, <span class="at">y =</span> V2, <span class="at">colour =</span> class)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb293-12"><a href="vaes.html#cb293-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_fixed</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">4</span>, <span class="dv">4</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">4</span>, <span class="dv">4</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb294"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb294-1"><a href="vaes.html#cb294-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_2_latent.png&quot;</span>)</span></code></pre></div>
 <p>As we see, classes are nicely clustered together. Finally, we can also explore transitions in latent space.</p>
-<div class="sourceCode" id="cb291"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb291-1"><a href="vaes.html#cb291-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8</span>  </span>
-<span id="cb291-2"><a href="vaes.html#cb291-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb291-3"><a href="vaes.html#cb291-3" aria-hidden="true" tabindex="-1"></a>grid_x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="at">length.out =</span> n)</span>
-<span id="cb291-4"><a href="vaes.html#cb291-4" aria-hidden="true" tabindex="-1"></a>grid_y <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="at">length.out =</span> n)</span>
-<span id="cb291-5"><a href="vaes.html#cb291-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb291-6"><a href="vaes.html#cb291-6" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">eval</span>()</span>
-<span id="cb291-7"><a href="vaes.html#cb291-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb291-8"><a href="vaes.html#cb291-8" aria-hidden="true" tabindex="-1"></a>rows <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb291-9"><a href="vaes.html#cb291-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(grid_x)){</span>
-<span id="cb291-10"><a href="vaes.html#cb291-10" aria-hidden="true" tabindex="-1"></a>  column <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb291-11"><a href="vaes.html#cb291-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(grid_y)){</span>
-<span id="cb291-12"><a href="vaes.html#cb291-12" aria-hidden="true" tabindex="-1"></a>    z_sample <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="fu">c</span>(grid_x[i], grid_y[j]))<span class="sc">$</span><span class="fu">cuda</span>()</span>
-<span id="cb291-13"><a href="vaes.html#cb291-13" aria-hidden="true" tabindex="-1"></a>    column <span class="ot">&lt;-</span> <span class="fu">rbind</span>(column, <span class="fu">as_array</span>(model<span class="sc">$</span><span class="fu">decode</span>(z_sample)<span class="sc">$</span><span class="fu">cpu</span>()<span class="sc">$</span><span class="fu">detach</span>()[<span class="dv">1</span>, <span class="dv">1</span>, , ]))</span>
-<span id="cb291-14"><a href="vaes.html#cb291-14" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb291-15"><a href="vaes.html#cb291-15" aria-hidden="true" tabindex="-1"></a>  rows <span class="ot">&lt;-</span> <span class="fu">cbind</span>(rows, column)</span>
-<span id="cb291-16"><a href="vaes.html#cb291-16" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb291-17"><a href="vaes.html#cb291-17" aria-hidden="true" tabindex="-1"></a>rows <span class="sc">%&gt;%</span> <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span> <span class="fu">plot</span>()</span></code></pre></div>
-<div class="sourceCode" id="cb292"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb292-1"><a href="vaes.html#cb292-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_2_grid.png&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb295"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb295-1"><a href="vaes.html#cb295-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8</span>  </span>
+<span id="cb295-2"><a href="vaes.html#cb295-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-3"><a href="vaes.html#cb295-3" aria-hidden="true" tabindex="-1"></a>grid_x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb295-4"><a href="vaes.html#cb295-4" aria-hidden="true" tabindex="-1"></a>grid_y <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>, <span class="dv">8</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb295-5"><a href="vaes.html#cb295-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-6"><a href="vaes.html#cb295-6" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb295-7"><a href="vaes.html#cb295-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-8"><a href="vaes.html#cb295-8" aria-hidden="true" tabindex="-1"></a>rows <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb295-9"><a href="vaes.html#cb295-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(grid_x)){</span>
+<span id="cb295-10"><a href="vaes.html#cb295-10" aria-hidden="true" tabindex="-1"></a>  column <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb295-11"><a href="vaes.html#cb295-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(grid_y)){</span>
+<span id="cb295-12"><a href="vaes.html#cb295-12" aria-hidden="true" tabindex="-1"></a>    z_sample <span class="ot">&lt;-</span> <span class="fu">torch_tensor</span>(<span class="fu">c</span>(grid_x[i], grid_y[j]))<span class="sc">$</span><span class="fu">cuda</span>()</span>
+<span id="cb295-13"><a href="vaes.html#cb295-13" aria-hidden="true" tabindex="-1"></a>    column <span class="ot">&lt;-</span> <span class="fu">rbind</span>(column, <span class="fu">as_array</span>(model<span class="sc">$</span><span class="fu">decode</span>(z_sample)<span class="sc">$</span><span class="fu">cpu</span>()<span class="sc">$</span><span class="fu">detach</span>()[<span class="dv">1</span>, <span class="dv">1</span>, , ]))</span>
+<span id="cb295-14"><a href="vaes.html#cb295-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb295-15"><a href="vaes.html#cb295-15" aria-hidden="true" tabindex="-1"></a>  rows <span class="ot">&lt;-</span> <span class="fu">cbind</span>(rows, column)</span>
+<span id="cb295-16"><a href="vaes.html#cb295-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb295-17"><a href="vaes.html#cb295-17" aria-hidden="true" tabindex="-1"></a>rows <span class="sc">%&gt;%</span> <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span> <span class="fu">plot</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb296"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb296-1"><a href="vaes.html#cb296-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">&quot;images/vae_2_grid.png&quot;</span>)</span></code></pre></div>
 <p>Not too bad, for a latent dimensionality of 2 and a pretty complex dataset!</p>
 
 </div>

@@ -193,10 +193,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
 <li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
 <ul>
-<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-transformation"><i class="fa fa-check"></i><b>7.1</b> Data loading and transformation</a></li>
+<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-preprocessing"><i class="fa fa-check"></i><b>7.1</b> Data loading and preprocessing</a></li>
 <li class="chapter" data-level="7.2" data-path="image-classification.html"><a href="image-classification.html#model"><i class="fa fa-check"></i><b>7.2</b> Model</a></li>
 <li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
-<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#performance-on-the-test-set"><i class="fa fa-check"></i><b>7.4</b> Performance on the test set</a></li>
+<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#test-set-accuracy"><i class="fa fa-check"></i><b>7.4</b> Test set accuracy</a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="unet.html"><a href="unet.html"><i class="fa fa-check"></i><b>8</b> Brain Image Segmentation with U-Net</a>
 <ul>
@@ -255,7 +255,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>11.2.2</b> Discriminator</a></li>
 <li class="chapter" data-level="11.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>11.2.3</b> Optimizers and loss function</a></li>
 </ul></li>
-<li class="chapter" data-level="11.3" data-path="gans.html"><a href="gans.html#training-loop-2"><i class="fa fa-check"></i><b>11.3</b> Training loop</a></li>
+<li class="chapter" data-level="11.3" data-path="gans.html"><a href="gans.html#training-loop-3"><i class="fa fa-check"></i><b>11.3</b> Training loop</a></li>
 <li class="chapter" data-level="11.4" data-path="gans.html"><a href="gans.html#artifacts"><i class="fa fa-check"></i><b>11.4</b> Artifacts</a></li>
 </ul></li>
 <li class="chapter" data-level="12" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>12</b> Variational autoencoders</a>
@@ -313,6 +313,9 @@ Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2018. <span>�
 <div id="ref-goodfellow2014generative" class="csl-entry">
 Goodfellow, Ian J., Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. 2014. <span>“Generative Adversarial Networks.”</span> <a href="http://arxiv.org/abs/1406.2661">http://arxiv.org/abs/1406.2661</a>.
 </div>
+<div id="ref-HeZRS15" class="csl-entry">
+He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2015. <span>“Deep Residual Learning for Image Recognition.”</span> <em>CoRR</em> abs/1512.03385. <a href="http://arxiv.org/abs/1512.03385">http://arxiv.org/abs/1512.03385</a>.
+</div>
 <div id="ref-Higgins2017betaVAELB" class="csl-entry">
 Higgins, Irina, Loïc Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew M Botvinick, Shakir Mohamed, and Alexander Lerchner. 2017. <span>“Beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.”</span> In <em>ICLR</em>.
 </div>
@@ -340,9 +343,6 @@ Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. 2015. <span>“U-Net: Convo
 <div id="ref-Smith15a" class="csl-entry">
 Smith, Leslie N. 2015. <span>“No More Pesky Learning Rate Guessing Games.”</span> <em>CoRR</em> abs/1506.01186. <a href="http://arxiv.org/abs/1506.01186">http://arxiv.org/abs/1506.01186</a>.
 </div>
-<div id="ref-abs-1708-07120" class="csl-entry">
-Smith, Leslie N., and Nicholay Topin. 2017. <span>“Super-Convergence: Very Fast Training of Residual Networks Using Large Learning Rates.”</span> <em>CoRR</em> abs/1708.07120. <a href="http://arxiv.org/abs/1708.07120">http://arxiv.org/abs/1708.07120</a>.
-</div>
 <div id="ref-VaswaniSPUJGKP17" class="csl-entry">
 Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. 2017. <span>“Attention Is All You Need.”</span> <em>CoRR</em> abs/1706.03762. <a href="http://arxiv.org/abs/1706.03762">http://arxiv.org/abs/1706.03762</a>.
 </div>
@@ -351,6 +351,7 @@ Zhao, Shengjia, Jiaming Song, and Stefano Ermon. 2017. <span>“InfoVAE: Informa
 </div>
 </div>
 </div>
+
 
 
 

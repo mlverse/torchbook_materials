@@ -50,10 +50,15 @@ losses-and-loss-functions
 optimizers
 simple-network-final-version
 image_classification
-data-loading-and-transformation
+data-loading-and-preprocessing
+image-preprocessing-pipeline
+data-loaders
+some-birds
 model
 training
-performance-on-the-test-set
+finding-an-optimally-efficient-learning-rate
+training-loop-2
+test-set-accuracy
 unet
 image-segmentation-in-a-nutshell
 u-net
@@ -93,7 +98,7 @@ model-2
 generator
 discriminator
 optimizers-and-loss-function
-training-loop-2
+training-loop-3
 artifacts
 vaes
 dataset-1
