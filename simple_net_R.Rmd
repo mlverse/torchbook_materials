@@ -10,65 +10,74 @@ Our toy network will perform a simple regression task, and to explain its buildi
 
 If we had to, we could do linear regression
 
+```{=tex}
 \begin{equation*}
-\\mathbf{X} \\boldsymbol{\\beta} = \\mathbf{y}
-(\\\#eq:linreg)
-\\end{equation\*}
-
+\mathbf{X} \boldsymbol{\beta} = \mathbf{y}
+(\#eq:linreg)
+\end{equation*}
+```
 from scratch in R. Not necessarily using the *normal equations* (as those imply invertibility of the covariance matrix):
 
+```{=tex}
 \begin{equation*}
-\\hat{\\boldsymbol{\\beta}} = \\mathbf{{(X\^t X)}\^{-1} X\^t y}
-(\\\#eq:normaleqs)
-\\end{equation\*}
-
+\hat{\boldsymbol{\beta}} = \mathbf{{(X^t X)}^{-1} X^t y}
+(\#eq:normaleqs)
+\end{equation*}
+```
 but iteratively, doing *gradient descent*. We start with a guess of the weight vector $\boldsymbol{\beta}$, $\hat{\boldsymbol{\beta}}$. Then in each iteration, we compute how far we are from our objective, that is, from correctly solving equation \@ref(eq:linreg). Most often in regression, for this we'd calculate *the sum of squared errors*:
 
+```{=tex}
 \begin{equation*}
-\\mathcal{L} = \\sum{{(\\mathbf{X} \\hat{\\boldsymbol{\\beta}} - \\mathbf{\\ y})}\^2}
-(\\\#eq:mse)
-\\end{equation\*}
-
+\mathcal{L} = \sum{{(\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{\ y})}^2}
+(\#eq:mse)
+\end{equation*}
+```
 This is our *loss function*. For that loss to go down, we need to update $\hat{\boldsymbol{\beta}}$ in the right direction. How the loss changes with $\hat{\boldsymbol{\beta}}$ is given by its *gradient* with respect to the same:
 
+```{=tex}
 \begin{equation*}
-\\nabla\_{\\hat{\\boldsymbol{\\beta}}} \\mathcal{L} = 2 \\mathbf{X}\^t (\\mathbf{X} \\hat{\\boldsymbol{\\beta}} - \\mathbf{y})
-(\\\#eq:gradlosswrtbeta)
-\\end{equation\*}
-
+\nabla_{\hat{\boldsymbol{\beta}}} \mathcal{L} = 2 \mathbf{X}^t (\mathbf{X} \hat{\boldsymbol{\beta}} - \mathbf{y})
+(\#eq:gradlosswrtbeta)
+\end{equation*}
+```
 Substracting a fraction of that gradient from $\hat{\boldsymbol{\beta}}$ -- "descending" the gradient of the loss -- will make it go down. This can be seen by looking at the first-order Taylor approximation of a function $f$ (choosing a single-variable function for simplicity):
 
+```{=tex}
 \begin{equation*}
-f(x + \\delta x) \\approx f(x) + f'(x) \\delta x
-(\\\#eq:euler)
-\\end{equation\*}
-
+f(x + \delta x) \approx f(x) + f'(x) \delta x
+(\#eq:euler)
+\end{equation*}
+```
 If we set $\delta x$ to a multiple of the derivative of $f$ at $x$, $\delta = \eta f'(x)$, we get
 
+```{=tex}
 \begin{equation*}
-f(x - \\eta f'(x)) \\approx f(x) - \\eta f'(x) f'(x))
-\\end{equation\*}
-
+f(x - \eta f'(x)) \approx f(x) - \eta f'(x) f'(x))
+\end{equation*}
+```
+```{=tex}
 \begin{equation*}
-f(x - \\eta f'(x)) \\approx f(x) - \\eta (f'(x))\^2
-(\\\#eq:euler)
-\\end{equation\*}
-
+f(x - \eta f'(x)) \approx f(x) - \eta (f'(x))^2
+(\#eq:euler)
+\end{equation*}
+```
 This new value $f(x - \eta f'(x))$ is smaller than $f(x)$ because on the right side, a positive value is subtracted.
 
 Ported to our task of loss minimization, where loss $\mathcal(L)$ depends on a vector parameter $\hat{\boldsymbol{\beta}}$, this would be
 
+```{=tex}
 \begin{equation*}
-\\mathcal{L}(\\hat{\\boldsymbol{\\beta}} + \\Delta \\hat{\\boldsymbol{\\beta}}) \\approx \\mathcal{L}(\\hat{\\boldsymbol{\\beta}}) + {\\Delta \\hat{\\boldsymbol{\\beta}}}\^t \\nabla \\hat{\\boldsymbol{\\beta}}
-(\\\#eq:euler)
-\\end{equation\*}
-
+\mathcal{L}(\hat{\boldsymbol{\beta}} + \Delta \hat{\boldsymbol{\beta}}) \approx \mathcal{L}(\hat{\boldsymbol{\beta}}) + {\Delta \hat{\boldsymbol{\beta}}}^t \nabla \hat{\boldsymbol{\beta}}
+(\#eq:euler)
+\end{equation*}
+```
 Now, again, subtracting a fraction of the gradient, $- \eta \nabla \hat{\boldsymbol{\beta}}$, we have
 
+```{=tex}
 \begin{equation*}
-\\mathcal{L}(\\hat{\\boldsymbol{\\beta}} - \\eta \\nabla \\hat{\\boldsymbol{\\beta}}) \\approx \\mathcal{L}(\\hat{\\boldsymbol{\\beta}}) - \\eta {\\nabla \\hat{\\boldsymbol{\\beta}}}\^t \\nabla \\hat{\\boldsymbol{\\beta}}
-\\end{equation\*}
-
+\mathcal{L}(\hat{\boldsymbol{\beta}} - \eta \nabla \hat{\boldsymbol{\beta}}) \approx \mathcal{L}(\hat{\boldsymbol{\beta}}) - \eta {\nabla \hat{\boldsymbol{\beta}}}^t \nabla \hat{\boldsymbol{\beta}}
+\end{equation*}
+```
 where again the new loss value is lower than the old one.
 
 Iterating this process, we successively approach better estimates of $\hat{\boldsymbol{\beta}}$. The scale parameter, $\eta$, used to multiply the gradient is called the *learning rate*.
@@ -79,7 +88,7 @@ Before going there, a quick summary of the concepts and building blocks we've no
 
 -   Better weights are determined iteratively.
 -   On each iteration, with the current weight estimates, we calculate a new prediction, the current *loss*, and the gradient of the loss with respect to the weights.
--   We update the weights, subtracting *learning\_rate* times the gradient, and proceed to the next iteration.
+-   We update the weights, subtracting *learning_rate* times the gradient, and proceed to the next iteration.
 
 The program below will follow this blueprint. We'll fill out the sections soon:
 

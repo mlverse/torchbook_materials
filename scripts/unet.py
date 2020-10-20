@@ -26,6 +26,18 @@ valid_dir = "data/kaggle_3m_valid"
 
 # ------------------- load data ------------------------------------------------
 
+image_slices = []
+mask_slices = []
+filepath = "data/kaggle_3m_train/TCGA_CS_4942_19970222/TCGA_CS_4942_19970222_1_mask.tif"
+image_slices.append(imread(filepath, as_gray=True))
+image_slices[0].shape
+len(image_slices)
+volumes = {}
+patient_id = 2222
+volumes[patient_id] = np.array(image_slices[1:-1])
+len(image_slices[1:-1])
+volumes[patient_id].shape
+            
 class BrainSegmentationDataset(Dataset):
     """Brain MRI dataset for FLAIR abnormality segmentation"""
     in_channels = 3
