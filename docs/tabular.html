@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>11 torch for tabular data | Applied deep learning with torch from R</title>
+  <meta name="description" content="tbd" />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="11 torch for tabular data | Applied deep learning with torch from R" />
+  <meta property="og:type" content="book" />
+  <meta property="og:url" content="tbd" />
+  <meta property="og:image" content="tbdcover.png" />
+  <meta property="og:description" content="tbd" />
+  <meta name="github-repo" content="tbd" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="11 torch for tabular data | Applied deep learning with torch from R" />
+  
+  <meta name="twitter:description" content="tbd" />
+  <meta name="twitter:image" content="tbdcover.png" />
+
+<meta name="author" content="tbd" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="transformer.html"/>
+<link rel="next" href="timeseries-intro.html"/>
+<script src="libs/header-attrs-2.4.6/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a>
+<ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#license"><i class="fa fa-check"></i>License</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#introduction-1"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+</ul></li>
+<li class="part"><span><b>I Using Torch</b></span></li>
+<li class="chapter" data-level="" data-path="using-torch-intro.html"><a href="using-torch-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="2" data-path="simple-net-R.html"><a href="simple-net-R.html"><i class="fa fa-check"></i><b>2</b> A simple neural network in R</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#whats-in-a-network"><i class="fa fa-check"></i><b>2.1</b> What’s in a network?</a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="simple-net-R.html"><a href="simple-net-R.html#gradient-descent"><i class="fa fa-check"></i><b>2.1.1</b> Gradient descent</a></li>
+<li class="chapter" data-level="2.1.2" data-path="simple-net-R.html"><a href="simple-net-R.html#from-linear-regression-to-a-simple-network"><i class="fa fa-check"></i><b>2.1.2</b> From linear regression to a simple network</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#a-simple-network"><i class="fa fa-check"></i><b>2.2</b> A simple network</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="simple-net-R.html"><a href="simple-net-R.html#simulate-data"><i class="fa fa-check"></i><b>2.2.1</b> Simulate data</a></li>
+<li class="chapter" data-level="2.2.2" data-path="simple-net-R.html"><a href="simple-net-R.html#initialize-weights-and-biases"><i class="fa fa-check"></i><b>2.2.2</b> Initialize weights and biases</a></li>
+<li class="chapter" data-level="2.2.3" data-path="simple-net-R.html"><a href="simple-net-R.html#training-loop"><i class="fa fa-check"></i><b>2.2.3</b> Training loop</a></li>
+<li class="chapter" data-level="2.2.4" data-path="simple-net-R.html"><a href="simple-net-R.html#complete-code"><i class="fa fa-check"></i><b>2.2.4</b> Complete code</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html"><i class="fa fa-check"></i><b>3</b> Modifying the simple network to use torch tensors</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#tensors"><i class="fa fa-check"></i><b>3.1</b> Tensors</a>
+<ul>
+<li class="chapter" data-level="3.1.1" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#creation"><i class="fa fa-check"></i><b>3.1.1</b> Creation</a></li>
+<li class="chapter" data-level="3.1.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#conversion-to-built-in-r-data-types"><i class="fa fa-check"></i><b>3.1.2</b> Conversion to built-in R data types</a></li>
+<li class="chapter" data-level="3.1.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#indexing-and-slicing-tensors"><i class="fa fa-check"></i><b>3.1.3</b> Indexing and slicing tensors</a></li>
+<li class="chapter" data-level="3.1.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#reshaping-tensors"><i class="fa fa-check"></i><b>3.1.4</b> Reshaping tensors</a></li>
+<li class="chapter" data-level="3.1.5" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#operations-on-tensors"><i class="fa fa-check"></i><b>3.1.5</b> Operations on tensors</a></li>
+</ul></li>
+<li class="chapter" data-level="3.2" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#running-on-gpu"><i class="fa fa-check"></i><b>3.2</b> Running on GPU</a></li>
+<li class="chapter" data-level="3.3" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#broadcasting"><i class="fa fa-check"></i><b>3.3</b> Broadcasting</a></li>
+<li class="chapter" data-level="3.4" data-path="simple-net-tensors.html"><a href="simple-net-tensors.html#simple-neural-network-using-torch-tensors"><i class="fa fa-check"></i><b>3.4</b> Simple neural network using <code>torch</code> tensors</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html"><i class="fa fa-check"></i><b>4</b> Using autograd</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#automatic-differentiation-with-autograd"><i class="fa fa-check"></i><b>4.1</b> Automatic differentiation with <em>autograd</em></a></li>
+<li class="chapter" data-level="4.2" data-path="simple-net-autograd.html"><a href="simple-net-autograd.html#the-simple-network-now-using-autograd"><i class="fa fa-check"></i><b>4.2</b> The simple network, now using <em>autograd</em></a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="simple-net-modules.html"><a href="simple-net-modules.html"><i class="fa fa-check"></i><b>5</b> Using torch modules</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#modules"><i class="fa fa-check"></i><b>5.1</b> Modules</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="simple-net-modules.html"><a href="simple-net-modules.html#base-modules-layers"><i class="fa fa-check"></i><b>5.1.1</b> Base modules (“layers”)</a></li>
+<li class="chapter" data-level="5.1.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#container-modules-models"><i class="fa fa-check"></i><b>5.1.2</b> Container modules (“models”)</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="simple-net-modules.html"><a href="simple-net-modules.html#simple-network-using-modules"><i class="fa fa-check"></i><b>5.2</b> Simple network using modules</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="simple-net-optim.html"><a href="simple-net-optim.html"><i class="fa fa-check"></i><b>6</b> Using <code>torch</code> optimizers</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="simple-net-optim.html"><a href="simple-net-optim.html#losses-and-loss-functions"><i class="fa fa-check"></i><b>6.1</b> Losses and loss functions</a></li>
+<li class="chapter" data-level="6.2" data-path="simple-net-optim.html"><a href="simple-net-optim.html#optimizers"><i class="fa fa-check"></i><b>6.2</b> Optimizers</a></li>
+<li class="chapter" data-level="6.3" data-path="simple-net-optim.html"><a href="simple-net-optim.html#simple-network-final-version"><i class="fa fa-check"></i><b>6.3</b> Simple network: final version</a></li>
+</ul></li>
+<li class="part"><span><b>II Image Recognition</b></span></li>
+<li class="chapter" data-level="" data-path="image-recognition-intro.html"><a href="image-recognition-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="7" data-path="image-classification.html"><a href="image-classification.html"><i class="fa fa-check"></i><b>7</b> Classifying images</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="image-classification.html"><a href="image-classification.html#data-loading-and-preprocessing"><i class="fa fa-check"></i><b>7.1</b> Data loading and preprocessing</a></li>
+<li class="chapter" data-level="7.2" data-path="image-classification.html"><a href="image-classification.html#model"><i class="fa fa-check"></i><b>7.2</b> Model</a></li>
+<li class="chapter" data-level="7.3" data-path="image-classification.html"><a href="image-classification.html#training"><i class="fa fa-check"></i><b>7.3</b> Training</a></li>
+<li class="chapter" data-level="7.4" data-path="image-classification.html"><a href="image-classification.html#test-set-accuracy"><i class="fa fa-check"></i><b>7.4</b> Test set accuracy</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="unet.html"><a href="unet.html"><i class="fa fa-check"></i><b>8</b> Brain Image Segmentation with U-Net</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="unet.html"><a href="unet.html#image-segmentation-in-a-nutshell"><i class="fa fa-check"></i><b>8.1</b> Image segmentation in a nutshell</a></li>
+<li class="chapter" data-level="8.2" data-path="unet.html"><a href="unet.html#u-net"><i class="fa fa-check"></i><b>8.2</b> U-Net</a></li>
+<li class="chapter" data-level="8.3" data-path="unet.html"><a href="unet.html#example-application-mri-images"><i class="fa fa-check"></i><b>8.3</b> Example application: MRI images</a>
+<ul>
+<li class="chapter" data-level="8.3.1" data-path="unet.html"><a href="unet.html#preprocessing"><i class="fa fa-check"></i><b>8.3.1</b> Preprocessing</a></li>
+<li class="chapter" data-level="8.3.2" data-path="unet.html"><a href="unet.html#u-net-model"><i class="fa fa-check"></i><b>8.3.2</b> U-Net model</a></li>
+<li class="chapter" data-level="8.3.3" data-path="unet.html"><a href="unet.html#loss"><i class="fa fa-check"></i><b>8.3.3</b> Loss</a></li>
+<li class="chapter" data-level="8.3.4" data-path="unet.html"><a href="unet.html#training-1"><i class="fa fa-check"></i><b>8.3.4</b> Training</a></li>
+<li class="chapter" data-level="8.3.5" data-path="unet.html"><a href="unet.html#predictions"><i class="fa fa-check"></i><b>8.3.5</b> Predictions</a></li>
+</ul></li>
+</ul></li>
+<li class="part"><span><b>III Natural language processing</b></span></li>
+<li class="chapter" data-level="" data-path="NLP-intro.html"><a href="NLP-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="9" data-path="seq2seq-att.html"><a href="seq2seq-att.html"><i class="fa fa-check"></i><b>9</b> Sequence-to-sequence models with attention</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#why-attention"><i class="fa fa-check"></i><b>9.1</b> Why attention?</a></li>
+<li class="chapter" data-level="9.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#preprocessing-with-torchtext"><i class="fa fa-check"></i><b>9.2</b> Preprocessing with <code>torchtext</code></a></li>
+<li class="chapter" data-level="9.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#model-1"><i class="fa fa-check"></i><b>9.3</b> Model</a>
+<ul>
+<li class="chapter" data-level="9.3.1" data-path="seq2seq-att.html"><a href="seq2seq-att.html#encoder"><i class="fa fa-check"></i><b>9.3.1</b> Encoder</a></li>
+<li class="chapter" data-level="9.3.2" data-path="seq2seq-att.html"><a href="seq2seq-att.html#attention-module"><i class="fa fa-check"></i><b>9.3.2</b> Attention module</a></li>
+<li class="chapter" data-level="9.3.3" data-path="seq2seq-att.html"><a href="seq2seq-att.html#decoder"><i class="fa fa-check"></i><b>9.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="9.3.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#seq2seq-module"><i class="fa fa-check"></i><b>9.3.4</b> Seq2seq module</a></li>
+</ul></li>
+<li class="chapter" data-level="9.4" data-path="seq2seq-att.html"><a href="seq2seq-att.html#training-and-evaluation"><i class="fa fa-check"></i><b>9.4</b> Training and evaluation</a></li>
+<li class="chapter" data-level="9.5" data-path="seq2seq-att.html"><a href="seq2seq-att.html#results"><i class="fa fa-check"></i><b>9.5</b> Results</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="transformer.html"><a href="transformer.html"><i class="fa fa-check"></i><b>10</b> Torch transformer modules</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="transformer.html"><a href="transformer.html#attention-is-all-you-need"><i class="fa fa-check"></i><b>10.1</b> “Attention is all you need”</a></li>
+<li class="chapter" data-level="10.2" data-path="transformer.html"><a href="transformer.html#implementation-building-blocks"><i class="fa fa-check"></i><b>10.2</b> Implementation: building blocks</a></li>
+<li class="chapter" data-level="10.3" data-path="transformer.html"><a href="transformer.html#a-transformer-for-natural-language-translation"><i class="fa fa-check"></i><b>10.3</b> A Transformer for natural language translation</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="transformer.html"><a href="transformer.html#load-data"><i class="fa fa-check"></i><b>10.3.1</b> Load data</a></li>
+<li class="chapter" data-level="10.3.2" data-path="transformer.html"><a href="transformer.html#encoder-1"><i class="fa fa-check"></i><b>10.3.2</b> Encoder</a></li>
+<li class="chapter" data-level="10.3.3" data-path="transformer.html"><a href="transformer.html#decoder-1"><i class="fa fa-check"></i><b>10.3.3</b> Decoder</a></li>
+<li class="chapter" data-level="10.3.4" data-path="transformer.html"><a href="transformer.html#overall-model"><i class="fa fa-check"></i><b>10.3.4</b> Overall model</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="transformer.html"><a href="transformer.html#results-1"><i class="fa fa-check"></i><b>10.4</b> Results</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="tabular.html"><a href="tabular.html"><i class="fa fa-check"></i><b>11</b> torch for tabular data</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="tabular.html"><a href="tabular.html#agenda"><i class="fa fa-check"></i><b>11.1</b> Agenda</a></li>
+<li class="chapter" data-level="11.2" data-path="tabular.html"><a href="tabular.html#dataset"><i class="fa fa-check"></i><b>11.2</b> Dataset</a></li>
+<li class="chapter" data-level="11.3" data-path="tabular.html"><a href="tabular.html#model-2"><i class="fa fa-check"></i><b>11.3</b> Model</a></li>
+<li class="chapter" data-level="11.4" data-path="tabular.html"><a href="tabular.html#training-2"><i class="fa fa-check"></i><b>11.4</b> Training</a></li>
+<li class="chapter" data-level="11.5" data-path="tabular.html"><a href="tabular.html#evaluation"><i class="fa fa-check"></i><b>11.5</b> Evaluation</a></li>
+<li class="chapter" data-level="11.6" data-path="tabular.html"><a href="tabular.html#making-the-task-harder"><i class="fa fa-check"></i><b>11.6</b> Making the task harder</a></li>
+<li class="chapter" data-level="11.7" data-path="tabular.html"><a href="tabular.html#a-look-at-the-hidden-representations"><i class="fa fa-check"></i><b>11.7</b> A look at the hidden representations</a></li>
+</ul></li>
+<li class="part"><span><b>IV Time series</b></span></li>
+<li class="chapter" data-level="" data-path="timeseries-intro.html"><a href="timeseries-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="part"><span><b>V Generative deep learning</b></span></li>
+<li class="chapter" data-level="" data-path="generative-intro.html"><a href="generative-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="12" data-path="gans.html"><a href="gans.html"><i class="fa fa-check"></i><b>12</b> Generative adversarial networks</a>
+<ul>
+<li class="chapter" data-level="12.1" data-path="gans.html"><a href="gans.html#dataset-1"><i class="fa fa-check"></i><b>12.1</b> Dataset</a></li>
+<li class="chapter" data-level="12.2" data-path="gans.html"><a href="gans.html#model-3"><i class="fa fa-check"></i><b>12.2</b> Model</a>
+<ul>
+<li class="chapter" data-level="12.2.1" data-path="gans.html"><a href="gans.html#generator"><i class="fa fa-check"></i><b>12.2.1</b> Generator</a></li>
+<li class="chapter" data-level="12.2.2" data-path="gans.html"><a href="gans.html#discriminator"><i class="fa fa-check"></i><b>12.2.2</b> Discriminator</a></li>
+<li class="chapter" data-level="12.2.3" data-path="gans.html"><a href="gans.html#optimizers-and-loss-function"><i class="fa fa-check"></i><b>12.2.3</b> Optimizers and loss function</a></li>
+</ul></li>
+<li class="chapter" data-level="12.3" data-path="gans.html"><a href="gans.html#training-loop-3"><i class="fa fa-check"></i><b>12.3</b> Training loop</a></li>
+<li class="chapter" data-level="12.4" data-path="gans.html"><a href="gans.html#artifacts"><i class="fa fa-check"></i><b>12.4</b> Artifacts</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="vaes.html"><a href="vaes.html"><i class="fa fa-check"></i><b>13</b> Variational autoencoders</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="vaes.html"><a href="vaes.html#dataset-2"><i class="fa fa-check"></i><b>13.1</b> Dataset</a></li>
+<li class="chapter" data-level="13.2" data-path="vaes.html"><a href="vaes.html#model-4"><i class="fa fa-check"></i><b>13.2</b> Model</a></li>
+<li class="chapter" data-level="13.3" data-path="vaes.html"><a href="vaes.html#training-the-vae"><i class="fa fa-check"></i><b>13.3</b> Training the VAE</a></li>
+<li class="chapter" data-level="13.4" data-path="vaes.html"><a href="vaes.html#latent-space"><i class="fa fa-check"></i><b>13.4</b> Latent space</a></li>
+</ul></li>
+<li class="part"><span><b>VI Deep learning on graphs</b></span></li>
+<li class="chapter" data-level="" data-path="graph-intro.html"><a href="graph-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="part"><span><b>VII Probabilistic deep learning</b></span></li>
+<li class="chapter" data-level="" data-path="probabilistic-intro.html"><a href="probabilistic-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="part"><span><b>VIII Private and secure deep learning</b></span></li>
+<li class="chapter" data-level="" data-path="private-secure-intro.html"><a href="private-secure-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="part"><span><b>IX Research topics</b></span></li>
+<li class="chapter" data-level="" data-path="research-intro.html"><a href="research-intro.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Applied deep learning with torch from R</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="tabular" class="section level1" number="11">
+<h1><span class="header-section-number">11</span> torch for tabular data</h1>
+<p>Machine learning on image-like data can be many things: fun (dogs vs. cats), societally useful (medical imaging), or societally harmful (surveillance). In comparison, tabular data – the bread and butter of data science – may seem more mundane.</p>
+<p>What’s more, if you’re particularly interested in deep learning (DL), and looking for the extra benefits to be gained from big data, big architectures, and big compute, you’re much more likely to build an impressive showcase on the former instead of the latter.</p>
+<p>So for tabular data, why not just go with random forests, or gradient boosting, or other classical methods? I can think of at least a few reasons to learn about DL for tabular data:</p>
+<ul>
+<li><p>Even if all your features are interval-scale or ordinal, thus requiring “just” some form of (not necessarily linear) regression, applying DL may result in performance benefits due to sophisticated optimization algorithms, activation functions, layer depth, and more (plus interactions of all of these).</p></li>
+<li><p>If, in addition, there are categorical features, DL models may profit from <em>embedding</em> those in continuous space, discovering similarities and relationships that go unnoticed in one-hot encoded representations.</p></li>
+<li><p>What if most features are numeric or categorical, but there’s also text in column F and an image in column G? With DL, different modalities can be worked on by different modules that feed their outputs into a common module, to take over from there.</p></li>
+</ul>
+<div id="agenda" class="section level2" number="11.1">
+<h2><span class="header-section-number">11.1</span> Agenda</h2>
+<p>In this introductory chapter, we keep the architecture straightforward. We don’t experiment with fancy optimizers or nonlinearities. Nor do we add in text or image processing. However, we do make use of embeddings, and pretty prominently at that. Thus from the above bullet list, we’ll shed a light on the second, while leaving the other two for future posts.</p>
+<p>In a nutshell, what we’ll see is</p>
+<ul>
+<li><p>How to create a custom <em>dataset</em>, tailored to the specific data you have.</p></li>
+<li><p>How to handle a mix of numeric and categorical data.</p></li>
+<li><p>How to extract continuous-space representations from the embedding modules.</p></li>
+</ul>
+</div>
+<div id="dataset" class="section level2" number="11.2">
+<h2><span class="header-section-number">11.2</span> Dataset</h2>
+<p>The dataset, <a href="https://archive.ics.uci.edu/ml/datasets/Mushroom">Mushrooms</a>, was chosen for its abundance of categorical columns. It is an unusual dataset to use in DL: It was designed for machine learning models to infer logical rules, as in: IF <em>a</em> AND NOT <em>b</em> OR <em>c</em> […], then it’s an <em>x</em>.</p>
+<p>Mushrooms are classified into two groups: edible and non-edible. The dataset description lists five possible rules with their resulting accuracies. While the least we want to go into here is the hotly debated topic of whether DL is suited to, or how it could be made more suited to rule learning, we’ll allow ourselves some curiosity and check out what happens if we successively remove all columns used to construct those five rules.</p>
+<div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="tabular.html#cb272-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb272-2"><a href="tabular.html#cb272-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb272-3"><a href="tabular.html#cb272-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb272-4"><a href="tabular.html#cb272-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb272-5"><a href="tabular.html#cb272-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb272-6"><a href="tabular.html#cb272-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
+<span id="cb272-7"><a href="tabular.html#cb272-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb272-8"><a href="tabular.html#cb272-8" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(</span>
+<span id="cb272-9"><a href="tabular.html#cb272-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data&quot;</span>,</span>
+<span id="cb272-10"><a href="tabular.html#cb272-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">destfile =</span> <span class="st">&quot;agaricus-lepiota.data&quot;</span></span>
+<span id="cb272-11"><a href="tabular.html#cb272-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb272-12"><a href="tabular.html#cb272-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb272-13"><a href="tabular.html#cb272-13" aria-hidden="true" tabindex="-1"></a>mushroom_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb272-14"><a href="tabular.html#cb272-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;agaricus-lepiota.data&quot;</span>,</span>
+<span id="cb272-15"><a href="tabular.html#cb272-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_names =</span> <span class="fu">c</span>(</span>
+<span id="cb272-16"><a href="tabular.html#cb272-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;poisonous&quot;</span>,</span>
+<span id="cb272-17"><a href="tabular.html#cb272-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cap-shape&quot;</span>,</span>
+<span id="cb272-18"><a href="tabular.html#cb272-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cap-surface&quot;</span>,</span>
+<span id="cb272-19"><a href="tabular.html#cb272-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cap-color&quot;</span>,</span>
+<span id="cb272-20"><a href="tabular.html#cb272-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;bruises&quot;</span>,</span>
+<span id="cb272-21"><a href="tabular.html#cb272-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;odor&quot;</span>,</span>
+<span id="cb272-22"><a href="tabular.html#cb272-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;gill-attachment&quot;</span>,</span>
+<span id="cb272-23"><a href="tabular.html#cb272-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;gill-spacing&quot;</span>,</span>
+<span id="cb272-24"><a href="tabular.html#cb272-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;gill-size&quot;</span>,</span>
+<span id="cb272-25"><a href="tabular.html#cb272-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;gill-color&quot;</span>,</span>
+<span id="cb272-26"><a href="tabular.html#cb272-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;stalk-shape&quot;</span>,</span>
+<span id="cb272-27"><a href="tabular.html#cb272-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;stalk-root&quot;</span>,</span>
+<span id="cb272-28"><a href="tabular.html#cb272-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;stalk-surface-above-ring&quot;</span>,</span>
+<span id="cb272-29"><a href="tabular.html#cb272-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;stalk-surface-below-ring&quot;</span>,</span>
+<span id="cb272-30"><a href="tabular.html#cb272-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;stalk-color-above-ring&quot;</span>,</span>
+<span id="cb272-31"><a href="tabular.html#cb272-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;stalk-color-below-ring&quot;</span>,</span>
+<span id="cb272-32"><a href="tabular.html#cb272-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;veil-type&quot;</span>,</span>
+<span id="cb272-33"><a href="tabular.html#cb272-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;veil-color&quot;</span>,</span>
+<span id="cb272-34"><a href="tabular.html#cb272-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;ring-type&quot;</span>,</span>
+<span id="cb272-35"><a href="tabular.html#cb272-35" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;ring-number&quot;</span>,</span>
+<span id="cb272-36"><a href="tabular.html#cb272-36" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;spore-print-color&quot;</span>,</span>
+<span id="cb272-37"><a href="tabular.html#cb272-37" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;population&quot;</span>,</span>
+<span id="cb272-38"><a href="tabular.html#cb272-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;habitat&quot;</span></span>
+<span id="cb272-39"><a href="tabular.html#cb272-39" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb272-40"><a href="tabular.html#cb272-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">rep</span>(<span class="st">&quot;c&quot;</span>, <span class="dv">23</span>) <span class="sc">%&gt;%</span> <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb272-41"><a href="tabular.html#cb272-41" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb272-42"><a href="tabular.html#cb272-42" aria-hidden="true" tabindex="-1"></a>  <span class="co"># can as well remove because there&#39;s just 1 unique value</span></span>
+<span id="cb272-43"><a href="tabular.html#cb272-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="st">`</span><span class="at">veil-type</span><span class="st">`</span>)</span></code></pre></div>
+<p>In <code>torch</code>, <code>dataset()</code> creates an R6 class. As with most R6 classes, there will usually be a need for an <code>initialize()</code> method. Below, we use <code>initialize()</code> to preprocess the data and store it in convenient pieces. More on that in a minute. Prior to that, please note the two other methods a <code>dataset</code> has to implement:</p>
+<ul>
+<li><p><code>.getitem(i)</code> . This is the whole purpose of a <code>dataset</code>: Retrieve and return the observation located at some index it is asked for. Which index? That’s to be decided by the caller, a <code>dataloader</code>. During training, usually we want to permute the order in which observations are used, while not caring about order in case of validation or test data.</p></li>
+<li><p><code>.length()</code>. This method, again for use of a <code>dataloader</code>, indicates how many observations there are.</p></li>
+</ul>
+<p>In our example, both methods are straightforward to implement. <code>.getitem(i)</code> directly uses its argument to index into the data, and <code>.length()</code> returns the number of observations:</p>
+<div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="tabular.html#cb273-1" aria-hidden="true" tabindex="-1"></a>mushroom_dataset <span class="ot">&lt;-</span> <span class="fu">dataset</span>(</span>
+<span id="cb273-2"><a href="tabular.html#cb273-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;mushroom_dataset&quot;</span>,</span>
+<span id="cb273-3"><a href="tabular.html#cb273-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb273-4"><a href="tabular.html#cb273-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(indices) {</span>
+<span id="cb273-5"><a href="tabular.html#cb273-5" aria-hidden="true" tabindex="-1"></a>    data <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">prepare_mushroom_data</span>(mushroom_data[indices, ])</span>
+<span id="cb273-6"><a href="tabular.html#cb273-6" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>xcat <span class="ot">&lt;-</span> data[[<span class="dv">1</span>]][[<span class="dv">1</span>]]</span>
+<span id="cb273-7"><a href="tabular.html#cb273-7" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>xnum <span class="ot">&lt;-</span> data[[<span class="dv">1</span>]][[<span class="dv">2</span>]]</span>
+<span id="cb273-8"><a href="tabular.html#cb273-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>y <span class="ot">&lt;-</span> data[[<span class="dv">2</span>]]</span>
+<span id="cb273-9"><a href="tabular.html#cb273-9" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb273-10"><a href="tabular.html#cb273-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb273-11"><a href="tabular.html#cb273-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">.getitem =</span> <span class="cf">function</span>(i) {</span>
+<span id="cb273-12"><a href="tabular.html#cb273-12" aria-hidden="true" tabindex="-1"></a>    xcat <span class="ot">&lt;-</span> self<span class="sc">$</span>xcat[i, ]</span>
+<span id="cb273-13"><a href="tabular.html#cb273-13" aria-hidden="true" tabindex="-1"></a>    xnum <span class="ot">&lt;-</span> self<span class="sc">$</span>xnum[i, ]</span>
+<span id="cb273-14"><a href="tabular.html#cb273-14" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> self<span class="sc">$</span>y[i, ]</span>
+<span id="cb273-15"><a href="tabular.html#cb273-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb273-16"><a href="tabular.html#cb273-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(<span class="at">x =</span> <span class="fu">list</span>(xcat, xnum), <span class="at">y =</span> y)</span>
+<span id="cb273-17"><a href="tabular.html#cb273-17" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb273-18"><a href="tabular.html#cb273-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb273-19"><a href="tabular.html#cb273-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">.length =</span> <span class="cf">function</span>() {</span>
+<span id="cb273-20"><a href="tabular.html#cb273-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dim</span>(self<span class="sc">$</span>y)[<span class="dv">1</span>]</span>
+<span id="cb273-21"><a href="tabular.html#cb273-21" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb273-22"><a href="tabular.html#cb273-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb273-23"><a href="tabular.html#cb273-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">prepare_mushroom_data =</span> <span class="cf">function</span>(input) {</span>
+<span id="cb273-24"><a href="tabular.html#cb273-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb273-25"><a href="tabular.html#cb273-25" aria-hidden="true" tabindex="-1"></a>    input <span class="ot">&lt;-</span> input <span class="sc">%&gt;%</span></span>
+<span id="cb273-26"><a href="tabular.html#cb273-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.fns =</span> as.factor)) </span>
+<span id="cb273-27"><a href="tabular.html#cb273-27" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb273-28"><a href="tabular.html#cb273-28" aria-hidden="true" tabindex="-1"></a>    target_col <span class="ot">&lt;-</span> input<span class="sc">$</span>poisonous <span class="sc">%&gt;%</span> </span>
+<span id="cb273-29"><a href="tabular.html#cb273-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.integer</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb273-30"><a href="tabular.html#cb273-30" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">-</span><span class="st">`</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb273-31"><a href="tabular.html#cb273-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.matrix</span>()</span>
+<span id="cb273-32"><a href="tabular.html#cb273-32" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb273-33"><a href="tabular.html#cb273-33" aria-hidden="true" tabindex="-1"></a>    categorical_cols <span class="ot">&lt;-</span> input <span class="sc">%&gt;%</span> </span>
+<span id="cb273-34"><a href="tabular.html#cb273-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="sc">-</span>poisonous) <span class="sc">%&gt;%</span></span>
+<span id="cb273-35"><a href="tabular.html#cb273-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="fu">where</span>(<span class="cf">function</span>(x) <span class="fu">nlevels</span>(x) <span class="sc">!=</span> <span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb273-36"><a href="tabular.html#cb273-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.fns =</span> as.integer)) <span class="sc">%&gt;%</span></span>
+<span id="cb273-37"><a href="tabular.html#cb273-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.matrix</span>()</span>
+<span id="cb273-38"><a href="tabular.html#cb273-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb273-39"><a href="tabular.html#cb273-39" aria-hidden="true" tabindex="-1"></a>    numerical_cols <span class="ot">&lt;-</span> input <span class="sc">%&gt;%</span></span>
+<span id="cb273-40"><a href="tabular.html#cb273-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="sc">-</span>poisonous) <span class="sc">%&gt;%</span></span>
+<span id="cb273-41"><a href="tabular.html#cb273-41" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="fu">where</span>(<span class="cf">function</span>(x) <span class="fu">nlevels</span>(x) <span class="sc">==</span> <span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb273-42"><a href="tabular.html#cb273-42" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.fns =</span> as.integer)) <span class="sc">%&gt;%</span></span>
+<span id="cb273-43"><a href="tabular.html#cb273-43" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.matrix</span>()</span>
+<span id="cb273-44"><a href="tabular.html#cb273-44" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb273-45"><a href="tabular.html#cb273-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(<span class="fu">list</span>(<span class="fu">torch_tensor</span>(categorical_cols), <span class="fu">torch_tensor</span>(numerical_cols)),</span>
+<span id="cb273-46"><a href="tabular.html#cb273-46" aria-hidden="true" tabindex="-1"></a>         <span class="fu">torch_tensor</span>(target_col))</span>
+<span id="cb273-47"><a href="tabular.html#cb273-47" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb273-48"><a href="tabular.html#cb273-48" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>As for data storage, there is a field for the target, <code>self$y</code>, but instead of the expected <code>self$x</code> we see separate fields for numerical features (<code>self$xnum</code>) and categorical ones (<code>self$xcat</code>). This is just for convenience: The latter will be passed into embedding modules, which require its inputs to be of type <code>torch_long()</code>, as opposed to most other modules that, by default, work with <code>torch_float()</code>.</p>
+<p>Accordingly, then, all <code>prepare_mushroom_data()</code> does is break apart the data into those three parts.</p>
+<p><em>Indispensable aside:</em> In this dataset, really <em>all</em> features happen to be categorical – it’s just that for some, there are but two types. Technically, we could just have treated them the same as the non-binary features. But since normally in DL, we just leave binary features the way they are, we use this as an occasion to show how to handle a mix of various data types.</p>
+<p>Our custom <code>dataset</code> defined, we create instances for training and validation; each gets its companion <code>dataloader</code>:</p>
+<div class="sourceCode" id="cb274"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb274-1"><a href="tabular.html#cb274-1" aria-hidden="true" tabindex="-1"></a>train_indices <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(mushroom_data), <span class="at">size =</span> <span class="fu">floor</span>(<span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">nrow</span>(mushroom_data)))</span>
+<span id="cb274-2"><a href="tabular.html#cb274-2" aria-hidden="true" tabindex="-1"></a>valid_indices <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(mushroom_data), train_indices)</span>
+<span id="cb274-3"><a href="tabular.html#cb274-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb274-4"><a href="tabular.html#cb274-4" aria-hidden="true" tabindex="-1"></a>train_ds <span class="ot">&lt;-</span> <span class="fu">mushroom_dataset</span>(train_indices)</span>
+<span id="cb274-5"><a href="tabular.html#cb274-5" aria-hidden="true" tabindex="-1"></a>train_dl <span class="ot">&lt;-</span> train_ds <span class="sc">%&gt;%</span> <span class="fu">dataloader</span>(<span class="at">batch_size =</span> <span class="dv">256</span>, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb274-6"><a href="tabular.html#cb274-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb274-7"><a href="tabular.html#cb274-7" aria-hidden="true" tabindex="-1"></a>valid_ds <span class="ot">&lt;-</span> <span class="fu">mushroom_dataset</span>(valid_indices)</span>
+<span id="cb274-8"><a href="tabular.html#cb274-8" aria-hidden="true" tabindex="-1"></a>valid_dl <span class="ot">&lt;-</span> valid_ds <span class="sc">%&gt;%</span> <span class="fu">dataloader</span>(<span class="at">batch_size =</span> <span class="dv">256</span>, <span class="at">shuffle =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+</div>
+<div id="model-2" class="section level2" number="11.3">
+<h2><span class="header-section-number">11.3</span> Model</h2>
+<p>In <code>torch</code>, how much you <em>modularize</em> your models is up to you. Often, high degrees of modularization enhance readability and help with troubleshooting.</p>
+<p>Here we factor out the embedding functionality. An <code>embedding_module</code>, to be passed the categorical features only, will call <code>torch</code>’s <code>nn_embedding()</code> on each of them:</p>
+<div class="sourceCode" id="cb275"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb275-1"><a href="tabular.html#cb275-1" aria-hidden="true" tabindex="-1"></a>embedding_module <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
+<span id="cb275-2"><a href="tabular.html#cb275-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb275-3"><a href="tabular.html#cb275-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(cardinalities) {</span>
+<span id="cb275-4"><a href="tabular.html#cb275-4" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>embeddings <span class="ot">=</span> <span class="fu">nn_module_list</span>(<span class="fu">lapply</span>(cardinalities, <span class="cf">function</span>(x) <span class="fu">nn_embedding</span>(<span class="at">num_embeddings =</span> x, <span class="at">embedding_dim =</span> <span class="fu">ceiling</span>(x<span class="sc">/</span><span class="dv">2</span>))))</span>
+<span id="cb275-5"><a href="tabular.html#cb275-5" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb275-6"><a href="tabular.html#cb275-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb275-7"><a href="tabular.html#cb275-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb275-8"><a href="tabular.html#cb275-8" aria-hidden="true" tabindex="-1"></a>    embedded <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">length</span>(self<span class="sc">$</span>embeddings))</span>
+<span id="cb275-9"><a href="tabular.html#cb275-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(self<span class="sc">$</span>embeddings)) {</span>
+<span id="cb275-10"><a href="tabular.html#cb275-10" aria-hidden="true" tabindex="-1"></a>      embedded[[i]] <span class="ot">&lt;-</span> self<span class="sc">$</span>embeddings[[i]](x[ , i])</span>
+<span id="cb275-11"><a href="tabular.html#cb275-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb275-12"><a href="tabular.html#cb275-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">torch_cat</span>(embedded, <span class="at">dim =</span> <span class="dv">2</span>)</span>
+<span id="cb275-13"><a href="tabular.html#cb275-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb275-14"><a href="tabular.html#cb275-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>The main model, when called, starts by embedding the categorical features, then appends the numerical input and continues processing:</p>
+<div class="sourceCode" id="cb276"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb276-1"><a href="tabular.html#cb276-1" aria-hidden="true" tabindex="-1"></a>net <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
+<span id="cb276-2"><a href="tabular.html#cb276-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;mushroom_net&quot;</span>,</span>
+<span id="cb276-3"><a href="tabular.html#cb276-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-4"><a href="tabular.html#cb276-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(cardinalities,</span>
+<span id="cb276-5"><a href="tabular.html#cb276-5" aria-hidden="true" tabindex="-1"></a>                        num_numerical,</span>
+<span id="cb276-6"><a href="tabular.html#cb276-6" aria-hidden="true" tabindex="-1"></a>                        fc1_dim,</span>
+<span id="cb276-7"><a href="tabular.html#cb276-7" aria-hidden="true" tabindex="-1"></a>                        fc2_dim) {</span>
+<span id="cb276-8"><a href="tabular.html#cb276-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>embedder <span class="ot">&lt;-</span> <span class="fu">embedding_module</span>(cardinalities)</span>
+<span id="cb276-9"><a href="tabular.html#cb276-9" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc1 <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(<span class="fu">sum</span>(<span class="fu">map</span>(cardinalities, <span class="cf">function</span>(x) <span class="fu">ceiling</span>(x<span class="sc">/</span><span class="dv">2</span>)) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>()) <span class="sc">+</span> num_numerical, fc1_dim)</span>
+<span id="cb276-10"><a href="tabular.html#cb276-10" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc2 <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(fc1_dim, fc2_dim)</span>
+<span id="cb276-11"><a href="tabular.html#cb276-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>output <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(fc2_dim, <span class="dv">1</span>)</span>
+<span id="cb276-12"><a href="tabular.html#cb276-12" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb276-13"><a href="tabular.html#cb276-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-14"><a href="tabular.html#cb276-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(xcat, xnum) {</span>
+<span id="cb276-15"><a href="tabular.html#cb276-15" aria-hidden="true" tabindex="-1"></a>    embedded <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">embedder</span>(xcat)</span>
+<span id="cb276-16"><a href="tabular.html#cb276-16" aria-hidden="true" tabindex="-1"></a>    all <span class="ot">&lt;-</span> <span class="fu">torch_cat</span>(<span class="fu">list</span>(embedded, xnum<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>())), <span class="at">dim =</span> <span class="dv">2</span>)</span>
+<span id="cb276-17"><a href="tabular.html#cb276-17" aria-hidden="true" tabindex="-1"></a>    all <span class="sc">%&gt;%</span> self<span class="sc">$</span><span class="fu">fc1</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb276-18"><a href="tabular.html#cb276-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb276-19"><a href="tabular.html#cb276-19" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">fc2</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb276-20"><a href="tabular.html#cb276-20" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">output</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb276-21"><a href="tabular.html#cb276-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_sigmoid</span>()</span>
+<span id="cb276-22"><a href="tabular.html#cb276-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb276-23"><a href="tabular.html#cb276-23" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Now instantiate this model, passing in, on the one hand, output sizes for the linear layers, and on the other, feature cardinalities. The latter will be used by the embedding modules to determine their output sizes, following a simple rule “embed into a space of size half the number of input values”:</p>
+<div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="tabular.html#cb277-1" aria-hidden="true" tabindex="-1"></a>cardinalities <span class="ot">&lt;-</span> <span class="fu">map</span>(</span>
+<span id="cb277-2"><a href="tabular.html#cb277-2" aria-hidden="true" tabindex="-1"></a>  mushroom_data[ , <span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(mushroom_data)], <span class="fu">compose</span>(nlevels, as.factor)) <span class="sc">%&gt;%</span></span>
+<span id="cb277-3"><a href="tabular.html#cb277-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">keep</span>(<span class="cf">function</span>(x) x <span class="sc">&gt;</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb277-4"><a href="tabular.html#cb277-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb277-5"><a href="tabular.html#cb277-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unname</span>()</span>
+<span id="cb277-6"><a href="tabular.html#cb277-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-7"><a href="tabular.html#cb277-7" aria-hidden="true" tabindex="-1"></a>num_numerical <span class="ot">&lt;-</span> <span class="fu">ncol</span>(mushroom_data) <span class="sc">-</span> <span class="fu">length</span>(cardinalities) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb277-8"><a href="tabular.html#cb277-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-9"><a href="tabular.html#cb277-9" aria-hidden="true" tabindex="-1"></a>fc1_dim <span class="ot">&lt;-</span> <span class="dv">16</span></span>
+<span id="cb277-10"><a href="tabular.html#cb277-10" aria-hidden="true" tabindex="-1"></a>fc2_dim <span class="ot">&lt;-</span> <span class="dv">16</span></span>
+<span id="cb277-11"><a href="tabular.html#cb277-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-12"><a href="tabular.html#cb277-12" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">net</span>(</span>
+<span id="cb277-13"><a href="tabular.html#cb277-13" aria-hidden="true" tabindex="-1"></a>  cardinalities,</span>
+<span id="cb277-14"><a href="tabular.html#cb277-14" aria-hidden="true" tabindex="-1"></a>  num_numerical,</span>
+<span id="cb277-15"><a href="tabular.html#cb277-15" aria-hidden="true" tabindex="-1"></a>  fc1_dim,</span>
+<span id="cb277-16"><a href="tabular.html#cb277-16" aria-hidden="true" tabindex="-1"></a>  fc2_dim</span>
+<span id="cb277-17"><a href="tabular.html#cb277-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb277-18"><a href="tabular.html#cb277-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-19"><a href="tabular.html#cb277-19" aria-hidden="true" tabindex="-1"></a>device <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">cuda_is_available</span>()) <span class="fu">torch_device</span>(<span class="st">&quot;cuda:0&quot;</span>) <span class="cf">else</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb277-20"><a href="tabular.html#cb277-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-21"><a href="tabular.html#cb277-21" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> model<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span></code></pre></div>
+</div>
+<div id="training-2" class="section level2" number="11.4">
+<h2><span class="header-section-number">11.4</span> Training</h2>
+<p>The training loop now is “business as usual”:</p>
+<div class="sourceCode" id="cb278"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb278-1"><a href="tabular.html#cb278-1" aria-hidden="true" tabindex="-1"></a>optimizer <span class="ot">&lt;-</span> <span class="fu">optim_adam</span>(model<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.1</span>)</span>
+<span id="cb278-2"><a href="tabular.html#cb278-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb278-3"><a href="tabular.html#cb278-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (epoch <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
+<span id="cb278-4"><a href="tabular.html#cb278-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb278-5"><a href="tabular.html#cb278-5" aria-hidden="true" tabindex="-1"></a>  model<span class="sc">$</span><span class="fu">train</span>()</span>
+<span id="cb278-6"><a href="tabular.html#cb278-6" aria-hidden="true" tabindex="-1"></a>  train_losses <span class="ot">&lt;-</span> <span class="fu">c</span>()  </span>
+<span id="cb278-7"><a href="tabular.html#cb278-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb278-8"><a href="tabular.html#cb278-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="fu">enumerate</span>(train_dl)) {</span>
+<span id="cb278-9"><a href="tabular.html#cb278-9" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb278-10"><a href="tabular.html#cb278-10" aria-hidden="true" tabindex="-1"></a>    output <span class="ot">&lt;-</span> <span class="fu">model</span>(b<span class="sc">$</span>x[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device), b<span class="sc">$</span>x[[<span class="dv">2</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device))</span>
+<span id="cb278-11"><a href="tabular.html#cb278-11" aria-hidden="true" tabindex="-1"></a>    loss <span class="ot">&lt;-</span> <span class="fu">nnf_binary_cross_entropy</span>(output, b<span class="sc">$</span>y<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>(), <span class="at">device =</span> device))</span>
+<span id="cb278-12"><a href="tabular.html#cb278-12" aria-hidden="true" tabindex="-1"></a>    loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb278-13"><a href="tabular.html#cb278-13" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb278-14"><a href="tabular.html#cb278-14" aria-hidden="true" tabindex="-1"></a>    train_losses <span class="ot">&lt;-</span> <span class="fu">c</span>(train_losses, loss<span class="sc">$</span><span class="fu">item</span>())</span>
+<span id="cb278-15"><a href="tabular.html#cb278-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb278-16"><a href="tabular.html#cb278-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb278-17"><a href="tabular.html#cb278-17" aria-hidden="true" tabindex="-1"></a>  model<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb278-18"><a href="tabular.html#cb278-18" aria-hidden="true" tabindex="-1"></a>  valid_losses <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb278-19"><a href="tabular.html#cb278-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb278-20"><a href="tabular.html#cb278-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (b <span class="cf">in</span> <span class="fu">enumerate</span>(valid_dl)) {</span>
+<span id="cb278-21"><a href="tabular.html#cb278-21" aria-hidden="true" tabindex="-1"></a>    output <span class="ot">&lt;-</span> <span class="fu">model</span>(b<span class="sc">$</span>x[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device), b<span class="sc">$</span>x[[<span class="dv">2</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device))</span>
+<span id="cb278-22"><a href="tabular.html#cb278-22" aria-hidden="true" tabindex="-1"></a>    loss <span class="ot">&lt;-</span> <span class="fu">nnf_binary_cross_entropy</span>(output, b<span class="sc">$</span>y<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> <span class="fu">torch_float</span>(), <span class="at">device =</span> device))</span>
+<span id="cb278-23"><a href="tabular.html#cb278-23" aria-hidden="true" tabindex="-1"></a>    valid_losses <span class="ot">&lt;-</span> <span class="fu">c</span>(valid_losses, loss<span class="sc">$</span><span class="fu">item</span>())</span>
+<span id="cb278-24"><a href="tabular.html#cb278-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb278-25"><a href="tabular.html#cb278-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb278-26"><a href="tabular.html#cb278-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Loss at epoch %d: training: %3f, validation: %3f</span><span class="sc">\n</span><span class="st">&quot;</span>, epoch, <span class="fu">mean</span>(train_losses), <span class="fu">mean</span>(valid_losses)))</span>
+<span id="cb278-27"><a href="tabular.html#cb278-27" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<pre><code>Loss at epoch 1: training: 0.274634, validation: 0.111689
+Loss at epoch 2: training: 0.057177, validation: 0.036074
+Loss at epoch 3: training: 0.025018, validation: 0.016698
+Loss at epoch 4: training: 0.010819, validation: 0.010996
+Loss at epoch 5: training: 0.005467, validation: 0.002849
+Loss at epoch 6: training: 0.002026, validation: 0.000959
+Loss at epoch 7: training: 0.000458, validation: 0.000282
+Loss at epoch 8: training: 0.000231, validation: 0.000190
+Loss at epoch 9: training: 0.000172, validation: 0.000144
+Loss at epoch 10: training: 0.000120, validation: 0.000110
+Loss at epoch 11: training: 0.000098, validation: 0.000090
+Loss at epoch 12: training: 0.000079, validation: 0.000074
+Loss at epoch 13: training: 0.000066, validation: 0.000064
+Loss at epoch 14: training: 0.000058, validation: 0.000055
+Loss at epoch 15: training: 0.000052, validation: 0.000048
+Loss at epoch 16: training: 0.000043, validation: 0.000042
+Loss at epoch 17: training: 0.000038, validation: 0.000038
+Loss at epoch 18: training: 0.000034, validation: 0.000034
+Loss at epoch 19: training: 0.000032, validation: 0.000031
+Loss at epoch 20: training: 0.000028, validation: 0.000027</code></pre>
+<p>While loss on the validation set is still decreasing, we’ll soon see that the network has learned enough to obtain an accuracy of 100%.</p>
+</div>
+<div id="evaluation" class="section level2" number="11.5">
+<h2><span class="header-section-number">11.5</span> Evaluation</h2>
+<p>To check classification accuracy, we re-use the validation set, seeing how we haven’t employed it for tuning anyway.</p>
+<div class="sourceCode" id="cb280"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb280-1"><a href="tabular.html#cb280-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb280-2"><a href="tabular.html#cb280-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb280-3"><a href="tabular.html#cb280-3" aria-hidden="true" tabindex="-1"></a>test_dl <span class="ot">&lt;-</span> valid_ds <span class="sc">%&gt;%</span> <span class="fu">dataloader</span>(<span class="at">batch_size =</span> valid_ds<span class="sc">$</span><span class="fu">.length</span>(), <span class="at">shuffle =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb280-4"><a href="tabular.html#cb280-4" aria-hidden="true" tabindex="-1"></a>iter <span class="ot">&lt;-</span> test_dl<span class="sc">$</span><span class="fu">.iter</span>()</span>
+<span id="cb280-5"><a href="tabular.html#cb280-5" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> iter<span class="sc">$</span><span class="fu">.next</span>()</span>
+<span id="cb280-6"><a href="tabular.html#cb280-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb280-7"><a href="tabular.html#cb280-7" aria-hidden="true" tabindex="-1"></a>output <span class="ot">&lt;-</span> <span class="fu">model</span>(b<span class="sc">$</span>x[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device), b<span class="sc">$</span>x[[<span class="dv">2</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device))</span>
+<span id="cb280-8"><a href="tabular.html#cb280-8" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> output<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> <span class="st">&quot;cpu&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">as.array</span>()</span>
+<span id="cb280-9"><a href="tabular.html#cb280-9" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(preds <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb280-10"><a href="tabular.html#cb280-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb280-11"><a href="tabular.html#cb280-11" aria-hidden="true" tabindex="-1"></a>comp_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">preds =</span> preds, <span class="at">y =</span> b[[<span class="dv">2</span>]] <span class="sc">%&gt;%</span> <span class="fu">as_array</span>())</span>
+<span id="cb280-12"><a href="tabular.html#cb280-12" aria-hidden="true" tabindex="-1"></a>num_correct <span class="ot">&lt;-</span> <span class="fu">sum</span>(comp_df<span class="sc">$</span>preds <span class="sc">==</span> comp_df<span class="sc">$</span>y)</span>
+<span id="cb280-13"><a href="tabular.html#cb280-13" aria-hidden="true" tabindex="-1"></a>num_total <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comp_df)</span>
+<span id="cb280-14"><a href="tabular.html#cb280-14" aria-hidden="true" tabindex="-1"></a>accuracy <span class="ot">&lt;-</span> num_correct<span class="sc">/</span>num_total</span>
+<span id="cb280-15"><a href="tabular.html#cb280-15" aria-hidden="true" tabindex="-1"></a>accuracy</span></code></pre></div>
+<pre><code>1</code></pre>
+<p>Phew. No embarrassing failure for the DL approach on a task where straightforward rules are sufficient. Plus, we’ve really been parsimonious as to network size.</p>
+<p>Before concluding with an inspection of the learned embeddings, let’s have some fun obscuring things.</p>
+</div>
+<div id="making-the-task-harder" class="section level2" number="11.6">
+<h2><span class="header-section-number">11.6</span> Making the task harder</h2>
+<p>The following rules (with accompanying accuracies) are reported in the dataset description.</p>
+<pre><code>Disjunctive rules for poisonous mushrooms, from most general
+    to most specific:
+
+    P_1) odor=NOT(almond.OR.anise.OR.none)
+         120 poisonous cases missed, 98.52% accuracy
+
+    P_2) spore-print-color=green
+         48 cases missed, 99.41% accuracy
+         
+    P_3) odor=none.AND.stalk-surface-below-ring=scaly.AND.
+              (stalk-color-above-ring=NOT.brown) 
+         8 cases missed, 99.90% accuracy
+         
+    P_4) habitat=leaves.AND.cap-color=white
+             100% accuracy     
+
+    Rule P_4) may also be
+
+    P_4&#39;) population=clustered.AND.cap_color=white
+
+    These rule involve 6 attributes (out of 22). </code></pre>
+<p>Evidently, there’s no distinction being made between training and test sets; but we’ll stay with our 80:20 split anyway. We’ll successively remove all mentioned attributes, starting with the three that enabled 100% accuracy, and continuing our way up. Here are the results I obtained seeding the random number generator like so:</p>
+<div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="tabular.html#cb283-1" aria-hidden="true" tabindex="-1"></a><span class="fu">torch_manual_seed</span>(<span class="dv">777</span>)</span></code></pre></div>
+<table>
+<colgroup>
+<col width="90%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">without</th>
+<th align="right">accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>cap-color, population, habitat</code></td>
+<td align="right">0.9938</td>
+</tr>
+<tr class="even">
+<td align="left"><code>cap-color, population, habitat, stalk-surface-below-ring, stalk-color-above-ring</code></td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>cap-color, population, habitat, stalk-surface-below-ring, stalk-color-above-ring, spore-print-color</code></td>
+<td align="right">0.9994</td>
+</tr>
+<tr class="even">
+<td align="left"><code>cap-color, population, habitat, stalk-surface-below-ring, stalk-color-above-ring, spore-print-color, odor</code></td>
+<td align="right">0.9526</td>
+</tr>
+</tbody>
+</table>
+<p>Still 95% correct … While experiments like this are fun, it looks like they can also tell us something serious: Imagine the case of so-called “debiasing” by removing features like race, gender, or income. How many proxy variables may still be left that allow for inferring the masked attributes?</p>
+</div>
+<div id="a-look-at-the-hidden-representations" class="section level2" number="11.7">
+<h2><span class="header-section-number">11.7</span> A look at the hidden representations</h2>
+<p>Looking at the weight matrix of an embedding module, what we see are the learned representations of a feature’s values. The first categorical column was <code>cap-shape</code>; let’s extract its corresponding embeddings:</p>
+<div class="sourceCode" id="cb284"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb284-1"><a href="tabular.html#cb284-1" aria-hidden="true" tabindex="-1"></a>embedding_weights <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">&quot;list&quot;</span>)</span>
+<span id="cb284-2"><a href="tabular.html#cb284-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span> <span class="fu">length</span>(model<span class="sc">$</span>embedder<span class="sc">$</span>embeddings)) {</span>
+<span id="cb284-3"><a href="tabular.html#cb284-3" aria-hidden="true" tabindex="-1"></a>  embedding_weights[[i]] <span class="ot">&lt;-</span> model<span class="sc">$</span>embedder<span class="sc">$</span>embeddings[[i]]<span class="sc">$</span>parameters<span class="sc">$</span>weight<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> <span class="st">&quot;cpu&quot;</span>)</span>
+<span id="cb284-4"><a href="tabular.html#cb284-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb284-5"><a href="tabular.html#cb284-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb284-6"><a href="tabular.html#cb284-6" aria-hidden="true" tabindex="-1"></a>cap_shape_repr <span class="ot">&lt;-</span> embedding_weights[[<span class="dv">1</span>]]</span>
+<span id="cb284-7"><a href="tabular.html#cb284-7" aria-hidden="true" tabindex="-1"></a>cap_shape_repr</span></code></pre></div>
+<pre><code>torch_tensor
+-0.0025 -0.1271  1.8077
+-0.2367 -2.6165 -0.3363
+-0.5264 -0.9455 -0.6702
+ 0.3057 -1.8139  0.3762
+-0.8583 -0.7752  1.0954
+ 0.2740 -0.7513  0.4879
+[ CPUFloatType{6,3} ]</code></pre>
+<p>The number of columns is three, since that’s what we chose when creating the embedding layer. The number of rows is six, matching the number of available categories. We may look up per-feature categories in the dataset description (<em>agaricus-lepiota.names</em>):</p>
+<div class="sourceCode" id="cb286"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb286-1"><a href="tabular.html#cb286-1" aria-hidden="true" tabindex="-1"></a>cap_shapes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;bell&quot;</span>, <span class="st">&quot;conical&quot;</span>, <span class="st">&quot;convex&quot;</span>, <span class="st">&quot;flat&quot;</span>, <span class="st">&quot;knobbed&quot;</span>, <span class="st">&quot;sunken&quot;</span>)</span></code></pre></div>
+<p>For visualization, it’s convenient to do principal components analysis (but there are other options, like t-SNE). Here are the six cap shapes in two-dimensional space:</p>
+<div class="sourceCode" id="cb287"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb287-1"><a href="tabular.html#cb287-1" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(cap_shape_repr, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale. =</span> <span class="cn">TRUE</span>, <span class="at">rank =</span> <span class="dv">2</span>)<span class="sc">$</span>x[, <span class="fu">c</span>(<span class="st">&quot;PC1&quot;</span>, <span class="st">&quot;PC2&quot;</span>)]</span>
+<span id="cb287-2"><a href="tabular.html#cb287-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb287-3"><a href="tabular.html#cb287-3" aria-hidden="true" tabindex="-1"></a>pca <span class="sc">%&gt;%</span></span>
+<span id="cb287-4"><a href="tabular.html#cb287-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb287-5"><a href="tabular.html#cb287-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">class =</span> cap_shapes) <span class="sc">%&gt;%</span></span>
+<span id="cb287-6"><a href="tabular.html#cb287-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> PC1, <span class="at">y =</span> PC2)) <span class="sc">+</span></span>
+<span id="cb287-7"><a href="tabular.html#cb287-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb287-8"><a href="tabular.html#cb287-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_label_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> class)) <span class="sc">+</span> </span>
+<span id="cb287-9"><a href="tabular.html#cb287-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">2</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb287-10"><a href="tabular.html#cb287-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">aspect.ratio =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb287-11"><a href="tabular.html#cb287-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div>
+<p><img src="images/cap-shape.png" width="414" /></p>
+<p>Naturally, how interesting you find the results depends on how much you care about the hidden representation of a variable. Analyses like these may quickly turn into an activity where extreme caution is to be applied, as any biases in the data will immediately translate into biased representations. Moreover, reduction to two-dimensional space may or may not be adequate.</p>
+
+</div>
+</div>
+
+
+
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="transformer.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="timeseries-intro.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

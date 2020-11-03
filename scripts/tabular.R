@@ -2,11 +2,19 @@
 
 
 library(torch)
-library(tidyverse)
+library(purrr)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
 
+download.file(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data",
+  destfile = "agaricus-lepiota.data"
+)
 
 mushroom_data <- read_csv(
-  "data/agaricus-lepiota.data",
+  "agaricus-lepiota.data",
   col_names = c(
     "poisonous",
     "cap-shape",
@@ -34,12 +42,8 @@ mushroom_data <- read_csv(
   ),
   col_types = rep("c", 23) %>% paste(collapse = "")
 ) %>%
-  select(-`veil-type`)
-
-nrow(mushroom_data)
-
-train_indices <- sample(1:nrow(mushroom_data), size = floor(0.8 * nrow(mushroom_data)))
-valid_indices <- setdiff(1:nrow(mushroom_data), train_indices)
+  # can as well remove because there's just 1 unique value
+select(-`veil-type`)
 
 mushroom_dataset <- dataset(
   name = "mushroom_dataset",
@@ -87,35 +91,24 @@ mushroom_dataset <- dataset(
     
     list(list(torch_tensor(categorical_cols), torch_tensor(numerical_cols)),
          torch_tensor(target_col))
-
   }
 )
 
-        
+train_indices <- sample(1:nrow(mushroom_data), size = floor(0.8 * nrow(mushroom_data)))
+valid_indices <- setdiff(1:nrow(mushroom_data), train_indices)
+
 train_ds <- mushroom_dataset(train_indices)
-train_ds$.length()
-#train_ds$.getitem(1)
-
 train_dl <- train_ds %>% dataloader(batch_size = 256, shuffle = TRUE)
-train_dl$.length()
-
-#iter <- train_dl$.iter()
-#b <- iter$.next()
-#b
 
 valid_ds <- mushroom_dataset(valid_indices)
-valid_ds$.length()
-
 valid_dl <- valid_ds %>% dataloader(batch_size = 256, shuffle = FALSE)
-valid_dl$.length()
 
 embedding_module <- nn_module(
+  
   initialize = function(cardinalities) {
-    self$embeddings <- vector(mode = "list", length = length(cardinalities))
-    for (i in 1:length(cardinalities)) {
-      self$embeddings[[i]] <- nn_embedding(cardinalities[i], ceiling(cardinalities[i]/2))
-    }
+    self$embeddings = nn_module_list(lapply(cardinalities, function(x) nn_embedding(num_embeddings = x, embedding_dim = ceiling(x/2))))
   },
+  
   forward = function(x) {
     embedded <- vector(mode = "list", length = length(self$embeddings))
     for (i in 1:length(self$embeddings)) {
@@ -124,7 +117,6 @@ embedding_module <- nn_module(
     torch_cat(embedded, dim = 2)
   }
 )
-
 
 net <- nn_module(
   "mushroom_net",
@@ -139,10 +131,9 @@ net <- nn_module(
     self$output <- nn_linear(fc2_dim, 1)
   },
 
-  forward = function(x) {
-    xcat <- x[[1]]
+  forward = function(xcat, xnum) {
     embedded <- self$embedder(xcat)
-    all <- torch_cat(list(embedded, x[[2]]$to(dtype = torch_float())), dim = 2)
+    all <- torch_cat(list(embedded, xnum$to(dtype = torch_float())), dim = 2)
     all %>% self$fc1() %>%
       nnf_relu() %>%
       self$fc2() %>%
@@ -151,15 +142,16 @@ net <- nn_module(
   }
 )
 
-cardinalities <- map(mushroom_data[ , 2:ncol(mushroom_data)], compose(nlevels, as.factor)) %>%
+cardinalities <- map(
+  mushroom_data[ , 2:ncol(mushroom_data)], compose(nlevels, as.factor)) %>%
   keep(function(x) x > 2) %>%
   unlist() %>%
   unname()
 
 num_numerical <- ncol(mushroom_data) - length(cardinalities) - 1
 
-fc1_dim <- 64
-fc2_dim <- 64
+fc1_dim <- 16
+fc2_dim <- 16
 
 model <- net(
   cardinalities,
@@ -168,48 +160,71 @@ model <- net(
   fc2_dim
 )
 
-optimizer <- optim_sgd(model$parameters, lr = 0.1)
+device <- if (cuda_is_available()) torch_device("cuda:0") else "cpu"
+
+model <- model$to(device = device)
+
+optimizer <- optim_adam(model$parameters, lr = 0.1)
 
 for (epoch in 1:20) {
 
   model$train()
-  train_losses <- c()
-  #i <- 1
-  
+  train_losses <- c()  
 
   for (b in enumerate(train_dl)) {
     optimizer$zero_grad()
-    output <- model(b$x)
-    loss <- nnf_binary_cross_entropy(output, b$y$to(torch_float()))
+    output <- model(b$x[[1]]$to(device = device), b$x[[2]]$to(device = device))
+    loss <- nnf_binary_cross_entropy(output, b$y$to(dtype = torch_float(), device = device))
     loss$backward()
     optimizer$step()
     train_losses <- c(train_losses, loss$item())
-    #cat(i, " \n")
-    #i <- i + 1
   }
 
   model$eval()
   valid_losses <- c()
-  #i <- 1
-  cat("starting validation\n")
 
   for (b in enumerate(valid_dl)) {
-    output <- model(b$x)
-    loss <- nnf_binary_cross_entropy(output, b$y$to(torch_float()))
+    output <- model(b$x[[1]]$to(device = device), b$x[[2]]$to(device = device))
+    loss <- nnf_binary_cross_entropy(output, b$y$to(dtype = torch_float(), device = device))
     valid_losses <- c(valid_losses, loss$item())
-    #cat(i, " \n")
-    #i <- i + 1
   }
 
   cat(sprintf("Loss at epoch %d: training: %3f, validation: %3f\n", epoch, mean(train_losses), mean(valid_losses)))
 }
 
 model$eval()
+
 test_dl <- valid_ds %>% dataloader(batch_size = valid_ds$.length(), shuffle = FALSE)
 iter <- test_dl$.iter()
-b <- iter$.next()b
-preds <- as_array(model(b[[1]]))
+b <- iter$.next()
+
+output <- model(b$x[[1]]$to(device = device), b$x[[2]]$to(device = device))
+preds <- output$to(device = "cpu") %>% as.array()
 preds <- ifelse(preds > 0.5, 1, 0)
+
 comp_df <- data.frame(preds = preds, y = b[[2]] %>% as_array())
-sum(comp_df$preds == comp_df$y)
-sum(comp_df$y == 1)
+num_correct <- sum(comp_df$preds == comp_df$y)
+num_total <- nrow(comp_df)
+accuracy <- num_correct/num_total
+accuracy
+
+embedding_weights <- vector(mode = "list")
+for (i in 1: length(model$embedder$embeddings)) {
+  embedding_weights[[i]] <- model$embedder$embeddings[[i]]$parameters$weight$to(device = "cpu")
+}
+
+cap_shape_repr <- embedding_weights[[1]]
+cap_shape_repr
+
+cap_shapes <- c("bell", "conical", "convex", "flat", "knobbed", "sunken")
+pca <- prcomp(cap_shape_repr, center = TRUE, scale. = TRUE, rank = 2)$x[, c("PC1", "PC2")]
+
+pca %>%
+  as.data.frame() %>%
+  mutate(class = cap_shapes) %>%
+  ggplot(aes(x = PC1, y = PC2)) +
+  geom_point() +
+  geom_label_repel(aes(label = class)) + 
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  theme(aspect.ratio = 1) +
+  theme_classic()
