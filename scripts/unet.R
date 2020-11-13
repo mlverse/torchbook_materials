@@ -72,7 +72,7 @@ brainseg_dataset <- dataset(
       c(img, mask) %<-% self$resize(img, mask, scale_param)
       
       rot_param <- self$augmentation_params[2]
-      #c(img, mask) %<-% self$rotate(img, mask, rot_param)
+      c(img, mask) %<-% self$rotate(img, mask, rot_param)
       
       flip_param <- self$augmentation_params[3]
       c(img, mask) %<-% self$flip(img, mask, flip_param)
@@ -193,11 +193,10 @@ mask <- img_and_mask[[2]]
 imgs <- map (1:24, function(i) {
   c(img, mask) %<-% valid_ds$resize(img, mask, 0.5)
   c(img, mask) %<-% valid_ds$flip(img, mask, 0.5)
+  c(img, mask) %<-% valid_ds$rotate(img, mask, 180)
   img %>%
-    torch_squeeze() %>%
-    torch_transpose(2, 1) %>%
-    #transform_rotate(angle = 180) %>%
     as.array() %>%
+    .[1, ,] %>%
     as_tibble() %>%
     rowid_to_column(var = "X") %>%
     gather(key = "Y", value = "Z",-1) %>%
@@ -322,6 +321,7 @@ conv_block <- nn_module(
 
 
 device <- torch_device(if(cuda_is_available()) "cuda" else "cpu")
+device <- "cpu"
 model <- unet(depth = 5)$to(device = device)
 
 b <- train_dl$.iter()$.next()
@@ -331,5 +331,88 @@ res
 
 
 # Loss, optimizer etc -----------------------------------------------------
+
+calc_dice_loss <- function(y_pred, y_true) {
+  smooth <- 1
+  y_pred <- y_pred$view(-1)
+  y_true <- y_true$view(-1)
+  intersection <- (y_pred * y_true)$sum()
+  1 - ((2 * intersection + smooth) / (y_pred$sum() + y_true$sum() + smooth))
+}
+
+dice_weight <- 0.3
+
+optimizer <- optim_sgd(model$parameters, lr = 0.1, momentum = 0.9)
+
+num_epochs <- 1
+scheduler <- lr_one_cycle(optimizer, max_lr = 0.1, steps_per_epoch = train_dl$.length(), epochs = num_epochs)
+
+
+# Train -------------------------------------------------------------------
+
+train_batch <- function(b) {
+  
+  optimizer$zero_grad()
+  output <- model(b[[1]]$to(device = device))
+  target <- b[[2]]$to(device = device)
+  
+  bce_loss <- nnf_binary_cross_entropy(output, target)
+  dice_loss <- calc_dice_loss(output, target)
+  loss <-  dice_weight * dice_loss + (1 - dice_weight) * bce_loss
+  
+  loss$backward()
+  optimizer$step()
+  scheduler$step()
+  
+  list(bce_loss$item(), dice_loss$item(), loss$item())
+  
+}
+
+valid_batch <- function(b) {
+  
+  output <- model(b[[1]]$to(device = device))
+  target <- b[[2]]$to(device = device)
+  
+  bce_loss <- nnf_binary_cross_entropy(output, target)
+  dice_loss <- calc_dice_loss(output, target)
+  loss <-  dice_weight * dice_loss + (1 - dice_weight) * bce_loss
+  list(bce_loss$item(), dice_loss$item(), loss$item())
+}
+
+for (epoch in 1:num_epochs) {
+  
+  model$train()
+  train_bce <- c()
+  train_dice <- c()
+  train_loss <- c()
+  
+  for (b in enumerate(train_dl)) {
+    c(bce_loss, dice_loss, loss) %<-% train_batch(b)
+    train_bce <- c(train_bce, bce_loss)
+    train_dice <- c(train_dice, dice_loss)
+    train_loss <- c(train_loss, loss)
+    cat(sprintf("\nTrain batch: loss:%3f, bce: %3f, dice: %3f\n", train_loss, train_bce, train_dice))
+  }
+  
+  cat(sprintf("\nEpoch %d, training: loss:%3f, bce: %3f, dice: %3f\n",
+              epoch, mean(train_loss), mean(train_bce), mean(train_dice)))
+  
+  model$eval()
+  valid_bce <- c()
+  valid_dice <- c()
+  valid_loss <- c()
+  
+  for (b in enumerate(valid_dl)) {
+    c(bce_loss, dice_loss, loss) %<-% valid_batch(b)
+    valid_bce <- c(valid_bce, bce_loss)
+    valid_dice <- c(valid_dice, dice_loss)
+    valid_loss <- c(valid_loss, loss)
+    cat(sprintf("\nTrain batch: loss:%3f, bce: %3f, dice: %3f\n", train_loss, train_bce, train_dice))
+    
+  }
+  
+  cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n",
+              epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
+}
 
 
