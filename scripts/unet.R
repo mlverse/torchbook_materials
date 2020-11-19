@@ -10,15 +10,20 @@ library(pins)
 
 
 # Get data ----------------------------------------------------------------
+torch_manual_seed(777)
+set.seed(777)
 
 pins::board_register_kaggle(token = "~/kaggle.json")
 
 files <- pins::pin_get("mateuszbuda/lgg-mri-segmentation", board = "kaggle",  extract = FALSE)
 
-zip::unzip(files, exdir = "data")
-
 train_dir <- "data/mri_train"
 valid_dir <- "data/mri_valid"
+
+if(dir.exists(train_dir)) unlink(train_dir, recursive = TRUE, force = TRUE)
+if(dir.exists(valid_dir)) unlink(valid_dir, recursive = TRUE, force = TRUE)
+
+zip::unzip(files, exdir = "data")
 
 file.rename("data/kaggle_3m", train_dir)
 
@@ -48,7 +53,7 @@ list.dirs(train_dir, recursive = FALSE) %>% length()
 # Dataset -----------------------------------------------------------------
 
 brainseg_dataset <- dataset(
-  name = "mushroom_dataset",
+  name = "brainseg_dataset",
   
   initialize = function(img_dir,
                         augmentation_params = NULL,
@@ -90,9 +95,7 @@ brainseg_dataset <- dataset(
     
     img <- self$images$img[index] %>%
       image_read() %>%
-      transform_to_tensor() %>%
-      transform_rgb_to_grayscale() %>%
-      torch_unsqueeze(1)
+      transform_to_tensor() 
     mask <- self$images$mask[index] %>%
       image_read() %>%
       transform_to_tensor() %>%
@@ -197,7 +200,7 @@ brainseg_dataset <- dataset(
 train_ds <-
   brainseg_dataset(
     train_dir,
-    augmentation_params = c(0.5, 180, 0.5),
+    augmentation_params = c(0.05, 15, 0.5),
     random_sampling = TRUE
   )
 
@@ -208,13 +211,14 @@ valid_ds <-
                    augmentation_params = NULL,
                    random_sampling = FALSE)
 
+valid_ds$.length()
 
-img_and_mask <- train_ds$.getitem(1)
+img_and_mask <- valid_ds$.getitem(27)
 img <- img_and_mask[[1]]
-img %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
+img$permute(c(2, 3, 1)) %>% as.array() %>% as.raster() %>% plot()
 
 mask <- img_and_mask[[2]]
-mask %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
+mask$squeeze() %>% as.array() %>% as.raster() %>% plot()
 
 
 
@@ -225,9 +229,9 @@ img <- img_and_mask[[1]]
 mask <- img_and_mask[[2]]
 
 imgs <- map (1:24, function(i) {
-  c(img, mask) %<-% valid_ds$resize(img, mask, 0.5)
+  c(img, mask) %<-% valid_ds$resize(img, mask, 0.05)
   c(img, mask) %<-% valid_ds$flip(img, mask, 0.5)
-  c(img, mask) %<-% valid_ds$rotate(img, mask, 180)
+  c(img, mask) %<-% valid_ds$rotate(img, mask, 15)
   img %>%
     as.array() %>%
     .[1, ,] %>%
@@ -259,7 +263,7 @@ valid_dl <- dataloader(valid_ds, batch_size)
 unet <- nn_module(
   "unet",
   
-  initialize = function(channels_in = 1,
+  initialize = function(channels_in = 3,
                         n_classes = 1,
                         depth = 5,
                         n_filters = 6) {
@@ -292,7 +296,7 @@ unet <- nn_module(
         x <- nnf_max_pool2d(x, 2)
       }
     }
-
+    
     for (i in 1:length(self$up_path)) {  
       x <- self$up_path[[i]](x, blocks[[length(blocks) - i + 1]])
     }
@@ -337,11 +341,11 @@ conv_block <- nn_module(
     self$block <- nn_module_list()
     self$block$append(nn_conv2d(in_size, out_size, kernel_size = 3, padding = 1))
     self$block$append(nn_relu())
-    self$block$append(nn_batch_norm2d(out_size))
+    #self$block$append(nn_batch_norm2d(out_size))
     self$block$append(nn_dropout(0.6))
     self$block$append(nn_conv2d(out_size, out_size, kernel_size = 3, padding = 1))
     self$block$append(nn_relu())
-    self$block$append(nn_batch_norm2d(out_size))
+    #self$block$append(nn_batch_norm2d(out_size))
     self$block$append(nn_dropout(0.6))
   },
   
@@ -355,13 +359,7 @@ conv_block <- nn_module(
 
 
 device <- torch_device(if(cuda_is_available()) "cuda" else "cpu")
-device <- "cpu"
 model <- unet(depth = 5)$to(device = device)
-
-b <- train_dl$.iter()$.next()
-x <- b[[1]]$to(device = device)
-res <- model(x)
-res
 
 
 # Loss, optimizer etc -----------------------------------------------------
@@ -378,7 +376,7 @@ dice_weight <- 0.3
 
 optimizer <- optim_sgd(model$parameters, lr = 0.1, momentum = 0.9)
 
-num_epochs <- 1
+num_epochs <- 20
 scheduler <- lr_one_cycle(optimizer, max_lr = 0.1, steps_per_epoch = train_dl$.length(), epochs = num_epochs)
 
 
@@ -398,6 +396,7 @@ train_batch <- function(b) {
   optimizer$step()
   scheduler$step()
   
+  gc(full = TRUE)
   list(bce_loss$item(), dice_loss$item(), loss$item())
   
 }
@@ -410,6 +409,8 @@ valid_batch <- function(b) {
   bce_loss <- nnf_binary_cross_entropy(output, target)
   dice_loss <- calc_dice_loss(output, target)
   loss <-  dice_weight * dice_loss + (1 - dice_weight) * bce_loss
+  
+  gc(full = TRUE)
   list(bce_loss$item(), dice_loss$item(), loss$item())
 }
 
@@ -435,7 +436,7 @@ for (epoch in 1:num_epochs) {
   
   torch_save(model, paste0("model_", epoch, ".pt"))
   cat(sprintf("\nEpoch %d, training: loss:%3f, bce: %3f, dice: %3f\n", epoch, mean(train_loss), mean(train_bce), mean(train_dice)))
-
+  
   model$eval()
   valid_bce <- c()
   valid_dice <- c()
@@ -452,24 +453,19 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n", epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
 }
 
-# Epoch 1, training: loss:0.340817, bce: 0.188928, dice: 0.695224
-# 
-# Epoch 1, validation: loss:0.680811, bce: 0.575008, dice: 0.927684
-# 
-# Epoch 2, training: loss:0.263491, bce: 0.132778, dice: 0.568487
-# 
-# Epoch 2, validation: loss:0.538963, bce: 0.364105, dice: 0.946965
-# 
-# Epoch 3, training: loss:0.235301, bce: 0.117343, dice: 0.510534
-# 
-# Epoch 3, validation: loss:6.387355, bce: 8.723456, dice: 0.936453
-# 
-# Epoch 4, training: loss:0.188396, bce: 0.096324, dice: 0.403229
-# 
-# Epoch 4, validation: loss:5.340908, bce: 7.214747, dice: 0.968616
-# 
-# Epoch 5, training: loss:0.150471, bce: 0.078648, dice: 0.318059
-# 
-# Epoch 5, validation: loss:4.945258, bce: 6.668179, dice: 0.925111
 
-### without batchnorm?
+img_and_mask <- valid_ds$.getitem(27)
+img <- img_and_mask[[1]]
+img %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
+
+mask <- img_and_mask[[2]]
+mask %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
+
+inferred_mask <- model(img$to(device = device)$unsqueeze(1))
+nnf_binary_cross_entropy(inferred_mask, mask$to(device = "cuda"))
+inferred_mask <- inferred_mask$to(device = "cpu") %>% as.array() %>% .[1, 1, ,]
+quantile(inferred_mask )
+inferred_mask %>% as.raster() %>% plot()
+inferred_mask <- ifelse(inferred_mask > 0.5, 1, 0)
+inferred_mask %>% as.raster() %>% plot()
+
