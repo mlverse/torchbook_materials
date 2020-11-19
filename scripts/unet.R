@@ -5,13 +5,47 @@ library(tidyverse)
 library(magick)
 library(zeallot)
 library(cowplot)
+library(zip)
+library(pins)
 
 
+# Get data ----------------------------------------------------------------
+
+pins::board_register_kaggle(token = "~/kaggle.json")
+
+files <- pins::pin_get("mateuszbuda/lgg-mri-segmentation", board = "kaggle",  extract = FALSE)
+
+zip::unzip(files, exdir = "data")
+
+train_dir <- "data/mri_train"
+valid_dir <- "data/mri_valid"
+
+file.rename("data/kaggle_3m", train_dir)
+
+# this is a duplicate
+unlink("data/lgg-mri-segmentation", recursive = TRUE)
+
+dir.create(valid_dir)
+
+patients <- list.dirs(train_dir, recursive = FALSE)
+length(patients)
+
+valid_indices <- sample(1:length(patients), 30)
+valid_indices
+
+patients[valid_indices]
+
+for (i in valid_indices) {
+  dir.create(file.path(valid_dir, basename(patients[i])))
+  for (f in list.files(patients[i])) {    
+    file.rename(file.path(train_dir, basename(patients[i]), f), file.path(valid_dir, basename(patients[i]), f))    
+  }
+  unlink(file.path(train_dir, basename(patients[i])), recursive = TRUE)
+}
+
+list.dirs(train_dir, recursive = FALSE) %>% length()
 
 # Dataset -----------------------------------------------------------------
-
-train_dir <- "data/kaggle_3m_train"
-valid_dir <- "data/kaggle_3m_valid"
 
 brainseg_dataset <- dataset(
   name = "mushroom_dataset",
@@ -22,7 +56,7 @@ brainseg_dataset <- dataset(
     self$images <- tibble(
       img = grep(
         list.files(
-          train_dir,
+          img_dir,
           full.names = TRUE,
           pattern = "tif",
           recursive = TRUE
@@ -33,7 +67,7 @@ brainseg_dataset <- dataset(
       ),
       mask = grep(
         list.files(
-          train_dir,
+          img_dir,
           full.names = TRUE,
           pattern = "tif",
           recursive = TRUE
@@ -386,17 +420,22 @@ for (epoch in 1:num_epochs) {
   train_dice <- c()
   train_loss <- c()
   
+  i <- 0
   for (b in enumerate(train_dl)) {
+    i <<- i + 1
     c(bce_loss, dice_loss, loss) %<-% train_batch(b)
     train_bce <- c(train_bce, bce_loss)
     train_dice <- c(train_dice, dice_loss)
     train_loss <- c(train_loss, loss)
-    cat(sprintf("\nTrain batch: loss:%3f, bce: %3f, dice: %3f\n", train_loss, train_bce, train_dice))
+    if (i %% 1000 == 0) {
+      write_csv(data.frame(x = loss, y = bce_loss, z = dice_loss), paste0("train_epoch_", epoch, "_batch_", i, ".csv"))
+      cat(sprintf("\nTrain batch: %3f, loss:%3f, bce: %3f, dice: %3f\n", i, loss, bce_loss, dice_loss))
+    }
   }
   
-  cat(sprintf("\nEpoch %d, training: loss:%3f, bce: %3f, dice: %3f\n",
-              epoch, mean(train_loss), mean(train_bce), mean(train_dice)))
-  
+  torch_save(model, paste0("model_", epoch, ".pt"))
+  cat(sprintf("\nEpoch %d, training: loss:%3f, bce: %3f, dice: %3f\n", epoch, mean(train_loss), mean(train_bce), mean(train_dice)))
+
   model$eval()
   valid_bce <- c()
   valid_dice <- c()
@@ -407,12 +446,30 @@ for (epoch in 1:num_epochs) {
     valid_bce <- c(valid_bce, bce_loss)
     valid_dice <- c(valid_dice, dice_loss)
     valid_loss <- c(valid_loss, loss)
-    cat(sprintf("\nTrain batch: loss:%3f, bce: %3f, dice: %3f\n", train_loss, train_bce, train_dice))
     
   }
   
-  cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n",
-              epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
+  cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n", epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
 }
 
+# Epoch 1, training: loss:0.340817, bce: 0.188928, dice: 0.695224
+# 
+# Epoch 1, validation: loss:0.680811, bce: 0.575008, dice: 0.927684
+# 
+# Epoch 2, training: loss:0.263491, bce: 0.132778, dice: 0.568487
+# 
+# Epoch 2, validation: loss:0.538963, bce: 0.364105, dice: 0.946965
+# 
+# Epoch 3, training: loss:0.235301, bce: 0.117343, dice: 0.510534
+# 
+# Epoch 3, validation: loss:6.387355, bce: 8.723456, dice: 0.936453
+# 
+# Epoch 4, training: loss:0.188396, bce: 0.096324, dice: 0.403229
+# 
+# Epoch 4, validation: loss:5.340908, bce: 7.214747, dice: 0.968616
+# 
+# Epoch 5, training: loss:0.150471, bce: 0.078648, dice: 0.318059
+# 
+# Epoch 5, validation: loss:4.945258, bce: 6.668179, dice: 0.925111
 
+### without batchnorm?
