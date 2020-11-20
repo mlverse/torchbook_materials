@@ -406,6 +406,12 @@ valid_batch <- function(b) {
   output <- model(b[[1]]$to(device = device))
   target <- b[[2]]$to(device = device)
   
+  if (i %% 77 == 0) {
+    first <- output[1, , , ]
+    inferred_mask <- first$to(device = "cpu") %>% as.array() %>% .[1, ,]
+    print(quantile(inferred_mask))
+  }
+  
   bce_loss <- nnf_binary_cross_entropy(output, target)
   dice_loss <- calc_dice_loss(output, target)
   loss <-  dice_weight * dice_loss + (1 - dice_weight) * bce_loss
@@ -421,17 +427,12 @@ for (epoch in 1:num_epochs) {
   train_dice <- c()
   train_loss <- c()
   
-  i <- 0
+  
   for (b in enumerate(train_dl)) {
-    i <<- i + 1
     c(bce_loss, dice_loss, loss) %<-% train_batch(b)
     train_bce <- c(train_bce, bce_loss)
     train_dice <- c(train_dice, dice_loss)
     train_loss <- c(train_loss, loss)
-    if (i %% 1000 == 0) {
-      write_csv(data.frame(x = loss, y = bce_loss, z = dice_loss), paste0("train_epoch_", epoch, "_batch_", i, ".csv"))
-      cat(sprintf("\nTrain batch: %3f, loss:%3f, bce: %3f, dice: %3f\n", i, loss, bce_loss, dice_loss))
-    }
   }
   
   torch_save(model, paste0("model_", epoch, ".pt"))
@@ -442,7 +443,10 @@ for (epoch in 1:num_epochs) {
   valid_dice <- c()
   valid_loss <- c()
   
+  i <- 0
   for (b in enumerate(valid_dl)) {
+    
+    i <<- i + 1
     c(bce_loss, dice_loss, loss) %<-% valid_batch(b)
     valid_bce <- c(valid_bce, bce_loss)
     valid_dice <- c(valid_dice, dice_loss)
@@ -453,6 +457,7 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n", epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
 }
 
+torch_load("model_8.pt")
 
 img_and_mask <- valid_ds$.getitem(27)
 img <- img_and_mask[[1]]
@@ -463,8 +468,9 @@ mask %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
 
 inferred_mask <- model(img$to(device = device)$unsqueeze(1))
 nnf_binary_cross_entropy(inferred_mask, mask$to(device = "cuda"))
+calc_dice_loss(inferred_mask, mask$to(device = "cuda"))
 inferred_mask <- inferred_mask$to(device = "cpu") %>% as.array() %>% .[1, 1, ,]
-quantile(inferred_mask )
+quantile(inferred_mask)
 inferred_mask %>% as.raster() %>% plot()
 inferred_mask <- ifelse(inferred_mask > 0.5, 1, 0)
 inferred_mask %>% as.raster() %>% plot()
