@@ -1,725 +1,671 @@
 # Brain Image Segmentation with U-Net {#unet}
 
-## Image segmentation in a nutshell
+True, sometimes it's vital to distinguish between different kinds of objects. Is that a car speeding towards me, in which case I'd better jump out of the way? Or is it a huge Doberman (in which case I'd probably do the same)? Often in real life though, instead of coarse-grained *classification*, what is needed is fine-grained *segmentation*.
 
-Now that we've seen how to *classify* images -- as of this writing, probably the "Hello World" of deep learning -- we proceed
-to a type of application vastly important in practice, especially in medicine, biology, geology and other natural sciences. In
-image *segmentation*, we're not interested in labeling the entire image; instead, we want to classify every pixel (2-d) or
-voxel (3-d) according to some criterion.
+Zooming in on images, we're not looking for a single label; instead, we want to classify every pixel according to some criterion:
 
-In medicine, for example, we might want to detect different cell types, or identify tumors or lesions. The decision could be
-two-way -- tumor cell yes or no? --, or there could be some higher number of classes to discern. To train a supervised model,
-ground truth data needs to be present. In these tasks, the ground truth comes in form of a *mask*: an image, of same spatial
-dimension as the target data, that designates the true classes. Loss values are calculated for every pixel (voxel) separately,
-and summed up to yield an aggregate that can be minimized.
+-   In medicine, we may want to distinguish between different cell types, or identify tumors.
+
+-   In various earth sciences, satellite data are used to segment terrestrial surfaces.
+
+-   To enable use of custom backgrounds, video-conferencing software has to be able to tell foreground from background.
+
+Image segmentation is a form of supervised learning: Some kind of ground truth is needed. Here, it comes in form of a *mask* -- an image, of spatial resolution identical to that of the input data, that designates the true class for every pixel. Accordingly, classification loss is calculated pixel-wise; losses are then summed up to yield an aggregate to be used in optimization.
+
+The "canonical" architecture for image segmentation is *U-Net* (around since 2015).
 
 ## U-Net
 
-Here is the "canonical U-Net architecture", as depicted in the original Rönneberger et al. paper [@RonnebergerFB15]. In
-different realizations, layer sizes, activations, ways to achieve downsizing and upsizing will vary, but there is one defining
-characteristic: The U-shape (clearly visible below), enriched by the "bridges" crossing over horizontally at all levels.
+Here is the prototypical U-Net, as depicted in the original Rönneberger et al. paper [@RonnebergerFB15].
+
+Of this architecture, numerous variants exist. You could use different layer sizes, activations, ways to achieve downsizing and upsizing, and more. However, there is one defining characteristic: the U-shape, stabilized by the "bridges" crossing over horizontally at all levels.
 
 ![](images/unet.png "The original U-Net, as depicted in Ronnerberger et al. (2015).")
 
-In a nutshell, the left-hand side of the U is like a simple convnet used to classify images; the input is successively
-downsized spatially but at the same time, another dimension -- the *channels* dimension -- is used to successively encode a
-hierarchy of features, ranging from very basic and universal to very specialized. As the output, however, should have the same
-spatial resolution as the input, we need to upsize again -- this is taken care of by the right-hand side of the U. But, how
-are we going to arrive at a good *per-pixel* classification if so much spatial information is lost on the way? This is what
-the "bridges" are for: At each depth, the input to an upsampling layer is a *concatenation* of the previous layer's output --
-which went through the whole spatially-compress-and-decompress routine -- and some preserved intermediate representation from
-the "way down". Like that, a U-Net architecture combines attention to detail with feature extraction.
+In a nutshell, the left-hand side of the U resembles the convolutional architectures used in image classification. It successively reduces spatial resolution. At the same time, another dimension -- the *channels* dimension -- is used to build up a hierarchy of features, ranging from very basic to very specialized.
 
-In fact, this architecture, seen as a generic strategy, has been seen in many other places since its original appearance, and
-itself is flexible enough to incorporate strategies from other architectures, such as, for exmple, ResNet blocks.
+Unlike in classification, however, the output should have the same spatial resolution as the input. Thus, we need to upsize again -- this is taken care of by the right-hand side of the U. But, how are we going to arrive at a good *per-pixel* classification, now that so much spatial information has been lost?
 
-## Example application: MRI images
+This is what the "bridges" are for: At each level, the input to an upsampling layer is a *concatenation* of the previous layer's output -- which went through the whole compression/decompression routine -- and some preserved intermediate representation from the downsizing phase. In this way, a U-Net architecture combines attention to detail with feature extraction.
 
-Just as the architecture is flexible, applicability is broad. Our example will be about detecting abnormalities in brain
-scans. The dataset, used in [@BUDA2019218], contains MR images together with manual
-[FLAIR](https://en.wikipedia.org/wiki/Fluid-attenuated_inversion_recovery) abnormality segmentation masks. The dataset is
-available on [Kaggle](https://www.kaggle.com/mateuszbuda/lgg-mri-segmentation), and the paper is accompanied by a [GitHub
-repository](https://github.com/mateuszbuda/brain-segmentation-pytorch) that thankfully, includes all preprocessing steps.
-While our model below will be more customizable and generic than the authors', we completely follow their preprocessing
-routines for the MRI data (basically just porting their Python code to R).
+## Brain image segmentation
 
-If you're interested in this area of application, please consult the paper for background and additional information. If, on
-the other hand, you're mainly interested in the model, and plan to apply it to other types of data, feel free to just skim the
-extensive preprocessing code, and focus on the architecture instead.
+With U-Net, domain applicability is as broad as the architecture is flexible. Here, we want to detect abnormalities in brain scans. The dataset, used in @BUDA2019218, contains MRI images together with manually created [FLAIR](https://en.wikipedia.org/wiki/Fluid-attenuated_inversion_recovery) abnormality segmentation masks. It is available on [Kaggle](https://www.kaggle.com/mateuszbuda/lgg-mri-segmentation).
 
-As will often be the case in medical imaging applications, there is a class imbalance in this data. For every patient,
-sections have been taken at multiple positions (the number of sections per patient varies). Most sections will not have any
-lesions, so the masks will be coloured black everywhere.
+Nicely, the paper is accompanied by a [GitHub repository](https://github.com/mateuszbuda/brain-segmentation-pytorch). Below, we closely follow (though not exactly replicate) the authors' preprocessing and data augmentation code.
 
-Here are three examples of orientations where the masks actually indicate an abnormality:
+As is often the case in medical imaging, there is notable class imbalance in the data. For every patient, sections have been taken at multiple positions. (Number of sections per patient varies.) Most sections do not exhibit any lesions; the corresponding masks are colored black everywhere.
 
-![](images/scans.png "Examples of FLAIR images and corresponding masks")
+Here are three examples where the masks *do* indicate abnormalities:
 
-``` {.bash}
-montage TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25.tif TCGA_CS_4941_19960909/TCGA_CS_4941_19960909_15_mask.tif  TCGA_DU_5871_19941206/TCGA_DU_5871_19941206_25_mask.tif TCGA_FG_6689_20020326/TCGA_FG_6689_20020326_25_mask.tif -tile 3x3 -geometry +5+5 scans.tif
-```
+![](images/scans.png)
 
-### Preprocessing
+Let's see if we can build a U-Net that generates such masks for us.
 
-```{python}
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset
+## Data
 
-import numpy as np
-import os
-import copy
-import random
-import torchvision
-from torchvision import datasets, models, transforms
+We use `pins` to obtain the data. Please see [this introduction](https://pins.rstudio.com/articles/boards-kaggle.html) if you haven't used that package before.
 
-from skimage.io import imread
+```{r}
+# deep learning (incl. dependencies)
+library(torch)
+library(torchvision)
+
+# data wrangling
+library(tidyverse)
+library(zeallot)
+
+# image processing and visualization
+library(magick)
+library(cowplot)
+
+# dataset loading 
+library(pins)
+library(zip)
+
+torch_manual_seed(777)
+set.seed(777)
+
+# use your own kaggle.json here
+pins::board_register_kaggle(token = "~/kaggle.json")
+
+files <- pins::pin_get("mateuszbuda/lgg-mri-segmentation", board = "kaggle",  extract = FALSE)
+
 
 ```
 
-The data comes organized into folders containing FLAIR images and masks for a single patient. We randomly partition these into
-a training and a validation set, keeping the latter very small as overall, this dataset is not very big. (You might want to
-experiment with different splits or better even, use a cross-validation approach. We don't do that here as anyway, this
-apllication example is pretty extensive already.) "Randomly" here meant we picked (at random) two patients from each
-institution, as indicated by the pair of letters second in the folder names (tbd: check this!).
+The dataset is not that big -- it includes scans from 110 different patients -- so we'll have to do with just a training and a validation set. (Don't do this in real life, as you'll inevitably end up fine-tuning on the latter.)
 
-```{python}
-train_dir = "data/kaggle_3m_train"
-valid_dir = "data/kaggle_3m_valid"
+```{r}
+train_dir <- "data/mri_train"
+valid_dir <- "data/mri_valid"
+
+if(dir.exists(train_dir)) unlink(train_dir, recursive = TRUE, force = TRUE)
+if(dir.exists(valid_dir)) unlink(valid_dir, recursive = TRUE, force = TRUE)
+
+zip::unzip(files, exdir = "data")
+
+file.rename("data/kaggle_3m", train_dir)
+
+# this is a duplicate, again containing kaggle_3m (evidently a packaging error on Kaggle)
+# we just remove it
+unlink("data/lgg-mri-segmentation", recursive = TRUE)
+
+dir.create(valid_dir)
+
 ```
 
-Preprocessing will be encapsulated in a `dataset` , that is, a structure that `torch` knows how to handle. Before we look at
-that structure, let's quickly look at helper functions and components it will make use of. As indicated above, these, as well
-as `BrainSegmentationDataset` itself, are direct ports of the Python preprocessing logic in [Mateusz Buda's GitHub
-repository](https://github.com/mateuszbuda/brain-segmentation-pytorch).
+Of those 110 patients, we keep 30 for validation. Some more file manipulations, and we're set up with a nice hierarchical structure, with `train_dir` and `valid_dir` holding their per-patient sub-directories, respectively.
 
-#### Image preprocessing and transforms
+```{r}
+valid_indices <- sample(1:length(patients), 30)
 
-Both FLAIR images and masks come in `.tif` format. These images have to be preprocessed spatially (cropped, padded and
-resized), as well as normalized. The following functions will be called inside `BrainSegmentationDataset`:
+patients <- list.dirs(train_dir, recursive = FALSE)
 
-```{python}
-import numpy as np
-from medpy.filter.binary import largest_connected_component
-from skimage.exposure import rescale_intensity
-from skimage.transform import resize
+for (i in valid_indices) {
+  dir.create(file.path(valid_dir, basename(patients[i])))
+  for (f in list.files(patients[i])) {    
+    file.rename(file.path(train_dir, basename(patients[i]), f), file.path(valid_dir, basename(patients[i]), f))    
+  }
+  unlink(file.path(train_dir, basename(patients[i])), recursive = TRUE)
+}
 
-def crop_sample(x):
-    volume, mask = x
-    volume[volume < np.max(volume) * 0.1] = 0
-    z_projection = np.max(np.max(np.max(volume, axis=-1), axis=-1), axis=-1)
-    z_nonzero = np.nonzero(z_projection)
-    z_min = np.min(z_nonzero)
-    z_max = np.max(z_nonzero) + 1
-    y_projection = np.max(np.max(np.max(volume, axis=0), axis=-1), axis=-1)
-    y_nonzero = np.nonzero(y_projection)
-    y_min = np.min(y_nonzero)
-    y_max = np.max(y_nonzero) + 1
-    x_projection = np.max(np.max(np.max(volume, axis=0), axis=0), axis=-1)
-    x_nonzero = np.nonzero(x_projection)
-    x_min = np.min(x_nonzero)
-    x_max = np.max(x_nonzero) + 1
-    return (
-        volume[z_min:z_max, y_min:y_max, x_min:x_max],
-        mask[z_min:z_max, y_min:y_max, x_min:x_max],
+```
+
+We now need a `dataset` that knows what to do with these files.
+
+## Dataset
+
+Like every `torch` dataset, this one has `initialize()` and `.getitem()` methods. `initialize()` creates an inventory of scan and mask file names, to be used by `.getitem()` when it actually reads those files. In contrast to what we've seen so far, though, `.getitem()` does not simply return input-target pairs in order. Instead, whenever the parameter `random_sampling` is true, it will perform weighted sampling, preferring items with sizable lesions. This option will be used for the training set, to counter the class imbalance mentioned above.
+
+The other way training and validation sets will differ is use of data augmentation. Training images/masks may be flipped, re-sized, and rotated; probabilities and amounts are configurable.
+
+An instance of `brainseg_dataset` encapsulates all this functionality:
+
+```{r}
+brainseg_dataset <- dataset(
+  name = "brainseg_dataset",
+  
+  initialize = function(img_dir,
+                        augmentation_params = NULL,
+                        random_sampling = FALSE) {
+    self$images <- tibble(
+      img = grep(
+        list.files(
+          img_dir,
+          full.names = TRUE,
+          pattern = "tif",
+          recursive = TRUE
+        ),
+        pattern = 'mask',
+        invert = TRUE,
+        value = TRUE
+      ),
+      mask = grep(
+        list.files(
+          img_dir,
+          full.names = TRUE,
+          pattern = "tif",
+          recursive = TRUE
+        ),
+        pattern = 'mask',
+        value = TRUE
+      )
     )
+    self$slice_weights <- self$calc_slice_weights(self$images$mask)
+    self$augmentation_params <- augmentation_params
+    self$random_sampling <- random_sampling
+  },
+  
+  .getitem = function(i) {
+    index <-
+      if (self$random_sampling == TRUE)
+        sample(1:self$.length(), 1, prob = self$slice_weights)
+    else
+      i
+    
+    img <- self$images$img[index] %>%
+      image_read() %>%
+      transform_to_tensor() 
+    mask <- self$images$mask[index] %>%
+      image_read() %>%
+      transform_to_tensor() %>%
+      transform_rgb_to_grayscale() %>%
+      torch_unsqueeze(1)
+    
+    img <- self$min_max_scale(img)
+    
+    if (!is.null(self$augmentation_params)) {
+      scale_param <- self$augmentation_params[1]
+      c(img, mask) %<-% self$resize(img, mask, scale_param)
+      
+      rot_param <- self$augmentation_params[2]
+      c(img, mask) %<-% self$rotate(img, mask, rot_param)
+      
+      flip_param <- self$augmentation_params[3]
+      c(img, mask) %<-% self$flip(img, mask, flip_param)
+      
+    }
+    list(img = img, mask = mask)
+  },
+  
+  .length = function() {
+    nrow(self$images)
+  },
+  
+  calc_slice_weights = function(masks) {
+    weights <- map_dbl(masks, function(m) {
+      img <-
+        as.integer(magick::image_data(image_read(m), channels = "gray"))
+      sum(img / 255)
+    })
+    
+    sum_weights <- sum(weights)
+    num_weights <- length(weights)
+    
+    weights <- weights %>% map_dbl(function(w) {
+      w <- (w + sum_weights * 0.1 / num_weights) / (sum_weights * 1.1)
+    })
+    weights
+  },
+  
+  min_max_scale = function(x) {
+    min = x$min()$item()
+    max = x$max()$item()
+    x$clamp_(min = min, max = max)
+    x$add_(-min)$div_(max - min + 1e-5)
+    x
+  },
+  
+  resize = function(img, mask, scale_param) {
+    img_size <- dim(img)[2]
+    rnd_scale <- runif(1, 1 - scale_param, 1 + scale_param)
+    img <- transform_resize(img, size = rnd_scale * img_size)
+    mask <- transform_resize(mask, size = rnd_scale * img_size)
+    diff <- dim(img)[2] - img_size
+    if (diff > 0) {
+      top <- ceiling(diff / 2)
+      left <- ceiling(diff / 2)
+      img <- transform_crop(img, top, left, img_size, img_size)
+      mask <- transform_crop(mask, top, left, img_size, img_size)
+    } else {
+      img <- transform_pad(img,
+                           padding = -c(
+                             ceiling(diff / 2),
+                             floor(diff / 2),
+                             ceiling(diff / 2),
+                             floor(diff / 2)
+                           ))
+      mask <- transform_pad(mask, padding = -c(
+        ceiling(diff / 2),
+        floor(diff /
+                2),
+        ceiling(diff /
+                  2),
+        floor(diff /
+                2)
+      ))
+    }
+    list(img, mask)
+  },
+  
+  rotate = function(img, mask, rot_param) {
+    rnd_rot <- runif(1, 1 - rot_param, 1 + rot_param)
+    img <- transform_rotate(img, angle = rnd_rot)
+    mask <- transform_rotate(mask, angle = rnd_rot)
+    
+    list(img, mask)
+  },
+  
+  flip = function(img, mask, flip_param) {
+    rnd_flip <- runif(1)
+    if (rnd_flip > flip_param) {
+      img <- transform_hflip(img)
+      mask <- transform_hflip(mask)
+    }
+    
+    list(img, mask)
+  }
+)
 
+```
 
-def pad_sample(x):
-    volume, mask = x
-    a = volume.shape[1]
-    b = volume.shape[2]
-    if a == b:
-        return volume, mask
-    diff = (max(a, b) - min(a, b)) / 2.0
-    if a > b:
-        padding = ((0, 0), (0, 0), (int(np.floor(diff)), int(np.ceil(diff))))
-    else:
-        padding = ((0, 0), (int(np.floor(diff)), int(np.ceil(diff))), (0, 0))
-    mask = np.pad(mask, padding, mode="constant", constant_values=0)
-    padding = padding + ((0, 0),)
-    volume = np.pad(volume, padding, mode="constant", constant_values=0)
-    return volume, mask
+After instantiation, we see we have 2977 training pairs and 952 validation pairs, respectively:
 
+```{r}
+train_ds <- brainseg_dataset(
+  train_dir,
+  augmentation_params = c(0.05, 15, 0.5),
+  random_sampling = TRUE
+)
 
-def resize_sample(x, size=256):
-    volume, mask = x
-    v_shape = volume.shape
-    out_shape = (v_shape[0], size, size)
-    mask = resize(
-        mask,
-        output_shape=out_shape,
-        order=0,
-        mode="constant",
-        cval=0,
-        anti_aliasing=False,
+length(train_ds)
+# 2977
+
+valid_ds <- brainseg_dataset(
+  valid_dir,
+  augmentation_params = NULL,
+  random_sampling = FALSE
+)
+
+length(valid_ds)
+# 952
+```
+
+As a correctness check, let's plot an image and associated mask:
+
+```{r}
+par(mfrow = c(1, 2), mar = c(0, 1, 0, 1))
+
+img_and_mask <- valid_ds[27]
+img <- img_and_mask[[1]]
+mask <- img_and_mask[[2]]
+
+img$permute(c(2, 3, 1)) %>% as.array() %>% as.raster() %>% plot()
+mask$squeeze() %>% as.array() %>% as.raster() %>% plot()
+```
+
+![](images/scan_and_mask.png)
+
+With `torch`, it is straightforward to inspect what happens when you change augmentation-related parameters. We just pick a pair from the validation set, which has not had any augmentation applied as yet, and call `valid_ds$<augmentation_func()>` directly. Just for fun, let's use more "extreme" parameters here than we do in actual training. (Actual training uses the settings from Mateusz' GitHub repository, which we assume have been carefully chosen for optimal performance.[^unet-1])
+
+[^unet-1]: Yes, we did a few experiments, confirming that more augmentation isn't better ... what did I say about inevitably ending up doing optimization on the validation set ...?
+
+```{r}
+img_and_mask <- valid_ds[77]
+img <- img_and_mask[[1]]
+mask <- img_and_mask[[2]]
+
+imgs <- map (1:24, function(i) {
+  
+  # scale factor; train_ds really uses 0.05
+  c(img, mask) %<-% valid_ds$resize(img, mask, 0.2) 
+  c(img, mask) %<-% valid_ds$flip(img, mask, 0.5)
+  # rotation angle; train_ds really uses 15
+  c(img, mask) %<-% valid_ds$rotate(img, mask, 90) 
+  img %>%
+    transform_rgb_to_grayscale() %>%
+    as.array() %>%
+    as_tibble() %>%
+    rowid_to_column(var = "Y") %>%
+    gather(key = "X", value = "value", -Y) %>%
+    mutate(X = as.numeric(gsub("V", "", X))) %>%
+    ggplot(aes(X, Y, fill = value)) +
+    geom_raster() +
+    theme_void() +
+    theme(legend.position = "none") +
+    theme(aspect.ratio = 1)
+  
+})
+
+plot_grid(plotlist = imgs, nrow = 4)
+```
+
+![](images/brainseg_augmentation.png)
+
+Now we still need the data loaders, and then, nothing keeps us from proceeding to the next big task: building the model.
+
+```{r}
+batch_size <- 4
+train_dl <- dataloader(train_ds, batch_size)
+valid_dl <- dataloader(valid_ds, batch_size)
+
+```
+
+## Model
+
+Our model nicely illustrates the kind of modular code that comes "naturally" with `torch`. We approach things top-down, starting with the U-Net container itself.
+
+`unet` takes care of the global composition -- how far "down" do we go, shrinking the image while incrementing the number of filters, and then how do we go "up" again?
+
+Importantly, it is also in the system's memory. In `forward()`, it keeps track of layer outputs seen going "down", to be added back in going "up".
+
+```{r}
+unet <- nn_module(
+  "unet",
+  
+  initialize = function(channels_in = 3,
+                        n_classes = 1,
+                        depth = 5,
+                        n_filters = 6) {
+    
+    self$down_path <- nn_module_list()
+    
+    prev_channels <- channels_in
+    for (i in 1:depth) {
+      self$down_path$append(down_block(prev_channels, 2 ^ (n_filters + i - 1)))
+      prev_channels <- 2 ^ (n_filters + i -1)
+    }
+    
+    self$up_path <- nn_module_list()
+    
+    for (i in ((depth - 1):1)) {
+      self$up_path$append(up_block(prev_channels, 2 ^ (n_filters + i - 1)))
+      prev_channels <- 2 ^ (n_filters + i - 1)
+    }
+    
+    self$last = nn_conv2d(prev_channels, n_classes, kernel_size = 1)
+  },
+  
+  forward = function(x) {
+    
+    blocks <- list()
+    
+    for (i in 1:length(self$down_path)) {
+      x <- self$down_path[[i]](x)
+      if (i != length(self$down_path)) {
+        blocks <- c(blocks, x)
+        x <- nnf_max_pool2d(x, 2)
+      }
+    }
+    
+    for (i in 1:length(self$up_path)) {  
+      x <- self$up_path[[i]](x, blocks[[length(blocks) - i + 1]]$to(device = device))
+    }
+    
+    torch_sigmoid(self$last(x))
+  }
+)
+```
+
+`unet` delegates to two containers just below it in the hierarchy: `down_block` and `up_block`. While `down_block` is "just" there for aesthetic reasons (it immediately delegates to its own workhorse, `conv_block`), in `up_block` we see the U-Net "bridges" in action.
+
+```{r}
+down_block <- nn_module(
+  "down_block",
+  
+  initialize = function(in_size, out_size) {
+    self$conv_block <- conv_block(in_size, out_size)
+  },
+  
+  forward = function(x) {
+    self$conv_block(x)
+  }
+)
+
+up_block <- nn_module(
+  "up_block",
+  
+  initialize = function(in_size, out_size) {
+    
+    self$up = nn_conv_transpose2d(in_size,
+                                  out_size,
+                                  kernel_size = 2,
+                                  stride = 2)
+    self$conv_block = conv_block(in_size, out_size)
+  },
+  
+  forward = function(x, bridge) {
+    
+    up <- self$up(x)
+    torch_cat(list(up, bridge), 2) %>%
+      self$conv_block()
+  }
+)
+
+```
+
+Finally, a `conv_block` is a sequential structure containing convolutional, ReLU, and dropout layers.
+
+```{r}
+conv_block <- nn_module( 
+  "conv_block",
+  
+  initialize = function(in_size, out_size) {
+    
+    self$conv_block <- nn_sequential(
+      nn_conv2d(in_size, out_size, kernel_size = 3, padding = 1),
+      nn_relu(),
+      nn_dropout(0.6),
+      nn_conv2d(out_size, out_size, kernel_size = 3, padding = 1),
+      nn_relu()
     )
-    out_shape = out_shape + (v_shape[3],)
-    volume = resize(
-        volume,
-        output_shape=out_shape,
-        order=2,
-        mode="constant",
-        cval=0,
-        anti_aliasing=False,
-    )
-    return volume, mask
-
-
-def normalize_volume(volume):
-    p10 = np.percentile(volume, 10)
-    p99 = np.percentile(volume, 99)
-    volume = rescale_intensity(volume, in_range=(p10, p99))
-    m = np.mean(volume, axis=(0, 1, 2))
-    s = np.std(volume, axis=(0, 1, 2))
-    volume = (volume - m) / s
-    return volume
-
-
-```
-
-On the training set, we'll also want to use data augmentation. Here are the relative `Transform`s:
-
-```{python}
-import numpy as np
-from skimage.transform import rescale, rotate
-from torchvision.transforms import Compose
-
-
-def transforms(scale=None, angle=None, flip_prob=None):
-    transform_list = []
-
-    if scale is not None:
-        transform_list.append(Scale(scale))
-    if angle is not None:
-        transform_list.append(Rotate(angle))
-    if flip_prob is not None:
-        transform_list.append(HorizontalFlip(flip_prob))
-
-    return Compose(transform_list)
-
-
-class Scale(object):
-
-    def __init__(self, scale):
-        self.scale = scale
-
-    def __call__(self, sample):
-        image, mask = sample
-
-        img_size = image.shape[0]
-
-        scale = np.random.uniform(low=1.0 - self.scale, high=1.0 + self.scale)
-
-        image = rescale(
-            image,
-            (scale, scale),
-            multichannel=True,
-            preserve_range=True,
-            mode="constant",
-            anti_aliasing=False,
-        )
-        mask = rescale(
-            mask,
-            (scale, scale),
-            order=0,
-            multichannel=True,
-            preserve_range=True,
-            mode="constant",
-            anti_aliasing=False,
-        )
-
-        if scale < 1.0:
-            diff = (img_size - image.shape[0]) / 2.0
-            padding = ((int(np.floor(diff)), int(np.ceil(diff))),) * 2 + ((0, 0),)
-            image = np.pad(image, padding, mode="constant", constant_values=0)
-            mask = np.pad(mask, padding, mode="constant", constant_values=0)
-        else:
-            x_min = (image.shape[0] - img_size) // 2
-            x_max = x_min + img_size
-            image = image[x_min:x_max, x_min:x_max, ...]
-            mask = mask[x_min:x_max, x_min:x_max, ...]
-
-        return image, mask
-
-
-class Rotate(object):
-
-    def __init__(self, angle):
-        self.angle = angle
-
-    def __call__(self, sample):
-        image, mask = sample
-
-        angle = np.random.uniform(low=-self.angle, high=self.angle)
-        image = rotate(image, angle, resize=False, preserve_range=True, mode="constant")
-        mask = rotate(
-            mask, angle, resize=False, order=0, preserve_range=True, mode="constant"
-        )
-        return image, mask
-
-
-class HorizontalFlip(object):
-
-    def __init__(self, flip_prob):
-        self.flip_prob = flip_prob
-
-    def __call__(self, sample):
-        image, mask = sample
-
-        if np.random.rand() > self.flip_prob:
-            return image, mask
-
-        image = np.fliplr(image).copy()
-        mask = np.fliplr(mask).copy()
-
-        return image, mask
-
-```
-
-#### BrainSegmentationDataset
-
-The `BrainSegmentationDataset` walks through a given directory, applies preprocessing and - possibly -- transformations, and
-returns batches of tensors as requested. Through the `init` method's `random_sampling` parameter, you can control whether
-*weighted sampling* should be applied to counter class imbalance: If set to true, FLAIR-mask pairs will be sampled in
-proportion to lesion size. From our experiments, training on this dataset is sped up by using weighted sampling, but final
-training performance is not much affected, and neither is performance on the validation set.
-
-```{python}
-class BrainSegmentationDataset(Dataset):
-    """Brain MRI dataset for FLAIR abnormality segmentation"""
-    in_channels = 3
-    out_channels = 1
-    def __init__(
-        self,
-        images_dir,
-        transform = None,
-        image_size = 256,
-        random_sampling = True,
-    ):
-        volumes = {}
-        masks = {}
-        print("reading images...")
-        for (dirpath, dirnames, filenames) in os.walk(images_dir):
-            image_slices = []
-            mask_slices = []
-            for filename in sorted(
-                filter(lambda f: ".tif" in f, filenames),
-                key=lambda x: int(x.split(".")[-2].split("_")[4]),
-            ):
-                filepath = os.path.join(dirpath, filename)
-                if "mask" in filename:
-                    mask_slices.append(imread(filepath, as_gray=True))
-                else:
-                    image_slices.append(imread(filepath))
-            if len(image_slices) > 0:
-                patient_id = dirpath.split("/")[-1]
-                volumes[patient_id] = np.array(image_slices[1:-1])
-                masks[patient_id] = np.array(mask_slices[1:-1])
-        self.patients = sorted(volumes)
-        print("preprocessing volumes...")
-        # create list of tuples (volume, mask)
-        self.volumes = [(volumes[k], masks[k]) for k in self.patients]
-        print("cropping volumes...")
-        # crop to smallest enclosing volume
-        self.volumes = [crop_sample(v) for v in self.volumes]
-        print("padding volumes...")
-        # pad to square
-        self.volumes = [pad_sample(v) for v in self.volumes]
-        print("resizing volumes...")
-        # resize
-        self.volumes = [resize_sample(v, size=image_size) for v in self.volumes]
-        print("normalizing volumes...")
-        # normalize channel-wise
-        self.volumes = [(normalize_volume(v), m) for v, m in self.volumes]
-        # probabilities for sampling slices based on masks
-        self.slice_weights = [m.sum(axis=-1).sum(axis=-1) for v, m in self.volumes]
-        self.slice_weights = [
-            (s + (s.sum() * 0.1 / len(s))) / (s.sum() * 1.1) for s in self.slice_weights
-        ]
-        # add channel dimension to masks
-        self.volumes = [(v, m[..., np.newaxis]) for (v, m) in self.volumes]
-        print("done creating dataset")
-        # create global index for patient and slice (idx -> (p_idx, s_idx))
-        num_slices = [v.shape[0] for v, m in self.volumes]
-        self.patient_slice_index = list(
-            zip(
-                sum([[i] * num_slices[i] for i in range(len(num_slices))], []),
-                sum([list(range(x)) for x in num_slices], []),
-            )
-        )
-        self.random_sampling = random_sampling
-        self.transform = transform
-    def __len__(self):
-        return len(self.patient_slice_index)
-    def __getitem__(self, idx):
-        patient = self.patient_slice_index[idx][0]
-        slice_n = self.patient_slice_index[idx][1]
-        if self.random_sampling:
-            patient = np.random.randint(len(self.volumes))
-            slice_n = np.random.choice(
-                range(self.volumes[patient][0].shape[0]), p=self.slice_weights[patient]
-            )
-        v, m = self.volumes[patient]
-        image = v[slice_n]
-        mask = m[slice_n]
-        if self.transform is not None:
-            image, mask = self.transform((image, mask))
-        # fix dimensions (C, H, W)
-        image = image.transpose(2, 0, 1)
-        mask = mask.transpose(2, 0, 1)
-        image_tensor = torch.from_numpy(image.astype(np.float32))
-        mask_tensor = torch.from_numpy(mask.astype(np.float32))
-        # return tensors
-        return image_tensor, mask_tensor
-
-```
-
-#### Loading the data
-
-We use data augmentation and shuffling on the training set, and none of those on the validation set:
-
-```{python}
-image_size = 256
-aug_scale = 0.05
-aug_angle = 15
-flip_prob = 0.5
-
-train_ds = BrainSegmentationDataset(
-        images_dir = train_dir,
-        image_size = image_size,
-        transform = transforms(scale = aug_scale, angle = aug_angle, flip_prob=0.5),
-        random_sampling = True
+  },
+  
+  forward = function(x){
+    self$conv_block(x)
+  }
 )
+```
 
-valid_ds = BrainSegmentationDataset(
-        images_dir = valid_dir,
-        image_size = image_size,
-        random_sampling=False
+Now instantiate the model, and possibly, move it to the GPU:
+
+```{r}
+device <- torch_device(if(cuda_is_available()) "cuda" else "cpu")
+model <- unet(depth = 5)$to(device = device)
+```
+
+## Optimization
+
+We train our model with a combination of cross entropy and [dice loss](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient).
+
+The latter, though not shipped with `torch`, may be implemented manually:
+
+```{r}
+calc_dice_loss <- function(y_pred, y_true) {
+  
+  smooth <- 1
+  y_pred <- y_pred$view(-1)
+  y_true <- y_true$view(-1)
+  intersection <- (y_pred * y_true)$sum()
+  
+  1 - ((2 * intersection + smooth) / (y_pred$sum() + y_true$sum() + smooth))
+}
+
+dice_weight <- 0.3
+```
+
+Optimization uses stochastic gradient descent (SGD), together with the one-cycle learning rate scheduler introduced in the context of [image classification with torch](https://blogs.rstudio.com/ai/posts/2020-10-19-torch-image-classification/).
+
+```{r}
+optimizer <- optim_sgd(model$parameters, lr = 0.1, momentum = 0.9)
+
+num_epochs <- 20
+
+scheduler <- lr_one_cycle(
+  optimizer,
+  max_lr = 0.1,
+  steps_per_epoch = length(train_dl),
+  epochs = num_epochs
 )
-
-batch_size = 4
-
-train_loader = torch.utils.data.DataLoader(
-        train_ds,
-        batch_size = batch_size,
-        shuffle = True,
-        drop_last = True,
-        num_workers = 8
-)
-
-valid_loader = torch.utils.data.DataLoader(
-        valid_ds,
-        batch_size = batch_size,
-        drop_last = False,
-)
-
-dataloaders = {"train": train_loader, "valid": valid_loader}
-dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'valid']}
 ```
 
-On to the model.
+## Training
 
-### U-Net model
+The training loop then follows the usual scheme. One thing to note: Every epoch, we save the model (using `torch_save()`), so we can later pick the best one, should performance have degraded thereafter.
 
-We formulate the model in a generic way: The layers for the *up* and *down* paths are kept in lists. During the downward pass,
-the model saves away the intermediate activations, and during the upward phase, passes them on for concatenation (and thus,
-use in upsampling) as required.
+```{r}
+train_batch <- function(b) {
+  
+  optimizer$zero_grad()
+  output <- model(b[[1]]$to(device = device))
+  target <- b[[2]]$to(device = device)
+  
+  bce_loss <- nnf_binary_cross_entropy(output, target)
+  dice_loss <- calc_dice_loss(output, target)
+  loss <-  dice_weight * dice_loss + (1 - dice_weight) * bce_loss
+  
+  loss$backward()
+  optimizer$step()
+  scheduler$step()
 
-Model depth is configurable (`depth`), as is a starting point for the number of filters (`n_filters`): The first downward
-convolution block will have `2^n_filters` channels, and in every successive convolution block the exponent will be incremented
-by one. The number of input channels (in our example: 3) and the number of output classes can be changed, as well. With a
-binary problem, although logically the number of classes is two, there is no need for two output channels; a single output
-channel with sigmoid activation is enough. If you had, say, four different cell types instead, you'd set `n_classes` to four.
+  list(bce_loss$item(), dice_loss$item(), loss$item())
+  
+}
 
-```{python}
-class UNet(nn.Module):
-    def __init__(
-        self,
-        channels_in = 3,
-        n_classes = 1,
-        depth = 5,
-        n_filters = 6, 
-    ):
-        super(UNet, self).__init__()
-        self.depth = depth
-        prev_channels = channels_in
-        self.down_path = nn.ModuleList()
-        for i in range(depth):
-            self.down_path.append(
-                DownBlock(prev_channels, 2 ** (n_filters + i))
-            )
-            prev_channels = 2 ** (n_filters + i)
-        self.up_path = nn.ModuleList()
-        for i in reversed(range(depth - 1)):
-            self.up_path.append(
-                UpBlock(prev_channels, 2 ** (n_filters + i))
-            )
-            prev_channels = 2 ** (n_filters + i)
-        self.last = nn.Conv2d(prev_channels, n_classes, kernel_size = 1)
-    def forward(self, x):
-        blocks = []
-        for i, down in enumerate(self.down_path):
-            x = down(x)
-            if i != len(self.down_path) - 1:
-                blocks.append(x)
-                x = F.max_pool2d(x, 2)
-        for i, up in enumerate(self.up_path):
-            x = up(x, blocks[-i - 1])
-        return torch.sigmoid(self.last(x))
-{r}
+valid_batch <- function(b) {
+  
+  output <- model(b[[1]]$to(device = device))
+  target <- b[[2]]$to(device = device)
 
-```
+  bce_loss <- nnf_binary_cross_entropy(output, target)
+  dice_loss <- calc_dice_loss(output, target)
+  loss <-  dice_weight * dice_loss + (1 - dice_weight) * bce_loss
+  
+  list(bce_loss$item(), dice_loss$item(), loss$item())
+  
+}
 
-As you'll have seen, this top-level module makes use of two helper modules, `DownBlock` and `UpBlock`. These again assemble
-and call instances of `ConvBlock`, the lowest-level module, that chains convolutional, activation, dropout and batchnorm
-layers. For this specific application, we've found that batchnorm actually resulted in deteriorated performance on the
-validation set, probably due to very small batch size. When working with other datasets and/or larger batches that could be
-very different.
-
-```{python}
-class ConvBlock(nn.Module):
-    def __init__(self, in_size, out_size):
-        super(ConvBlock, self).__init__()
-        block = []
-        block.append(nn.Conv2d(in_size, out_size, kernel_size = 3, padding = 1))
-        block.append(nn.ReLU())
-        #block.append(nn.BatchNorm2d(out_size))
-        block.append(nn.Dropout(0.6))
-        block.append(nn.Conv2d(out_size, out_size, kernel_size = 3, padding = 1))
-        block.append(nn.ReLU())
-        #block.append(nn.BatchNorm2d(out_size))
-        block.append(nn.Dropout(0.6))
-        self.block = nn.Sequential(*block)
-    def forward(self, x):
-        out = self.block(x)
-        return out
-```
-
-```{python}
-class DownBlock(nn.Module):
-    def __init__(self, in_size, out_size):
-        super(DownBlock, self).__init__()
-        self.conv_block = ConvBlock(in_size, out_size)
-    def forward(self, x):
-        down = self.conv_block(x)
-        return down
-```
-
-```{python}
-class UpBlock(nn.Module):
-    def __init__(self, in_size, out_size):
-        super(UpBlock, self).__init__()
-        self.up = nn.ConvTranspose2d(in_size, out_size, kernel_size = 2, stride = 2)
-        self.conv_block = ConvBlock(in_size, out_size)
-    def forward(self, x, bridge):
-        up = self.up(x)
-        out = torch.cat([up, bridge], 1)
-        out = self.conv_block(out)
-        return out
-```
-
-We instantiate the model with default parameters.
-
-```{python}
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = UNet().to(device)
-```
-
-This results in a U-structure of the following dimensionality:
-
-| down                      |                                                                           | up                              |
-|---------------------------|---------------------------------------------------------------------------|---------------------------------|
-| channels x width x height |                                                                           | channels x width x height       |
-| 3 x 256 x 256 (input)     |                                                                           | 1 x 256 x 256 (1 x1 conv)       |
-|                           |                                                                           | 64 x 256 x 256 (conv)           |
-|                           |                                                                           | 128 x 256 x 256 (concat)        |
-| 64 x 256 x 256 (conv)     | CONCAT                                                                    | 64 x 256 x 256 (conv + deconv)  |
-| 64 x 128 x 128 (pool)     |                                                                           | 256 x 128 x 128 (concat)        |
-| 128 x 128 x 128 (conv)    | CONCAT                                                                    | 128 x 128 x 128 (conv + deconv) |
-| 128 x 64 x 64 (pool)      |                                                                           | 512 x 64 x 64 (concat)          |
-| 256 x 64 x 64 (conv)      | CONCAT                                                                    | 256 x 64 x 64 (conv + deconv)   |
-| 256 x 32 x 32 (pool)      |                                                                           | 1024 x 32 x 32 (concat)         |
-| 512 x 32 x 32 (conv)      | CONCAT                                                                    | 512 x 32 x 32 (deconv)          |
-| 512 x 16 x 16 (pool)      | \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\> | 1024 x 16 x 16 (conv)           |
-
-Note that when on the *down* path, the number of channels goes *up*, this is due to the convolution layers; spatial
-downsizing, however, occurs due to max pooling. This is an implementation feature, not a requirement -- we could replace max
-pooling by using `strides` greater than `1` in the conv layers instead. This is another place where for a concrete
-application, you might want to experiment a bit.
-
-On the *up* path, we conveniently concatenate stored-away activations preceding max pooling layers to upwards-"bubbling"
-activations of same spatial resolution. The concatenated values are then upsized spatially using transposed convolutions,
-while the number of filters is reduced by conv layers. As an alternative to transposed convolution, you might want to try
-`UpSampling` layers.
-
-### Loss
-
-Thinking about loss functions that match the task, the first that probably comes to mind is binary crossentropy,
-`torch.nn.BCELoss`, applied pixel-wise. We'll use it ...
-
-```{python}
-bce_loss = nn.BCELoss()
-```
-
-but we'll augment it by another, called *dice loss* after the [dice
-coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient): [^1]
-
-[^1]: here in set notation
-
-$$
-d = \frac{2 * |X \cap Y|}{|X \cup Y|}
-$$
-
-The dice coefficient is similar in spirit to the [Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index), also known as
-*intersection over union*, but differs in that it scales the numerator by two. Here is an implementation of the derived loss:
-
-```{python}
-
-class DiceLoss(nn.Module):
-    def __init__(self):
-        super(DiceLoss, self).__init__()
-        self.smooth = 1.0
-    def forward(self, y_pred, y_true):
-        assert y_pred.size() == y_true.size()
-        y_pred = y_pred[:, 0].contiguous().view(-1)
-        y_true = y_true[:, 0].contiguous().view(-1)
-        intersection = (y_pred * y_true).sum()
-        dsc = (2. * intersection + self.smooth) / (
-            y_pred.sum() + y_true.sum() + self.smooth
-        )
-        return 1. - dsc
+for (epoch in 1:num_epochs) {
+  
+  model$train()
+  train_bce <- c()
+  train_dice <- c()
+  train_loss <- c()
+  
+  for (b in enumerate(train_dl)) {
+    c(bce_loss, dice_loss, loss) %<-% train_batch(b)
+    train_bce <- c(train_bce, bce_loss)
+    train_dice <- c(train_dice, dice_loss)
+    train_loss <- c(train_loss, loss)
+  }
+  
+  torch_save(model, paste0("model_", epoch, ".pt"))
+  
+  cat(sprintf("\nEpoch %d, training: loss:%3f, bce: %3f, dice: %3f\n",
+              epoch, mean(train_loss), mean(train_bce), mean(train_dice)))
+  
+  model$eval()
+  valid_bce <- c()
+  valid_dice <- c()
+  valid_loss <- c()
+  
+  i <- 0
+  for (b in enumerate(valid_dl)) {
+    
+    i <<- i + 1
+    c(bce_loss, dice_loss, loss) %<-% valid_batch(b)
+    valid_bce <- c(valid_bce, bce_loss)
+    valid_dice <- c(valid_dice, dice_loss)
+    valid_loss <- c(valid_loss, loss)
+    
+  }
+  
+  cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n",
+              epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
+}
 
 ```
 
-Dice loss, defined as one minus the dice coefficient, is said to improve training on imbalanced datasets. Looking closely, we
-see that if a mask is all zero, the only way to not to incur loss is by predicting all zeroes, as well.
+    Epoch 1, training: loss:0.304232, bce: 0.148578, dice: 0.667423
+    Epoch 1, validation: loss:0.333961, bce: 0.127171, dice: 0.816471
 
-For easy experimentation, we combine make it so both losses are combined in a weighted fashion:
+    Epoch 2, training: loss:0.194665, bce: 0.101973, dice: 0.410945
+    Epoch 2, validation: loss:0.341121, bce: 0.117465, dice: 0.862983
 
-```{python}
-dice_loss = DiceLoss()
+    [...]
 
-dice_weight = 0.3
+    Epoch 19, training: loss:0.073863, bce: 0.038559, dice: 0.156236
+    Epoch 19, validation: loss:0.302878, bce: 0.109721, dice: 0.753577
 
-```
+    Epoch 20, training: loss:0.070621, bce: 0.036578, dice: 0.150055
+    Epoch 20, validation: loss:0.295852, bce: 0.101750, dice: 0.748757
 
-### Training
+## Evaluation
 
-We train for fifty epochs, continously saving the model weights that are best so far.
+In this run, it is the final model that performs best on the validation set. Still, we'd like to show how to load a saved model, using `torch_load()` .
 
-```{python}
+Once loaded, put the model into `eval` mode:
 
-optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum = 0.9)
+```{r}
+saved_model <- torch_load("model_20.pt") 
 
-scheduler = torch.optim.lr_scheduler.OneCycleLR(
-    optimizer,
-    max_lr = 0.1,
-    steps_per_epoch = len(train_loader),
-    epochs = num_epochs
-)
-
-best_model_wts = copy.deepcopy(model.state_dict())
-best_dice_coef = 0.0
-
-num_epochs = 50
-
-for epoch in range(num_epochs):
-    print('Epoch {}/{}'.format(epoch, num_epochs - 1), flush = True)
-    print('-' * 10)
-    for phase in ['train', 'valid']:
-        print("Entering phase: " + phase, flush = True)
-        if phase == 'train':
-            model = model.train() 
-        else:
-            model = model.eval()   
-        running_loss = 0.0
-        running_dice = 0.0
-        running_bce = 0.0
-        for inputs, labels in dataloaders[phase]:
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            optimizer.zero_grad()
-            with torch.set_grad_enabled(phase == 'train'):
-                preds = model(inputs)
-                dice_loss = dsc_loss(preds, labels)
-                xent_loss = bce_loss(preds, labels)
-                loss = dice_weight * dice_loss + (1 - dice_weight) * xent_loss
-                if phase == 'train':
-                    loss.backward()
-                    optimizer.step()
-            running_loss += loss.item() * inputs.size(0)
-            running_dice += dice_loss.item() * inputs.size(0)
-            if phase == 'train':
-                scheduler.step()
-        epoch_loss = running_loss / dataset_sizes[phase]
-        epoch_dice = running_dice / dataset_sizes[phase]
-        epoch_bce = running_bce / dataset_sizes[phase]
-        if phase == 'valid' and epoch_dice < best_dice_coef:
-            best_dice = epoch_dice
-            best_model_wts = copy.deepcopy(model.state_dict())
-        print('{} Loss: {:.4f}'.format(phase, epoch_loss), flush = True)
-        print('{} Dice coef: {:.4f}'.format(phase, epoch_dice), flush = True)
-        print('{} BCE: {:.4f}'.format(phase, epoch_bce), flush = True)
-    print()
-
-model.load_state_dict(best_model_wts)
-torch.save(model.state_dict(), "mri.pt")
-```
-
-Here is a excerpt from the training history:
-
-```{}
-Epoch 0/49
-----------
-Entering phase: train
-train Loss: 1.0315
-train Dice coef: 2.3604
-train BCE: 0.4620
-Entering phase: valid
-valid Loss: 1.3413
-valid Dice coef: 3.2042
-valid BCE: 0.5429
-
-Epoch 1/49
-----------
-Entering phase: train
-train Loss: 0.7160
-train Dice coef: 1.5426
-train BCE: 0.3618
-Entering phase: valid
-valid Loss: 1.3800
-valid Dice coef: 3.2879
-valid BCE: 0.5624
-
-...
-
-Epoch 48/49
-----------
-Entering phase: train
-train Loss: 0.2059
-train Dice coef: 0.4564
-train BCE: 0.0985
-Entering phase: valid
-valid Loss: 1.1764
-valid Dice coef: 3.0436
-valid BCE: 0.3762
-
-Epoch 49/49
-----------
-Entering phase: train
-train Loss: 0.2033
-train Dice coef: 0.4519
-train BCE: 0.0968
-Entering phase: valid
-valid Loss: 1.1654
-valid Dice coef: 3.0353
-valid BCE: 0.3641
-
+model <- saved_model
+model$eval()
 
 ```
 
-### Predictions
+Now, since we don't have a separate test set, we already know the average out-of-sample metrics; but in the end, what we care about are the generated masks. Let's view some, displaying ground truth and MRI scans for comparison.
 
-TBD when in R.
+```{r}
+# without random sampling, we'd mainly see lesion-free patches
+eval_ds <- brainseg_dataset(valid_dir, augmentation_params = NULL, random_sampling = TRUE)
+eval_dl <- dataloader(eval_ds, batch_size = 8)
+
+batch <- eval_dl %>% dataloader_make_iter() %>% dataloader_next()
+
+par(mfcol = c(3, 8), mar = c(0, 1, 0, 1))
+
+for (i in 1:8) {
+  
+  img <- batch[[1]][i, .., drop = FALSE]
+  inferred_mask <- model(img$to(device = device))
+  true_mask <- batch[[2]][i, .., drop = FALSE]$to(device = device)
+  
+  bce <- nnf_binary_cross_entropy(inferred_mask, true_mask)$to(device = "cpu") %>%
+    as.numeric()
+  dc <- calc_dice_loss(inferred_mask, true_mask)$to(device = "cpu") %>% as.numeric()
+  cat(sprintf("\nSample %d, bce: %3f, dice: %3f\n", i, bce, dc))
+  
+
+  inferred_mask <- inferred_mask$to(device = "cpu") %>% as.array() %>% .[1, 1, , ]
+  
+  inferred_mask <- ifelse(inferred_mask > 0.5, 1, 0)
+  
+  img[1, 1, ,] %>% as.array() %>% as.raster() %>% plot()
+  true_mask$to(device = "cpu")[1, 1, ,] %>% as.array() %>% as.raster() %>% plot()
+  inferred_mask %>% as.raster() %>% plot()
+}
+```
+
+We also print the individual cross entropy and dice losses; relating those to the generated masks might yield useful information for model tuning.
+
+    Sample 1, bce: 0.088406, dice: 0.387786}
+
+    Sample 2, bce: 0.026839, dice: 0.205724
+
+    Sample 3, bce: 0.042575, dice: 0.187884
+
+    Sample 4, bce: 0.094989, dice: 0.273895
+
+    Sample 5, bce: 0.026839, dice: 0.205724
+
+    Sample 6, bce: 0.020917, dice: 0.139484
+
+    Sample 7, bce: 0.094989, dice: 0.273895
+
+    Sample 8, bce: 2.310956, dice: 0.999824
+
+![](images/eval_masks.png)
+
+While far from perfect, most of these masks aren't that bad -- a nice result given the small dataset!

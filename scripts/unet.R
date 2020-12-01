@@ -204,42 +204,42 @@ train_ds <-
     random_sampling = TRUE
   )
 
-train_ds$.length()
+length(train_ds)
 
 valid_ds <-
   brainseg_dataset(valid_dir,
                    augmentation_params = NULL,
                    random_sampling = FALSE)
 
-valid_ds$.length()
+length(valid_ds)
 
-img_and_mask <- valid_ds$.getitem(27)
+par(mfrow = c(1, 2), mar = c(0, 1, 0, 1))
+img_and_mask <- valid_ds[27]
 img <- img_and_mask[[1]]
-img$permute(c(2, 3, 1)) %>% as.array() %>% as.raster() %>% plot()
-
 mask <- img_and_mask[[2]]
+img$permute(c(2, 3, 1)) %>% as.array() %>% as.raster() %>% plot()
 mask$squeeze() %>% as.array() %>% as.raster() %>% plot()
 
 
 
 # Plot augmentation -------------------------------------------------------
 
-img_and_mask <- valid_ds$.getitem(77)
+img_and_mask <- valid_ds[77]
 img <- img_and_mask[[1]]
 mask <- img_and_mask[[2]]
 
 imgs <- map (1:24, function(i) {
-  c(img, mask) %<-% valid_ds$resize(img, mask, 0.05)
+  c(img, mask) %<-% valid_ds$resize(img, mask, 0.2) # train_ds really uses 0.05
   c(img, mask) %<-% valid_ds$flip(img, mask, 0.5)
-  c(img, mask) %<-% valid_ds$rotate(img, mask, 15)
+  c(img, mask) %<-% valid_ds$rotate(img, mask, 90) # train_ds really uses 15
   img %>%
+    transform_rgb_to_grayscale() %>%
     as.array() %>%
-    .[1, ,] %>%
     as_tibble() %>%
-    rowid_to_column(var = "X") %>%
-    gather(key = "Y", value = "Z",-1) %>%
-    mutate(Y = as.numeric(gsub("V", "", Y))) %>%
-    ggplot(aes(X, Y, fill = Z)) +
+    rowid_to_column(var = "Y") %>%
+    gather(key = "X", value = "value", -Y) %>%
+    mutate(X = as.numeric(gsub("V", "", X))) %>%
+    ggplot(aes(X, Y, fill = value)) +
     geom_raster() +
     theme_void() +
     theme(legend.position = "none") +
@@ -276,7 +276,7 @@ unet <- nn_module(
       prev_channels <- 2 ^ (n_filters + i -1)
     }
     
-    self$up_path = nn_module_list()
+    self$up_path <- nn_module_list()
     for (i in ((depth - 1):1)) {
       self$up_path$append(up_block(prev_channels, 2 ^ (n_filters + i - 1)))
       prev_channels <- 2 ^ (n_filters + i - 1)
@@ -287,18 +287,18 @@ unet <- nn_module(
   
   forward = function(x) {
     
-    blocks <- nn_module_list()
+    blocks <- list()
     
     for (i in 1:length(self$down_path)) {
       x <- self$down_path[[i]](x)
       if (i != length(self$down_path)) {
-        blocks$append(x)
+        blocks <- c(blocks, x)
         x <- nnf_max_pool2d(x, 2)
       }
     }
     
     for (i in 1:length(self$up_path)) {  
-      x <- self$up_path[[i]](x, blocks[[length(blocks) - i + 1]])
+      x <- self$up_path[[i]](x, blocks[[length(blocks) - i + 1]]$to(device = device))
     }
     torch_sigmoid(self$last(x))
   }
@@ -338,22 +338,17 @@ conv_block <- nn_module(
   
   initialize = function(in_size, out_size) {
     
-    self$block <- nn_module_list()
-    self$block$append(nn_conv2d(in_size, out_size, kernel_size = 3, padding = 1))
-    self$block$append(nn_relu())
-    #self$block$append(nn_batch_norm2d(out_size))
-    self$block$append(nn_dropout(0.6))
-    self$block$append(nn_conv2d(out_size, out_size, kernel_size = 3, padding = 1))
-    self$block$append(nn_relu())
-    #self$block$append(nn_batch_norm2d(out_size))
-    self$block$append(nn_dropout(0.6))
+    self$conv_block <- nn_sequential(
+      nn_conv2d(in_size, out_size, kernel_size = 3, padding = 1),
+      nn_relu(),
+      nn_dropout(0.6),
+      nn_conv2d(out_size, out_size, kernel_size = 3, padding = 1),
+      nn_relu()
+    )
   },
   
   forward = function(x){
-    for (i in 1:length(self$block)) {
-      x <- self$block[[i]](x)
-    }
-    x
+    self$conv_block(x)
   }
 )
 
@@ -377,7 +372,7 @@ dice_weight <- 0.3
 optimizer <- optim_sgd(model$parameters, lr = 0.1, momentum = 0.9)
 
 num_epochs <- 20
-scheduler <- lr_one_cycle(optimizer, max_lr = 0.1, steps_per_epoch = train_dl$.length(), epochs = num_epochs)
+scheduler <- lr_one_cycle(optimizer, max_lr = 0.1, steps_per_epoch = length(train_dl), epochs = num_epochs)
 
 
 # Train -------------------------------------------------------------------
@@ -457,21 +452,36 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss:%3f, bce: %3f, dice: %3f\n", epoch, mean(valid_loss), mean(valid_bce), mean(valid_dice)))
 }
 
-torch_load("model_8.pt")
+saved_model <- torch_load("model_20.pt") 
+model <- saved_model
+model$eval()
 
-img_and_mask <- valid_ds$.getitem(27)
-img <- img_and_mask[[1]]
-img %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
+eval_ds <- brainseg_dataset(valid_dir,
+                            augmentation_params = NULL,
+                            random_sampling = TRUE)
+eval_dl <- dataloader(eval_ds, batch_size = 8)
 
-mask <- img_and_mask[[2]]
-mask %>% as.array() %>% .[1, ,] %>% as.raster() %>% plot()
+batch <- eval_dl %>% dataloader_make_iter() %>% dataloader_next()
 
-inferred_mask <- model(img$to(device = device)$unsqueeze(1))
-nnf_binary_cross_entropy(inferred_mask, mask$to(device = "cuda"))
-calc_dice_loss(inferred_mask, mask$to(device = "cuda"))
-inferred_mask <- inferred_mask$to(device = "cpu") %>% as.array() %>% .[1, 1, ,]
-quantile(inferred_mask)
-inferred_mask %>% as.raster() %>% plot()
-inferred_mask <- ifelse(inferred_mask > 0.5, 1, 0)
-inferred_mask %>% as.raster() %>% plot()
+par(mfcol = c(3, 8), mar = c(0, 1, 0, 1))
+
+for (i in 1:8) {
+  
+  img <- batch[[1]][i, .., drop = FALSE]
+  inferred_mask <- model(img$to(device = device))
+  true_mask <- batch[[2]][i, ..,drop = FALSE]$to(device = device)
+  
+  bce <- nnf_binary_cross_entropy(inferred_mask, true_mask)$to(device = "cpu") %>% as.numeric()
+  dc <- calc_dice_loss(inferred_mask, true_mask)$to(device = "cpu") %>% as.numeric()
+  cat(sprintf("\nSample %d, bce: %3f, dice: %3f\n", i, bce, dc))
+  
+  
+  inferred_mask <- inferred_mask$to(device = "cpu") %>% as.array() %>% .[1, 1, , ]
+  
+  inferred_mask <- ifelse(inferred_mask > 0.5, 1, 0)
+  
+  img[1, 1, , ] %>% as.array() %>% as.raster() %>% plot()
+  true_mask$to(device = "cpu")[1, 1, , ] %>% as.array() %>% as.raster() %>% plot()
+  inferred_mask %>% as.raster() %>% plot()
+}
 
