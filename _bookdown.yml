@@ -18,16 +18,19 @@ rmd_files:
     "image_classification.Rmd",
     "unet.Rmd",
 
+    "time_series.Rmd",
+    "RNN.Rmd",
+    "seq_to_seq_attention.Rmd",
+    "transformer.Rmd",
+    #
+    
     "natural_language_processing.Rmd",
-    "seq_to_seq_with_attention.Rmd",
-    "transformer_modules.Rmd",
+    "NLP_seq_to_seq_attention.Rmd",
+    "NLP_transformer.Rmd",
 
     "tabular_data.Rmd",
+    "categorical_data.Rmd",
     # here also: recommender systems
-    #
-
-    "time_series.Rmd",
-    #
 
     "generative_deep_learning.Rmd",
     "GANs.Rmd",

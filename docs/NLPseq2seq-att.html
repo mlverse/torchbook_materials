@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Introduction | Applied deep learning with torch from R</title>
+  <title>12 Sequence-to-sequence models with attention | Applied deep learning with torch from R</title>
   <meta name="description" content="tbd" />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Introduction | Applied deep learning with torch from R" />
+  <meta property="og:title" content="12 Sequence-to-sequence models with attention | Applied deep learning with torch from R" />
   <meta property="og:type" content="book" />
   <meta property="og:url" content="tbd" />
   <meta property="og:image" content="tbdcover.png" />
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="tbd" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Introduction | Applied deep learning with torch from R" />
+  <meta name="twitter:title" content="12 Sequence-to-sequence models with attention | Applied deep learning with torch from R" />
   
   <meta name="twitter:description" content="tbd" />
   <meta name="twitter:image" content="tbdcover.png" />
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="transformer.html"/>
-<link rel="next" href="NLPseq2seq-att.html"/>
+<link rel="prev" href="NLP-intro.html"/>
+<link rel="next" href="NLPtransformer.html"/>
 <script src="libs/header-attrs-2.5/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -277,29 +277,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="NLP-intro" class="section level1 unnumbered">
-<h1>Introduction</h1>
-<p>As we write this, deep learning has firmly made its way into natural language processing, complementing its dominance in image
-recognition. Two years ago already, Sebastian Ruder proclaimed that <a href="https://thegradient.pub/nlp-imagenet/">NLP's ImageNet moment has
-arrived</a>. The analogy here is not about the dataset per se, but about availability of
-models, trained on a rich collection of data, that can generalize to a variety of tasks in the overall domain. Just like in
-image recognition, a model trained to classify ImageNet is assumed to have learned a lot about <em>features</em> on different scales
-– edges, corners, shapes, components of objects, objects –, in NLP a <em>language model</em>, trained to predict words from their
-surroundings,is assumed to have learned a lot about syntax, semantics, and – perhaps – even about the world. This general
-knowledge is then useful in tasks such as machine translation, question answering, and natural language inference.</p>
-<p>In the previous section on image recognition, we jumped directly into transfer learning, reflecting our belief that often, you
-won’t need to train your own convolutional network from scratch, and that (straightforward) convnets must be among the very
-most-extensively-documented deep learning topics on the net.</p>
-<p>With NLP, it’s different. One of the most important recent concepts in deep learning – attention – originally emerged in the
-area of machine translation, but has been, and is being, applied in lots of other areas since then. Thus, we will first
-develop an attention-based translation model from scratch, to get a feeling of how this works. At the same time, this model
-features <em>recurrent neural networks</em> (RNNs), the family of neural network layers that historically used to claim best
-performance on sequence data.</p>
-<p>Our second application then illustrates the use of “historically” in the preceding sentence. The famous <em>Transformer</em>
-architecture made clear that recurrent layers are not a necessity when dealing with sequential input – as long as attention
-mechanisms are present. Our example model will address the same machine translation task as the previous one (just on a
-different target language). This time, we won’t start from scratch, but make use of intermediate-to-high-level modules
-conveniently provided by <code>torch</code>.</p>
+<div id="NLPseq2seq_att" class="section level1" number="12">
+<h1><span class="header-section-number">12</span> Sequence-to-sequence models with attention</h1>
 
 </div>
             </section>
@@ -307,8 +286,8 @@ conveniently provided by <code>torch</code>.</p>
           </div>
         </div>
       </div>
-<a href="transformer.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="NLPseq2seq-att.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="NLP-intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="NLPtransformer.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
