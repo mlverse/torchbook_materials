@@ -68,7 +68,7 @@ nao_dataset <- dataset(
     }
     
     x <- torch_tensor(self$nao[i:(n_timesteps + i - 1)])$unsqueeze(2)
-    y <- torch_tensor(self$nao[(i + 1):(n_timesteps + i)])
+    y <- torch_tensor(self$nao[n_timesteps + i])
     list(x = x, y = y)
   },
   
@@ -103,7 +103,9 @@ length(valid_dl)
 
 model <- nn_module(
   initialize = function(type, hidden_size) {
-    self$rnn <- if (type == "gru") {
+    
+    self$type <- type
+    self$rnn <- if (self$type == "gru") {
       nn_gru(
         input_size = 1,
         hidden_size = hidden_size,
@@ -125,8 +127,11 @@ model <- nn_module(
   
   forward = function(x) {
     
-    x <- self$rnn(x)[[1]]
-    x %>% self$output() %>% torch_flatten(start_dim = 2)
+    # for each layer, hidden state for t = seq_len
+    x <- if (self$type == "gru") self$rnn(x)[[2]] else self$rnn(x)[[2]][[1]]
+     
+    x <- x$squeeze()
+    x %>% self$output() 
     
   }
   
@@ -135,10 +140,12 @@ model <- nn_module(
 #device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 device <- "cpu"
 
-net <- model("gru", 1)
+net <- model("gru", 32)
 
 net <- net$to(device = device)
+net
 
+xx <- net(b$x)
 
 # train -------------------------------------------------------------------
 
@@ -154,11 +161,8 @@ train_batch <- function(b) {
   
   loss <- nnf_mse_loss(output, target)
   
-  if (i %% 100 == 0) {
-    print(i)
-    
-    print(loss$item())
-    
+  if (i %% 66 == 0) {
+  
     print(as.matrix(output))
     print(as.matrix(target))
   }
@@ -203,18 +207,18 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, training: loss: %3.3f \n",
               epoch, mean(train_loss)))
   
-  net$eval()
-  valid_loss <- c()
-  
-  for (b in enumerate(valid_dl)) {
-    
-    loss <- valid_batch(b)
-    valid_loss <- c(valid_loss, loss)
-    
-  }
-  
-  cat(sprintf("\nEpoch %d, validation: loss: %3.3f \n",
-              epoch, mean(valid_loss)))
+  # net$eval()
+  # valid_loss <- c()
+  # 
+  # for (b in enumerate(valid_dl)) {
+  #   
+  #   loss <- valid_batch(b)
+  #   valid_loss <- c(valid_loss, loss)
+  #   
+  # }
+  # 
+  # cat(sprintf("\nEpoch %d, validation: loss: %3.3f \n",
+  #             epoch, mean(valid_loss)))
 }
 
 
