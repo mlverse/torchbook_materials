@@ -115,7 +115,7 @@ model <- nn_module(
       nn_gru(
         input_size = 1,
         hidden_size = hidden_size,
-        num_layers = 3,
+        num_layers = 1,
         #dropout = 0.2,
         batch_first = TRUE
       )
@@ -123,7 +123,7 @@ model <- nn_module(
       nn_lstm(
         input_size = 1,
         hidden_size = hidden_size,
-        num_layers = 3,
+        num_layers = 1,
         #dropout = 0.2,
         batch_first = TRUE
       )
@@ -223,7 +223,3 @@ for (epoch in 1:num_epochs) {
 
   cat(sprintf("\nEpoch %d, validation: loss: %3.3f \n", epoch, mean(valid_loss)))
 }
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-50: Using a target size (32,1) that is different to the input size (3,32,1). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
-
