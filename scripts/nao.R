@@ -22,9 +22,9 @@ nao <-
     skip = 3
   ) %>%
   select(-X1,-X14) %>%
-  as.matrix() %>%
+  as.matrix() %>% 
   t() %>%
-  as.numeric() %>%
+  as.vector() %>%
   .[1:(length(.) - 5)] %>%
   tibble(x = seq.Date(
     from = as.Date("1824-01-01"),
@@ -33,10 +33,12 @@ nao <-
   ),
   y = .)
 
-nao %>% ggplot(aes(x, y)) + geom_line(size = 0.2)
+nrow(nao)
 
-nao_train <- nao %>% filter(x <  as.Date("2000-01-01"))
-nao_valid <- nao %>% filter(x >=  as.Date("2000-01-01"))
+nao_train <- nao %>% filter(x <  as.Date("1960-01-01"))
+nao_valid <- nao %>% filter(x >=  as.Date("1960-01-01"))
+
+nao_valid[100:150,] %>% ggplot(aes(x, y)) + geom_line(size = 0.1)
 
 mean(nao_train$y, na.rm = TRUE)
 quantile(nao_train$y, na.rm = TRUE)
@@ -44,13 +46,15 @@ quantile(nao_train$y, na.rm = TRUE)
 mean(nao_valid$y, na.rm = TRUE)
 quantile(nao_valid$y, na.rm = TRUE)
 
-nao_train[is.na(nao_train)] <- mean(nao_train$y, na.rm = TRUE)
-nao_valid[is.na(nao_valid)] <- mean(nao_train$y, na.rm = TRUE)
+na1 <- which(is.na(nao_train$y))
+nao_train$y[na1] <- mean(nao_train$y[na1 - 1], nao_train$y[na1 + 1])
 
+na2 <- which(is.na(nao_valid$y))
+nao_valid$y[na2] <- mean(nao_valid$y[na2 - 1], nao_valid$y[na2 + 1])
 
 # dataset -----------------------------------------------------------------
 
-n_timesteps <- 6
+n_timesteps <- 24
 
 nao_dataset <- dataset(
   name = "nao_dataset",
@@ -78,22 +82,22 @@ nao_dataset <- dataset(
   
 )
 
-train_ds <- nao_dataset(nao_train, n_timesteps)
-length(train_ds)
-first <- train_ds$.getitem(1)
-first$x
-first$y
+train_ds <- nao_dataset(nao_train, n_timesteps, random_sample = TRUE)
+# length(train_ds)
+# first <- train_ds$.getitem(1)
+# first$x
+# first$y
 
 batch_size <- 32
 train_dl <- train_ds %>% dataloader(batch_size = batch_size)
 length(train_dl)
 
-iter <- train_dl$.iter()
-b <- iter$.next()
-b
+# iter <- dataloader_make_iter(train_dl)
+# b <- iter %>% dataloader_next()
+# b
 
 valid_ds <- nao_dataset(nao_valid, n_timesteps)
-length(valid_ds)
+#length(valid_ds)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
 
@@ -102,23 +106,27 @@ length(valid_dl)
 
 
 model <- nn_module(
+  
   initialize = function(type, hidden_size) {
     
     self$type <- type
+    
     self$rnn <- if (self$type == "gru") {
       nn_gru(
         input_size = 1,
         hidden_size = hidden_size,
+        num_layers = 3,
+        #dropout = 0.2,
         batch_first = TRUE
       )
-      
     } else {
       nn_lstm(
         input_size = 1,
         hidden_size = hidden_size,
+        num_layers = 3,
+        #dropout = 0.2,
         batch_first = TRUE
       )
-      
     }
     
     self$output <- nn_linear(hidden_size, 1)
@@ -128,7 +136,8 @@ model <- nn_module(
   forward = function(x) {
     
     # for each layer, hidden state for t = seq_len
-    x <- if (self$type == "gru") self$rnn(x)[[2]] else self$rnn(x)[[2]][[1]]
+    x <- self$rnn(x)
+    x <- if (self$type == "gru")x[[2]] else x[[2]][[1]]
      
     x <- x$squeeze()
     x %>% self$output() 
@@ -137,21 +146,21 @@ model <- nn_module(
   
 )
 
-#device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
+device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 device <- "cpu"
 
 net <- model("gru", 32)
 
 net <- net$to(device = device)
-net
+#net
 
-xx <- net(b$x)
+#net(b$x$to(device = device))
 
 # train -------------------------------------------------------------------
 
 optimizer <- optim_adam(net$parameters, lr = 0.001)
 
-num_epochs <- 200
+num_epochs <- 100
 
 train_batch <- function(b) {
   
@@ -161,10 +170,10 @@ train_batch <- function(b) {
   
   loss <- nnf_mse_loss(output, target)
   
-  if (i %% 66 == 0) {
+  if (i %% 11111 == 0) {
   
-    print(as.matrix(output))
-    print(as.matrix(target))
+    print(as.matrix(output$to(device = "cpu")))
+    print(as.matrix(target$to(device = "cpu")))
   }
   
   i <<- i + 1
@@ -196,32 +205,25 @@ for (epoch in 1:num_epochs) {
   
   i <<- 1
   
-  for (b in enumerate(train_dl)) {
-    
+  coro::loop(for (b in train_dl) {
    loss <-train_batch(b)
    train_loss <- c(train_loss, loss)
-  }
+  })
   
-  torch_save(net, paste0("model_", epoch, ".pt"))
+  #torch_save(net, paste0("model_", epoch, ".pt"))
+  cat(sprintf("\nEpoch %d, training: loss: %3.3f \n", epoch, mean(train_loss)))
   
-  cat(sprintf("\nEpoch %d, training: loss: %3.3f \n",
-              epoch, mean(train_loss)))
-  
-  # net$eval()
-  # valid_loss <- c()
-  # 
-  # for (b in enumerate(valid_dl)) {
-  #   
-  #   loss <- valid_batch(b)
-  #   valid_loss <- c(valid_loss, loss)
-  #   
-  # }
-  # 
-  # cat(sprintf("\nEpoch %d, validation: loss: %3.3f \n",
-  #             epoch, mean(valid_loss)))
+  net$eval()
+  valid_loss <- c()
+
+  coro::loop(for (b in valid_dl) {
+    loss <- valid_batch(b)
+    valid_loss <- c(valid_loss, loss)
+  })
+
+  cat(sprintf("\nEpoch %d, validation: loss: %3.3f \n", epoch, mean(valid_loss)))
 }
 
-
-
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+50: Using a target size (32,1) that is different to the input size (3,32,1). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
 
