@@ -12,8 +12,6 @@ library(tidyverse)
 library(fable)
 library(tsibble)
 library(feasts)
-library(tsibbledata)
-# vic_elec
 
 # start 3 years later, in 1824
 # last valid value is 2020-7
@@ -38,11 +36,11 @@ nao <-
   mutate(x = yearmonth(x)) %>%
   fill(y) %>%
   as_tsibble(index = x) 
-  
+
 nrow(nao)
 
 nao_train <- nao %>% filter(x <  yearmonth("1990-01"))
-nao_valid <- nao %>% filter(x >=  yearmonth("1990-01"))
+nao_valid <- nao %>% filter(x >=  yearmonth("1970-01"))
 
 
 
@@ -79,7 +77,7 @@ nao_valid %>% features(y, feat_spectral) #[0, 1]
 nao_valid %>% features(y, feat_acf)
 nao_valid %>% features(y, feat_acf)
 nao_valid %>% features(y, feat_acf)
-  
+
 
 # fit
 
@@ -108,6 +106,7 @@ accuracy(fc, filter(nao_valid, x < yearmonth("1992-01")))
 fit %>% select(ets3) %>% report()
 fit %>% report()
 
+
 # dataset -----------------------------------------------------------------
 
 n_timesteps <- 12
@@ -115,17 +114,13 @@ n_timesteps <- 12
 nao_dataset <- dataset(
   name = "nao_dataset",
   
-  initialize = function(nao, n_timesteps, random_sample = FALSE) {
+  initialize = function(nao, n_timesteps) {
     self$nao <- nao$y
     self$n_timesteps <- n_timesteps
-    self$random_sample <- random_sample
     
   },
   
   .getitem = function(i) {
-    if (self$random_sample == TRUE) {
-      i <- sample(1:self$.length(), 1)
-    }
     
     x <- torch_tensor(self$nao[i:(n_timesteps + i - 1)])$unsqueeze(2)
     y <- torch_tensor(self$nao[n_timesteps + i])
@@ -138,14 +133,14 @@ nao_dataset <- dataset(
   
 )
 
-train_ds <- nao_dataset(nao_train, n_timesteps, random_sample = TRUE)
+train_ds <- nao_dataset(nao_train, n_timesteps)
 length(train_ds)
 # first <- train_ds$.getitem(1)
 # first$x
 # first$y
 
 batch_size <- 32
-train_dl <- train_ds %>% dataloader(batch_size = batch_size)
+train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
 length(train_dl)
 
 # iter <- dataloader_make_iter(train_dl)
@@ -172,7 +167,7 @@ model <- nn_module(
         input_size = 1,
         hidden_size = hidden_size,
         num_layers = 1,
-        #dropout = 0.2,
+        #dropout = 0.8,
         batch_first = TRUE
       )
     } else {
@@ -180,7 +175,7 @@ model <- nn_module(
         input_size = 1,
         hidden_size = hidden_size,
         num_layers = 1,
-        #dropout = 0.2,
+        #dropout = 0.8,
         batch_first = TRUE
       )
     }
@@ -194,7 +189,7 @@ model <- nn_module(
     # for each layer, hidden state for t = seq_len
     x <- self$rnn(x)
     x <- if (self$type == "gru")x[[2]] else x[[2]][[1]]
-     
+    
     x <- x$squeeze()
     x %>% self$output() 
     
@@ -203,7 +198,7 @@ model <- nn_module(
 )
 
 device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
-#device <- "cpu"
+device <- "cpu"
 
 net <- model("gru", 32)
 
@@ -216,7 +211,7 @@ net <- net$to(device = device)
 
 optimizer <- optim_adam(net$parameters, lr = 0.001)
 
-num_epochs <- 100
+num_epochs <- 300
 
 train_batch <- function(b) {
   
@@ -227,13 +222,13 @@ train_batch <- function(b) {
   loss <- nnf_mse_loss(output, target)
   
   if (i %% 11111 == 0) {
-  
+    
     print(as.matrix(output$to(device = "cpu")))
     print(as.matrix(target$to(device = "cpu")))
   }
   
   i <<- i + 1
-
+  
   loss$backward()
   optimizer$step()
   
@@ -262,20 +257,53 @@ for (epoch in 1:num_epochs) {
   i <<- 1
   
   coro::loop(for (b in train_dl) {
-   loss <-train_batch(b)
-   train_loss <- c(train_loss, loss)
+    loss <-train_batch(b)
+    train_loss <- c(train_loss, loss)
   })
   
-  #torch_save(net, paste0("model_", epoch, ".pt"))
+  if (epoch %% 100 == 0) torch_save(net, paste0("model_", epoch, ".pt"))
   cat(sprintf("\nEpoch %d, training: loss: %3.3f \n", epoch, mean(train_loss)))
   
   net$eval()
   valid_loss <- c()
-
+  
   coro::loop(for (b in valid_dl) {
     loss <- valid_batch(b)
     valid_loss <- c(valid_loss, loss)
   })
-
+  
   cat(sprintf("\nEpoch %d, validation: loss: %3.3f \n", epoch, mean(valid_loss)))
 }
+
+
+# predict next -----------------------------------------------------------------
+
+#net <-torch_load("model_500.pt")
+net$eval()
+
+preds <- rep(NA, n_timesteps)
+
+train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = FALSE)
+
+dl <- train_dl
+#dl <- valid_dl
+
+ds <- nao_train
+#ds <- nao_valid
+
+cutoff <- "1987-12"
+#cutoff <- "2015-12"
+
+coro::loop(for (b in dl) {
+  output <- net(b$x$to(device = device))
+  preds <- c(preds, output %>% as.numeric())
+})
+
+preds_ts <- ds %>%
+  add_column(preds) %>%
+  pivot_longer(-x) %>%
+  update_tsibble(key = name)
+
+preds_ts %>%
+  filter(x > yearmonth(cutoff)) %>%
+  autoplot()
