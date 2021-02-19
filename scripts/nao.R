@@ -1,4 +1,4 @@
-
+# https://otexts.com/fpp3
 
 # https://crudata.uea.ac.uk/~timo/datapages/naoi.htm
 # https://crudata.uea.ac.uk/cru/data/nao/nao.dat
@@ -8,9 +8,12 @@
 # https://www.ncdc.noaa.gov/teleconnections/nao/
 
 library(torch)
-library(dplyr)
-library(readr)
-library(ggplot2)
+library(tidyverse)
+library(fable)
+library(tsibble)
+library(feasts)
+library(tsibbledata)
+# vic_elec
 
 # start 3 years later, in 1824
 # last valid value is 2020-7
@@ -31,30 +34,83 @@ nao <-
     to = as.Date("2020-07-01"),
     by = "months"
   ),
-  y = .)
-
+  y = .) %>%
+  mutate(x = yearmonth(x)) %>%
+  fill(y) %>%
+  as_tsibble(index = x) 
+  
 nrow(nao)
 
-nao_train <- nao %>% filter(x <  as.Date("1960-01-01"))
-nao_valid <- nao %>% filter(x >=  as.Date("1960-01-01"))
+nao_train <- nao %>% filter(x <  yearmonth("1990-01"))
+nao_valid <- nao %>% filter(x >=  yearmonth("1990-01"))
 
-nao_valid[100:150,] %>% ggplot(aes(x, y)) + geom_line(size = 0.1)
 
-mean(nao_train$y, na.rm = TRUE)
-quantile(nao_train$y, na.rm = TRUE)
 
-mean(nao_valid$y, na.rm = TRUE)
-quantile(nao_valid$y, na.rm = TRUE)
+# analysis ----------------------------------------------------------------
 
-na1 <- which(is.na(nao_train$y))
-nao_train$y[na1] <- mean(nao_train$y[na1 - 1], nao_train$y[na1 + 1])
 
-na2 <- which(is.na(nao_valid$y))
-nao_valid$y[na2] <- mean(nao_valid$y[na2 - 1], nao_valid$y[na2 + 1])
+# STL
+# season(window=13)
+# trend(window=13)
+cmp <- nao_valid %>%
+  model(STL(y)) %>%
+  components()
+cmp %>% autoplot()
+
+cmp <- nao_valid %>%
+  model(STL(y ~ season(window = 7))) %>%
+  components()
+cmp %>% autoplot()
+
+nao_valid %>% features(y, feat_stl)
+feat_stl(nao_valid$y, .period = 12, s.window = 7) %>% round(2)
+
+# ACF
+nao_valid %>% features(y, feat_acf)
+nao_valid %>% ACF(y) %>% autoplot()
+
+# other features
+# rate at which autocorrelations decrease as the lag between pairs of values increases
+# > 0.5: long-term positive autocorrelations
+# < 0.5: mean-reverting
+# 0.5: random walk
+nao_valid %>% features(y, coef_hurst) 
+nao_valid %>% features(y, feat_spectral) #[0, 1]
+nao_valid %>% features(y, feat_acf)
+nao_valid %>% features(y, feat_acf)
+nao_valid %>% features(y, feat_acf)
+  
+
+# fit
+
+fit <- nao_train %>% model(
+  # Error ={A,M}, Trend ={N,A,Ad} and Seasonal ={N,A,M}.
+  ets = ETS(y ~ season(method = "A", gamma = 0.5))
+)
+fit
+
+fit <- nao_train %>% model(
+  ets = ETS(y ~ season(method = "A", gamma = 0.1)), # 0: seasonal pattern will not change
+  ets2 = ETS(y ~ season(method = "A", gamma = 0.5)),
+  ets3 = ETS(y ~ season(method = "A", gamma = 0.9)), # 1: seasonality will have no memory of past periods
+  arima = ARIMA(y),
+  snaive = SNAIVE(y)
+) 
+
+fc <- fit %>%
+  forecast(h = "2 years") 
+
+fc %>% 
+  autoplot(filter(nao_valid, x < yearmonth("1992-01")), level = NULL)
+
+accuracy(fc, filter(nao_valid, x < yearmonth("1992-01")))
+
+fit %>% select(ets3) %>% report()
+fit %>% report()
 
 # dataset -----------------------------------------------------------------
 
-n_timesteps <- 24
+n_timesteps <- 12
 
 nao_dataset <- dataset(
   name = "nao_dataset",
@@ -83,7 +139,7 @@ nao_dataset <- dataset(
 )
 
 train_ds <- nao_dataset(nao_train, n_timesteps, random_sample = TRUE)
-# length(train_ds)
+length(train_ds)
 # first <- train_ds$.getitem(1)
 # first$x
 # first$y
@@ -147,7 +203,7 @@ model <- nn_module(
 )
 
 device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
-device <- "cpu"
+#device <- "cpu"
 
 net <- model("gru", 32)
 
