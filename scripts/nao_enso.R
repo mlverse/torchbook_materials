@@ -1,7 +1,12 @@
-# https://crudata.uea.ac.uk/~timo/datapages/naoi.htm
-# https://crudata.uea.ac.uk/cru/data/nao/nao.dat
-# https://climatedataguide.ucar.edu/climate-data/hurrell-north-atlantic-oscillation-nao-index-station-based
-# https://www.ncdc.noaa.gov/teleconnections/nao/
+# https://en.wikipedia.org/wiki/North_Atlantic_oscillation
+
+# https://ore.exeter.ac.uk/repository/handle/10871/34601
+
+# Previous studies have shown that the El Niño–Southern Oscillation can drive interannual variations
+# in the NAO [Brönnimann et al., 2007] and hence Atlantic and European winter climate via the
+# stratosphere [Bell et al., 2009].Figures 2b and 2c confirm that this teleconnection to the tropical
+# Pacific is active in our experiments, with forecasts initialized in El Niño/La Niña conditions in
+# November tending to be followed by negative/positive NAO conditions in winter. 
 
 library(torch)
 library(tidyverse)
@@ -28,124 +33,116 @@ nao <-
     to = as.Date("2020-07-01"),
     by = "months"
   ),
-  y = .) %>%
+  nao = .) %>%
   mutate(x = yearmonth(x)) %>%
-  fill(y) %>%
+  fill(nao) %>%
   as_tsibble(index = x) 
 
+nao <- nao %>% filter(x >=  yearmonth("1854-01"))
 nrow(nao)
 
-nao_train <- nao %>% filter(x <  yearmonth("1990-01"))
-nao_valid <- nao %>% filter(x >=  yearmonth("1970-01"))
+enso <- read_table2("data/ONI_NINO34_1854-2020.txt", skip = 9) %>%
+  mutate(x = yearmonth(as.Date(paste0(YEAR, "-", `MON/MMM`, "-01")))) %>%
+  select(x, enso = NINO34_MEAN) %>%
+  filter(x >= yearmonth("1854-01"), x <= yearmonth("2020-07")) %>%
+  as_tsibble(index = x) 
 
+nrow(enso)
+
+nao_mean <- mean(nao$nao)
+nao_sd <- sd(nao$nao)
+
+enso_mean <- mean(enso$enso)
+enso_sd <- sd(enso$enso)
+
+ts <- nao %>% 
+  mutate(nao = (nao - nao_mean) / nao_sd) %>%
+  add_column(enso = (enso$enso - enso_mean) / enso_sd) 
+
+ts_train <- ts %>% filter(x <  yearmonth("1970-01"))
+ts_valid <- ts %>% filter(x >=  yearmonth("1970-01"))
 
 
 # analysis ----------------------------------------------------------------
 
-# # https://otexts.com/fpp3
-nao_valid %>% autoplot()
+ts_valid_ <- ts_valid %>%
+  pivot_longer(-x) %>%
+  update_tsibble(key = name)
+
+ts_valid_ %>% autoplot(alpha = 0.3) +
+  theme_minimal()
+
+ts_valid_ %>% autoplot()
 
 # STL
-# season(window=13)
-# trend(window=13)
-cmp <- nao_valid %>%
-  model(STL(y)) %>%
+cmp <- ts_valid_ %>%
+  filter(name == "enso") %>%
+  model(STL(value)) %>%
   components()
-cmp %>% autoplot()
+ts_valid_ %>% autoplot()
 
-cmp <- nao_valid %>%
-  model(STL(y ~ season(window = 7))) %>%
-  components()
-cmp %>% autoplot()
-
-nao_valid %>% features(y, feat_stl)
-feat_stl(nao_valid$y, .period = 12, s.window = 7) %>% round(2)
+ts_valid %>%
+  filter(name == "enso") %>%
+  features(value, feat_stl)
 
 # ACF
-nao_valid %>% features(y, feat_acf)
-nao_valid %>% ACF(y) %>% autoplot()
+ts_valid_ %>%
+  filter(name == "enso") %>%
+  ACF(value) %>%
+  autoplot()
 
 # other features
 # rate at which autocorrelations decrease as the lag between pairs of values increases
 # > 0.5: long-term positive autocorrelations
 # < 0.5: mean-reverting
 # 0.5: random walk
-nao_valid %>% features(y, coef_hurst) 
-nao_valid %>% features(y, feat_spectral) #[0, 1]
-nao_valid %>% features(y, feat_acf)
-nao_valid %>% features(y, feat_acf)
-nao_valid %>% features(y, feat_acf)
+ts_valid_ %>%
+  filter(name == "enso") %>% features(value, coef_hurst) 
+ts_valid_ %>%
+  filter(name == "enso") %>% features(value, feat_spectral) #[0, 1]
 
-
-# fit
-
-fit <- nao_train %>% model(
-  # Error ={A,M}, Trend ={N,A,Ad} and Seasonal ={N,A,M}.
-  ets = ETS(y ~ season(method = "A", gamma = 0.5))
-)
-fit
-
-fit <- nao_train %>% model(
-  ets = ETS(y ~ season(method = "A", gamma = 0.1)), # 0: seasonal pattern will not change
-  ets2 = ETS(y ~ season(method = "A", gamma = 0.5)),
-  ets3 = ETS(y ~ season(method = "A", gamma = 0.9)), # 1: seasonality will have no memory of past periods
-  arima = ARIMA(y),
-  snaive = SNAIVE(y)
-) 
-
-fc <- fit %>%
-  forecast(h = "2 years") 
-
-fc %>% 
-  autoplot(filter(nao_valid, x < yearmonth("1992-01")), level = NULL)
-
-accuracy(fc, filter(nao_valid, x < yearmonth("1992-01")))
-
-fit %>% select(ets3) %>% report()
-fit %>% report()
 
 
 # dataset -----------------------------------------------------------------
 
-n_timesteps <- 120
+n_timesteps <- 12
 
 nao_dataset <- dataset(
   name = "nao_dataset",
   
-  initialize = function(nao, n_timesteps) {
-    self$nao <- nao$y
+  initialize = function(ts, n_timesteps) {
+    
+    self$ts <- ts[ , 2:3] %>% as.matrix()
     self$n_timesteps <- n_timesteps
     
   },
   
   .getitem = function(i) {
-    
-    x <- torch_tensor(self$nao[i:(n_timesteps + i - 1)])$unsqueeze(2)
-    y <- torch_tensor(self$nao[n_timesteps + i])
+
+    x <- torch_tensor(self$ts[i:(self$n_timesteps + i - 1), ])
+    y <- torch_tensor(self$ts[self$n_timesteps + i, 1])
     list(x = x, y = y)
   },
   
   .length = function() {
-    length(self$nao) - n_timesteps
+    nrow(self$ts) - self$n_timesteps
   }
   
 )
 
-train_ds <- nao_dataset(nao_train, n_timesteps)
+train_ds <- nao_dataset(ts_train, n_timesteps)
 length(train_ds)
-# first <- train_ds$.getitem(1)
-# first$x
-# first$y
+train_ds[2]
 
-batch_size <- 32
-train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
+batch_size <-32
+train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = FALSE)
 length(train_dl)
 
-# iter <- dataloader_make_iter(train_dl)
-# b <- iter %>% dataloader_next()
-# b
+iter <- dataloader_make_iter(train_dl)
+b <- iter %>% dataloader_next()
+b
 
-valid_ds <- nao_dataset(nao_valid, n_timesteps)
+valid_ds <- nao_dataset(ts_valid, n_timesteps)
 #length(valid_ds)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
@@ -197,9 +194,11 @@ model <- nn_module(
 device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 device <- "cpu"
 
-net <- model("gru", 1, 32, 2)
-net <- net$to(device = device)
+net <- model("gru", 2, 128, 2, 0.8)
 
+net <- net$to(device = device)
+net
+net(b$x$to(device = device))
 
 # train -------------------------------------------------------------------
 
@@ -225,7 +224,7 @@ train_batch <- function(b) {
   
   loss$backward()
   optimizer$step()
-
+  
   loss$item()
   
 }
@@ -276,14 +275,14 @@ preds <- rep(NA, n_timesteps)
 
 train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = FALSE)
 
-#dl <- train_dl
-dl <- valid_dl
+dl <- train_dl
+#dl <- valid_dl
 
-#ds <- nao_train
-ds <- nao_valid
+ds <- nao_train
+#ds <- nao_valid
 
-#cutoff <- "1987-12"
-cutoff <- "2015-12"
+cutoff <- "1987-12"
+#cutoff <- "2015-12"
 
 coro::loop(for (b in dl) {
   output <- net(b$x$to(device = device))
