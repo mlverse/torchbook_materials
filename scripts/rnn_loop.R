@@ -1,87 +1,25 @@
 library(torch)
 library(tidyverse)
-library(fable)
 library(tsibble)
-library(feasts)
 library(tsibbledata)
 library(lubridate)
+library(fable)
 
-# https://otexts.com/fpp3/forecasting.html
 
-# https://otexts.com/fpp3/forecasting-regression.html#forecasting-regression
-
-vic_elec_2014 <- vic_elec %>%
-  filter(year(Date) == 2014) %>%
-  select(-c(Date, Holiday))
-
-vic_elec_2014_keyed <- vic_elec_2014 %>%
-  mutate(Demand = scale(Demand), Temperature = scale(Temperature)) %>%
-  pivot_longer(-Time) %>%
-  update_tsibble(key = name)
-
-vic_elec_2014_keyed %>% autoplot(alpha = 0.6) + 
-  scale_colour_manual(values = c("cyan", "violet")) +
-  theme_minimal()
-vic_elec_2014_keyed %>% filter(month(Time) == 1) %>% 
-  autoplot() + 
-  scale_colour_manual(values = c("cyan", "violet")) +
-  theme_minimal()
-
-vic_elec_2014_keyed %>% filter(month(Time) == 7) %>% 
-  autoplot() + 
-  scale_colour_manual(values = c("cyan", "violet")) +
-  theme_minimal()
-
-# analysis ----------------------------------------------------------------
-
-# STL
-cmp <- vic_elec_2014 %>% 
-  model(STL(Demand)) %>%
-  components()
-cmp %>% autoplot()
-
-cmp <- vic_elec_2014 %>% filter(month(Time) == 7) %>%
-  #model(STL(Demand ~ season(period = "week") + season(period = "day"))) %>% # == period = 48, period == 7*48
-  model(STL(Demand)) %>% 
-  components()
-cmp %>% autoplot()
-
-cmp <- vic_elec_2014 %>% filter(month(Time) == 1) %>%
-  #model(STL(Demand ~ season(period = "week") + season(period = "day"))) %>% # == period = 48, period == 7*48
-  model(STL(Demand)) %>% 
-  components()
-cmp %>% autoplot()
-
-# other features
-# rate at which autocorrelations decrease as the lag between pairs of values increases
-# > 0.5: long-term positive autocorrelations
-# < 0.5: mean-reverting
-# 0.5: random walk
-vic_elec_2014 %>% features(Demand, coef_hurst) 
-vic_elec_2014 %>% features(Demand, feat_spectral) #[0, 1]
-
-# dataset -----------------------------------------------------------------
+# datasets -----------------------------------------------------------------
 
 n_timesteps <- 7 * 24 * 2
 
-vic_elec_2012 <- vic_elec %>%
-  filter(year(Date) == 2012) %>%
-  select(-c(Date, Holiday))
+vic_elec_get_year <- function(year, month = NULL) {
+  vic_elec %>%
+    filter(year(Date) == year, month(Date) == if (is.null(month)) month(Date) else month) %>%
+    as_tibble() %>%
+    select(Demand)
+}
 
-elec_train <- vic_elec_2012$Demand %>% as.matrix()
-
-vic_elec_2013 <- vic_elec %>%
-  filter(year(Date) == 2013) %>%
-  select(-c(Date, Holiday))
-
-elec_valid <- vic_elec_2013$Demand %>% as.matrix()
-
-vic_elec_jan_2014 <- vic_elec %>%
-  filter(yearmonth(Date) == yearmonth("2014-01")) %>%
-  select(-c(Date, Holiday))
-
-elec_test <- vic_elec_jan_2014$Demand %>% as.matrix()
-
+elec_train <- vic_elec_get_year(2012) %>% as.matrix()
+elec_valid <- vic_elec_get_year(2013) %>% as.matrix()
+elec_test <- vic_elec_get_year(2014, 1) %>% as.matrix()
 
 train_mean <- mean(elec_train)
 train_sd <- sd(elec_train)
@@ -103,27 +41,19 @@ elec_dataset <- dataset(
   },
   
   .length = function() {
-    length(self$demand) - self$n_timesteps
+    length(self$demand) - self$n_timesteps 
   }
   
 )
 
 train_ds <- elec_dataset(elec_train, n_timesteps)
 length(train_ds)
-#first <- train_ds$.getitem(1)
-#first$x
-#first$y
 
 batch_size <- 32
 train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
 length(train_dl)
 
-# iter <- dataloader_make_iter(train_dl)
-# b <- iter %>% dataloader_next()
-# b
-
 valid_ds <- elec_dataset(elec_valid, n_timesteps)
-#length(valid_ds)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
 
@@ -132,7 +62,6 @@ test_dl <- test_ds %>% dataloader(batch_size = 1)
 length(test_dl)
 
 # model -------------------------------------------------------------------
-
 
 model <- nn_module(
   
@@ -226,15 +155,10 @@ for (epoch in 1:num_epochs) {
   net$train()
   train_loss <- c()
   
-  i <<- 1
-  
   coro::loop(for (b in train_dl) {
     loss <-train_batch(b)
     train_loss <- c(train_loss, loss)
   })
-  
-  if (epoch %% 100 == 0) torch_save(net, paste0("model_", epoch, ".pt"))
-  cat(sprintf("\nEpoch %d, training: loss: %3.5f \n", epoch, mean(train_loss)))
   
   net$eval()
   valid_loss <- c()
@@ -247,6 +171,7 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, mean(valid_loss)))
 }
 
+torch_save(net, "model_1step.pt")
 
 # predict next -----------------------------------------------------------------
 
@@ -254,22 +179,21 @@ net$eval()
 
 preds <- rep(NA, n_timesteps)
 
-dl <-test_dl
-ds <- elec_test
-
-coro::loop(for (b in dl) {
+coro::loop(for (b in test_dl) {
   output <- net(b$x$to(device = device))
   preds <- c(preds, output %>% as.numeric())
 })
 
-preds_ts <- vic_elec_jan_2014 %>% select(-Temperature) %>%
-  add_column(preds * train_sd + train_mean) %>%
+preds_ts <- vic_elec %>%
+  filter(year(Date) == 2014, month(Date) == 1) %>%
+  select(Demand) %>%
+  add_column(forecast = preds * train_sd + train_mean) %>%
   pivot_longer(-Time) %>%
   update_tsibble(key = name)
 
 preds_ts %>%
   autoplot() +
-  scale_colour_manual(values = c("cyan", "violet")) +
+  scale_colour_manual(values = c("#08c5d1", "#00353f")) +
   theme_minimal()
 
 # predict in loop ---------------------------------------------------------
@@ -281,8 +205,7 @@ test_preds <- vector(mode = "list", length = length(test_dl))
 i <- 1
 
 coro::loop(for (b in test_dl) {
-  
-  print(i)
+
   input <- b$x
   output <- net(input$to(device = device))
   preds <- as.numeric(output)
@@ -298,16 +221,30 @@ coro::loop(for (b in test_dl) {
   
 })
 
-test_pred <- test_preds[[1]]
-test_pred <- c(rep(NA, n_timesteps), test_pred, rep(NA, nrow(vic_elec_jan_2014) - n_timesteps - n_forecast))
+saveRDS(test_preds, "preds_loop.rds")
 
-preds_ts <- vic_elec_jan_2014 %>% select(-Temperature) %>%
-  add_column(test_pred * train_sd + train_mean) %>%
+test_pred1 <- test_preds[[1]]
+test_pred1 <- c(rep(NA, n_timesteps), test_pred1, rep(NA, nrow(vic_elec_jan_2014) - n_timesteps - n_forecast))
+
+test_pred2 <- test_preds[[408]]
+test_pred2 <- c(rep(NA, n_timesteps + 407), test_pred2, rep(NA, nrow(vic_elec_jan_2014) - 407 - n_timesteps - n_forecast))
+
+test_pred3 <- test_preds[[817]]
+test_pred3 <- c(rep(NA, nrow(vic_elec_jan_2014) - n_forecast), test_pred3)
+
+
+preds_ts <- vic_elec %>%
+  filter(year(Date) == 2014, month(Date) == 1) %>%
+  select(Demand) %>%
+  add_column(
+    iterative_ex_1 = test_pred * train_sd + train_mean,
+    iterative_ex_2 = test_pred2 * train_sd + train_mean,
+    iterative_ex_3 = test_pred3 * train_sd + train_mean) %>%
   pivot_longer(-Time) %>%
   update_tsibble(key = name)
 
 preds_ts %>%
   autoplot() +
-  scale_colour_manual(values = c("cyan", "violet")) +
+  scale_colour_manual(values = c("#08c5d1", "#00353f", "#ffbf66", "#d46f4d")) +
   theme_minimal()
 
