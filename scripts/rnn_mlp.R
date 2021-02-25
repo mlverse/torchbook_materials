@@ -118,7 +118,7 @@ device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 device <- "cpu"
 
 net <- model("gru", input_size = 1, hidden_size = 32, linear_size = 512, output_size = n_forecast,
-             linear_dropout = 0)
+             linear_dropout = 0.5)
 net <- net$to(device = device)
 net
 
@@ -126,7 +126,7 @@ net
 
 optimizer <- optim_adam(net$parameters, lr = 0.001)
 
-num_epochs <- 10
+num_epochs <- 30
 
 train_batch <- function(b) {
   
@@ -135,15 +135,6 @@ train_batch <- function(b) {
   target <- b$y$to(device = device)
   
   loss <- nnf_mse_loss(output, target)
-  
-  if (i %% 11111 == 0) {
-    
-    print(as.matrix(output$to(device = "cpu")))
-    print(as.matrix(target$to(device = "cpu")))
-  }
-  
-  i <<- i + 1
-  
   loss$backward()
   optimizer$step()
   
@@ -166,15 +157,12 @@ for (epoch in 1:num_epochs) {
   
   net$train()
   train_loss <- c()
-  
-  i <<- 1
-  
+
   coro::loop(for (b in train_dl) {
     loss <-train_batch(b)
     train_loss <- c(train_loss, loss)
   })
   
-  if (epoch %% 100 == 0) torch_save(net, paste0("model_", epoch, ".pt"))
   cat(sprintf("\nEpoch %d, training: loss: %3.5f \n", epoch, mean(train_loss)))
   
   net$eval()
