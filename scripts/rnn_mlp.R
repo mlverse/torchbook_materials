@@ -176,7 +176,22 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, mean(valid_loss)))
 }
 
-torch_save(net, "model_multistep.pt")
+# Epoch 29, training: loss: 0.36398 
+# 
+# Epoch 29, validation: loss: 0.48398 
+# 
+# Epoch 30, training: loss: 0.43543 
+# 
+# Epoch 30, validation: loss: 0.47958 
+
+torch_save(net, "model_multistep_60.pt")
+# Epoch 29, training: loss: 0.32858 
+# 
+# Epoch 29, validation: loss: 0.49920 
+# 
+# Epoch 30, training: loss: 0.32469 
+# 
+# Epoch 30, validation: loss: 0.48155 
 
 # predict ---------------------------------------------------------
 
@@ -195,6 +210,9 @@ coro::loop(for (b in test_dl) {
   
 })
 
+vic_elec_jan_2014 <- vic_elec %>%
+  filter(year(Date) == 2014, month(Date) == 1)
+
 test_pred1 <- test_preds[[1]]
 test_pred1 <- c(rep(NA, n_timesteps), test_pred1, rep(NA, nrow(vic_elec_jan_2014) - n_timesteps - n_forecast))
 
@@ -205,13 +223,12 @@ test_pred3 <- test_preds[[817]]
 test_pred3 <- c(rep(NA, nrow(vic_elec_jan_2014) - n_forecast), test_pred3)
 
 
-preds_ts <- vic_elec %>%
-  filter(year(Date) == 2014, month(Date) == 1) %>%
+preds_ts <- vic_elec_jan_2014 %>%
   select(Demand) %>%
   add_column(
-    iterative_ex_1 = test_pred * train_sd + train_mean,
-    iterative_ex_2 = test_pred2 * train_sd + train_mean,
-    iterative_ex_3 = test_pred3 * train_sd + train_mean) %>%
+    mlp_ex_1 = test_pred1 * train_sd + train_mean,
+    mlp_ex_2 = test_pred2 * train_sd + train_mean,
+    mlp_ex_3 = test_pred3 * train_sd + train_mean) %>%
   pivot_longer(-Time) %>%
   update_tsibble(key = name)
 
