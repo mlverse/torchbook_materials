@@ -105,7 +105,7 @@ encoder_module <- nn_module(
 
 decoder_module <- nn_module(
   
-  initialize = function(type, input_size, hidden_size, num_layers = 1, dropout = 0) {
+  initialize = function(type, input_size, hidden_size, num_layers = 1) {
     
     self$type <- type
     
@@ -114,7 +114,6 @@ decoder_module <- nn_module(
         input_size = input_size,
         hidden_size = hidden_size,
         num_layers = num_layers,
-        dropout = dropout,
         batch_first = TRUE
       )
     } else {
@@ -122,7 +121,6 @@ decoder_module <- nn_module(
         input_size = input_size,
         hidden_size = hidden_size,
         num_layers = num_layers,
-        dropout = dropout,
         batch_first = TRUE
       )
     }
@@ -153,10 +151,10 @@ decoder_module <- nn_module(
 
 seq2seq_module <- nn_module(
   
-  initialize = function(type, input_size, hidden_size, n_forecast, teacher_forcing_ratio, num_layers = 1, dropout = 0) {
+  initialize = function(type, input_size, hidden_size, n_forecast, teacher_forcing_ratio, num_layers = 1, encoder_dropout = 0) {
     
-    self$encoder <- encoder_module(type = type, input_size = input_size, hidden_size = hidden_size, num_layers, output)
-    self$decoder <- decoder_module(type = type, input_size = input_size, hidden_size = hidden_size, num_layers, output)
+    self$encoder <- encoder_module(type = type, input_size = input_size, hidden_size = hidden_size, num_layers, encoder_dropout)
+    self$decoder <- decoder_module(type = type, input_size = input_size, hidden_size = hidden_size, num_layers)
     self$n_forecast <- n_forecast
     
   },
@@ -192,7 +190,8 @@ seq2seq_module <- nn_module(
 device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 device <- "cpu"
 
-net <- seq2seq_module("gru", input_size = 1, hidden_size = 32, n_forecast = n_forecast, teacher_forcing_ratio = 1)
+net <- seq2seq_module("gru", input_size = 1, hidden_size = 32, n_forecast = n_forecast, teacher_forcing_ratio = 1,
+                      encoder_dropout = 0.5)
 net <- net$to(device = device)
 
 b <- dataloader_make_iter(train_dl) %>% dataloader_next()
@@ -259,17 +258,21 @@ torch_save(net, "model_seq2seq.pt")
 net$eval()
 
 test_preds <- vector(mode = "list", length = length(test_dl))
+i <- 1
 
 coro::loop(for (b in test_dl) {
   
   input <- b$x
-  output <- net(input$to(device = device), teacher_forcing_ratio = 0)
+  output <- net(b$x$to(device = device), b$y$to(device = device), teacher_forcing_ratio = 0)
   preds <- as.numeric(output)
   
   test_preds[[i]] <- preds
   i <<- i + 1
   
 })
+
+vic_elec_jan_2014 <- vic_elec %>%
+  filter(year(Date) == 2014, month(Date) == 1)
 
 test_pred1 <- test_preds[[1]]
 test_pred1 <- c(rep(NA, n_timesteps), test_pred1, rep(NA, nrow(vic_elec_jan_2014) - n_timesteps - n_forecast))
@@ -285,7 +288,7 @@ preds_ts <- vic_elec %>%
   filter(year(Date) == 2014, month(Date) == 1) %>%
   select(Demand) %>%
   add_column(
-    iterative_ex_1 = test_pred * train_sd + train_mean,
+    iterative_ex_1 = test_pred1 * train_sd + train_mean,
     iterative_ex_2 = test_pred2 * train_sd + train_mean,
     iterative_ex_3 = test_pred3 * train_sd + train_mean) %>%
   pivot_longer(-Time) %>%
