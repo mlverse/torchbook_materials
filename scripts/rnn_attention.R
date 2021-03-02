@@ -218,7 +218,7 @@ decoder_module <- nn_module(
     #
     # this is done through:
     # - getting the weighted encoder outputs from self$weighted_encoder_outputs,
-    # - concatenating with the input, 
+    # - concatenating with the input (a.k.a. building an attention vector)
     # - running the result through an RNN, and
     # - feeding the ensemble of RNN output, weighted encoder outputs, and input
     # - through an MLP
