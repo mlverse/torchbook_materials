@@ -4,6 +4,9 @@ library(tsibble)
 library(feasts)
 library(tsibbledata)
 
+# https://otexts.com/fpp3/forecasting.html
+
+vic_elec %>% glimpse()
 
 vic_elec_2014 <-  vic_elec %>%
   filter(year(Date) == 2014) %>%
@@ -13,17 +16,17 @@ vic_elec_2014 <-  vic_elec %>%
   update_tsibble(key = variable)
 
 vic_elec_2014 %>% autoplot() + 
-  scale_colour_manual(values = c("#08c5d1", "#ffbf66")) +
+  scale_colour_manual(values = c("#08c5d1", "#00353f")) +
   theme_minimal()
 
 vic_elec_2014 %>% filter(month(Time) == 1) %>% 
   autoplot() + 
-  scale_colour_manual(values = c("#08c5d1", "#ffbf66")) +
+  scale_colour_manual(values = c("#08c5d1", "#00353f")) +
   theme_minimal()
 
 vic_elec_2014 %>% filter(month(Time) == 7) %>% 
   autoplot() + 
-  scale_colour_manual(values = c("#08c5d1", "#ffbf66")) +
+  scale_colour_manual(values = c("#08c5d1", "#00353f")) +
   theme_minimal()
 
 # explore ----------------------------------------------------------------

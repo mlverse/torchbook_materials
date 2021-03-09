@@ -27,31 +27,47 @@ train_sd <- sd(elec_train)
 elec_dataset <- dataset(
   name = "elec_dataset",
   
-  initialize = function(demand, n_timesteps) {
-    self$demand <- (demand - train_mean) / train_sd
+  initialize = function(x, n_timesteps, sample_frac = 1) {
+    
     self$n_timesteps <- n_timesteps
+    self$x <- torch_tensor((x - train_mean) / train_sd)
+    
+    n <- length(self$x) - self$n_timesteps 
+    
+    self$starts <- sort(sample.int(
+      n = n,
+      size = n * sample_frac
+    ))
     
   },
   
   .getitem = function(i) {
     
-    x <- torch_tensor(self$demand[i:(self$n_timesteps + i - 1)])$unsqueeze(2)
-    y <- torch_tensor(self$demand[self$n_timesteps + i])
-    list(x = x, y = y)
+    start <- self$starts[i]
+    end <- start + self$n_timesteps - 1
+    
+    list(
+      x = self$x[start:end, drop = FALSE],
+      y = self$x[end + 1]
+    )
+    
   },
   
   .length = function() {
-    length(self$demand) - self$n_timesteps 
+    length(self$starts) 
   }
-  
 )
 
-train_ds <- elec_dataset(elec_train, n_timesteps)
+train_ds <- elec_dataset(elec_train, n_timesteps, sample_frac = 0.5)
 length(train_ds)
+train_ds[1]
 
 batch_size <- 32
 train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
 length(train_dl)
+
+b <- train_dl %>% dataloader_make_iter() %>% dataloader_next()
+b
 
 valid_ds <- elec_dataset(elec_valid, n_timesteps)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
@@ -94,10 +110,14 @@ model <- nn_module(
   
   forward = function(x) {
     
-    # hidden state for last layer, t = seq_len 
-    x <- self$rnn(x)
-    x <- if (self$type == "gru") x[[2]][self$num_layers,  , ] else x[[2]][[1]][self$num_layers,  , ]
-    x <- x$squeeze()
+    # list of [output, hidden]
+    # we use the output, which is of size (batch_size, n_timesteps, hidden_size)
+    x <- self$rnn(x)[[1]]
+    # we use the output, but only for the final timestep
+    # shape now is (batch_size, hidden_size)
+    x <- x[ , dim(x)[2], ]
+    # feed this to a single output neuron
+    # shape is (batch_size, 1)
     x %>% self$output() 
   }
   
@@ -114,7 +134,7 @@ net <- net$to(device = device)
 
 optimizer <- optim_adam(net$parameters, lr = 0.001)
 
-num_epochs <- 10
+num_epochs <- 30
 
 train_batch <- function(b) {
   
@@ -123,20 +143,10 @@ train_batch <- function(b) {
   target <- b$y$to(device = device)
   
   loss <- nnf_mse_loss(output, target)
-  
-  if (i %% 11111 == 0) {
-    
-    print(as.matrix(output$to(device = "cpu")))
-    print(as.matrix(target$to(device = "cpu")))
-  }
-  
-  i <<- i + 1
-  
   loss$backward()
   optimizer$step()
   
   loss$item()
-  
 }
 
 valid_batch <- function(b) {
@@ -145,7 +155,6 @@ valid_batch <- function(b) {
   target <- b$y$to(device = device)
   
   loss <- nnf_mse_loss(output, target)
-  
   loss$item()
   
 }
@@ -160,6 +169,8 @@ for (epoch in 1:num_epochs) {
     train_loss <- c(train_loss, loss)
   })
   
+  cat(sprintf("\nEpoch %d, training: loss: %3.5f \n", epoch, mean(train_loss)))
+  
   net$eval()
   valid_loss <- c()
   
@@ -171,10 +182,11 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, mean(valid_loss)))
 }
 
-torch_save(net, "model_1step.pt")
+torch_save(net, "model_1_step.pt")
 
 # predict next -----------------------------------------------------------------
 
+net <- torch_load("model_1_step.pt")
 net$eval()
 
 preds <- rep(NA, n_timesteps)
@@ -184,9 +196,11 @@ coro::loop(for (b in test_dl) {
   preds <- c(preds, output %>% as.numeric())
 })
 
-preds_ts <- vic_elec %>%
+vic_elec_jan_2014 <-  vic_elec %>%
   filter(year(Date) == 2014, month(Date) == 1) %>%
-  select(Demand) %>%
+  select(Demand)
+
+preds_ts <- vic_elec_jan_2014 %>%
   add_column(forecast = preds * train_sd + train_mean) %>%
   pivot_longer(-Time) %>%
   update_tsibble(key = name)
@@ -198,14 +212,16 @@ preds_ts %>%
 
 # predict in loop ---------------------------------------------------------
 
-n_forecast <- n_timesteps
+net$eval()
+
+n_forecast <- 2 * 24 * 7
 
 test_preds <- vector(mode = "list", length = length(test_dl))
 
 i <- 1
 
 coro::loop(for (b in test_dl) {
-
+  
   input <- b$x
   output <- net(input$to(device = device))
   preds <- as.numeric(output)
@@ -221,8 +237,6 @@ coro::loop(for (b in test_dl) {
   
 })
 
-saveRDS(test_preds, "preds_loop.rds")
-
 test_pred1 <- test_preds[[1]]
 test_pred1 <- c(rep(NA, n_timesteps), test_pred1, rep(NA, nrow(vic_elec_jan_2014) - n_timesteps - n_forecast))
 
@@ -237,7 +251,7 @@ preds_ts <- vic_elec %>%
   filter(year(Date) == 2014, month(Date) == 1) %>%
   select(Demand) %>%
   add_column(
-    iterative_ex_1 = test_pred * train_sd + train_mean,
+    iterative_ex_1 = test_pred1 * train_sd + train_mean,
     iterative_ex_2 = test_pred2 * train_sd + train_mean,
     iterative_ex_3 = test_pred3 * train_sd + train_mean) %>%
   pivot_longer(-Time) %>%
