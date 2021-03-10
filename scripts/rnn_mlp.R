@@ -9,7 +9,7 @@ library(fable)
 # datasets -----------------------------------------------------------------
 
 n_timesteps <- 7 * 24 * 2
-n_forecast <- n_timesteps
+n_forecast <- 7 * 24 * 2 # coincidentally identical to n_timesteps
 
 vic_elec_get_year <- function(year, month = NULL) {
   vic_elec %>%
@@ -28,34 +28,50 @@ train_sd <- sd(elec_train)
 elec_dataset <- dataset(
   name = "elec_dataset",
   
-  initialize = function(demand, n_timesteps, n_forecast) {
-    self$demand <- (demand - train_mean) / train_sd
+  initialize = function(x, n_timesteps, n_forecast, sample_frac = 1) {
+    
     self$n_timesteps <- n_timesteps
     self$n_forecast <- n_forecast
+    self$x <- torch_tensor((x - train_mean) / train_sd)
+    
+    n <- length(self$x) - self$n_timesteps - self$n_forecast + 1
+    
+    self$starts <- sort(sample.int(
+      n = n,
+      size = n * sample_frac
+    ))
     
   },
   
   .getitem = function(i) {
     
-    x <- torch_tensor(self$demand[i:(self$n_timesteps + i - 1)])$unsqueeze(2)
-    y <- torch_tensor(self$demand[(self$n_timesteps + i):(self$n_timesteps + i + self$n_forecast - 1)])
-    list(x = x, y = y)
+    start <- self$starts[i]
+    end <- start + self$n_timesteps - 1
+    pred_length <- self$n_forecast
+    
+    list(
+      x = self$x[start:end],
+      y = self$x[(end + 1):(end + pred_length)]$squeeze(2)
+    )
+    
   },
   
   .length = function() {
-    length(self$demand) - self$n_timesteps - self$n_forecast + 1
+    length(self$starts) 
   }
-  
 )
 
-train_ds <- elec_dataset(elec_train, n_timesteps, n_forecast)
+train_ds <- elec_dataset(elec_train, n_timesteps, n_forecast, sample_frac = 0.5)
 length(train_ds)
+train_ds[1]
 
 batch_size <- 32
 train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
 length(train_dl)
+b <- dataloader_make_iter(train_dl) %>% dataloader_next()
+b
 
-valid_ds <- elec_dataset(elec_valid, n_timesteps, n_forecast)
+valid_ds <- elec_dataset(elec_valid, n_timesteps, n_forecast, sample_frac = 0.5)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
 
@@ -67,8 +83,8 @@ length(test_dl)
 
 model <- nn_module(
   
-  initialize = function(type, input_size, hidden_size, linear_size, output_size, num_layers = 1, dropout = 0,
-                        linear_dropout = 0) {
+  initialize = function(type, input_size, hidden_size, linear_size, output_size,
+                        num_layers = 1, dropout = 0, linear_dropout = 0) {
     
     self$type <- type
     self$num_layers <- num_layers
@@ -92,24 +108,21 @@ model <- nn_module(
       )
     }
     
-    self$linear <- nn_linear(hidden_size, linear_size)
-    self$output <- nn_linear(linear_size, output_size)
+    self$mlp <- nn_sequential(
+      nn_linear(hidden_size, linear_size),
+      nn_relu(),
+      nn_dropout(linear_dropout),
+      nn_linear(linear_size, output_size)
+    )
     
   },
   
   forward = function(x) {
     
     x <- self$rnn(x)
-    x <- if (self$type == "gru") x[[2]][self$num_layers,  , ] else x[[2]][[1]][self$num_layers,  , ]
+    x[[1]][ ,-1, ..] %>% 
+      self$mlp()
     
-    if (self$linear_dropout != 0) x <- x %>% nnf_dropout(self$linear_dropout)
-    
-    x <- x %>% self$linear()
-    x <- x %>% torch_relu()
-    
-    if (self$linear_dropout != 0) x <- x %>% nnf_dropout(self$linear_dropout)
-    
-    x %>% self$output() 
   }
   
 )
@@ -122,6 +135,7 @@ net <- model("gru", input_size = 1, hidden_size = 32, linear_size = 512, output_
 net <- net$to(device = device)
 net
 
+net(b$x)
 # train -------------------------------------------------------------------
 
 optimizer <- optim_adam(net$parameters, lr = 0.001)
@@ -157,7 +171,7 @@ for (epoch in 1:num_epochs) {
   
   net$train()
   train_loss <- c()
-
+  
   coro::loop(for (b in train_dl) {
     loss <-train_batch(b)
     train_loss <- c(train_loss, loss)
@@ -176,28 +190,16 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, mean(valid_loss)))
 }
 
-# Epoch 29, training: loss: 0.36398 
-# 
-# Epoch 29, validation: loss: 0.48398 
-# 
-# Epoch 30, training: loss: 0.43543 
-# 
-# Epoch 30, validation: loss: 0.47958 
 
-torch_save(net, "model_multistep_60.pt")
-# Epoch 29, training: loss: 0.32858 
-# 
-# Epoch 29, validation: loss: 0.49920 
-# 
-# Epoch 30, training: loss: 0.32469 
-# 
-# Epoch 30, validation: loss: 0.48155 
+torch_save(net, "model_multistep.pt")
 
 # predict ---------------------------------------------------------
 
 net$eval()
 
 test_preds <- vector(mode = "list", length = length(test_dl))
+
+i <- 1
 
 coro::loop(for (b in test_dl) {
   

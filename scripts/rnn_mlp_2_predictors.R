@@ -22,7 +22,6 @@ elec_train <- vic_elec_get_year(2012) %>% as.matrix()
 elec_valid <- vic_elec_get_year(2013) %>% as.matrix()
 elec_test <- vic_elec_get_year(2014, 1) %>% as.matrix()
 
-
 train_mean_demand <- mean(elec_train[ , 1])
 train_sd_demand <- sd(elec_train[ , 1])
 
@@ -32,36 +31,53 @@ train_sd_temp <- sd(elec_train[ , 2])
 elec_dataset <- dataset(
   name = "elec_dataset",
   
-  initialize = function(data, n_timesteps, n_forecast) {
+  initialize = function(data, n_timesteps, n_forecast, sample_frac = 1) {
+    
     demand <- (data[ , 1] - train_mean_demand) / train_sd_demand
     temp <- (data[ , 2] - train_mean_temp) / train_sd_temp
-    self$data <- cbind(demand, temp)
+    self$x <- cbind(demand, temp) %>% torch_tensor()
+    
     self$n_timesteps <- n_timesteps
     self$n_forecast <- n_forecast
+    
+    n <- nrow(self$x) - self$n_timesteps - self$n_forecast + 1
+    self$starts <- sort(sample.int(
+      n = n,
+      size = n * sample_frac
+    ))
     
   },
   
   .getitem = function(i) {
     
-    x <- torch_tensor(self$data[i:(self$n_timesteps + i - 1), ])
-    y <- torch_tensor(self$data[(self$n_timesteps + i):(self$n_timesteps + i + self$n_forecast - 1), 1])
-    list(x = x, y = y)
+    start <- self$starts[i]
+    end <- start + self$n_timesteps - 1
+    pred_length <- self$n_forecast
+    
+    list(
+      x = self$x[start:end, ],
+      y = self$x[(end + 1):(end + pred_length), 1]
+    )
+    
   },
   
   .length = function() {
-    nrow(self$data) - self$n_timesteps - self$n_forecast + 1
+    length(self$starts)
   }
   
 )
 
-train_ds <- elec_dataset(elec_train, n_timesteps, n_forecast)
+train_ds <- elec_dataset(elec_train, n_timesteps, n_forecast, sample_frac = 0.5)
 length(train_ds)
+train_ds[1]
 
 batch_size <- 32
 train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
 length(train_dl)
+b <- dataloader_make_iter(train_dl) %>% dataloader_next()
+b
 
-valid_ds <- elec_dataset(elec_valid, n_timesteps, n_forecast)
+valid_ds <- elec_dataset(elec_valid, n_timesteps, n_forecast, sample_frac = 0.5)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
 
@@ -73,8 +89,8 @@ length(test_dl)
 
 model <- nn_module(
   
-  initialize = function(type, input_size, hidden_size, linear_size, output_size,
-                        num_layers = 1, dropout = 0, linear_dropout = 0) {
+  initialize = function(type, input_size, hidden_size, linear_size, output_size, num_layers = 1, dropout = 0,
+                        linear_dropout = 0) {
     
     self$type <- type
     self$num_layers <- num_layers
@@ -98,24 +114,20 @@ model <- nn_module(
       )
     }
     
-    self$linear <- nn_linear(hidden_size, linear_size)
-    self$output <- nn_linear(linear_size, output_size)
+    self$mlp <- nn_sequential(
+      nn_linear(hidden_size, linear_size),
+      nn_relu(),
+      nn_dropout(linear_dropout),
+      nn_linear(linear_size, output_size)
+    )
     
   },
   
   forward = function(x) {
     
     x <- self$rnn(x)
-    x <- if (self$type == "gru") x[[2]][self$num_layers,  , ] else x[[2]][[1]][self$num_layers,  , ]
-    
-    if (self$linear_dropout != 0) x <- x %>% nnf_dropout(self$linear_dropout)
-    
-    x <- x %>% self$linear()
-    x <- x %>% torch_relu()
-    
-    if (self$linear_dropout != 0) x <- x %>% nnf_dropout(self$linear_dropout)
-    
-    x %>% self$output() 
+    x[[1]][ ,-1, ..] %>% 
+      self$mlp()
     
   }
   
@@ -127,6 +139,7 @@ device <- "cpu"
 net <- model("gru", input_size = 2, hidden_size = 32, linear_size = 512, output_size = n_forecast,
              linear_dropout = 0.5)
 net <- net$to(device = device)
+net(b$x)
 
 # train -------------------------------------------------------------------
 
@@ -141,7 +154,7 @@ train_batch <- function(b) {
   target <- b$y$to(device = device)
   
   loss <- nnf_mse_loss(output, target)
-
+  
   loss$backward()
   optimizer$step()
   
@@ -164,7 +177,7 @@ for (epoch in 1:num_epochs) {
   
   net$train()
   train_loss <- c()
-
+  
   coro::loop(for (b in train_dl) {
     loss <-train_batch(b)
     train_loss <- c(train_loss, loss)
@@ -183,23 +196,8 @@ for (epoch in 1:num_epochs) {
   cat(sprintf("\nEpoch %d, validation: loss: %3.5f \n", epoch, mean(valid_loss)))
 }
 
-# Epoch 29, training: loss: 0.32839 
-# 
-# Epoch 29, validation: loss: 0.49406 
-# 
-# Epoch 30, training: loss: 0.32489 
-# 
-# Epoch 30, validation: loss: 0.47904 
+torch_save(net, "model_multivariate.pt")
 
-torch_save(net, "model_multivariate_60.pt")
-
-# Epoch 29, training: loss: 0.29402 
-# 
-# Epoch 29, validation: loss: 0.46768 
-# 
-# Epoch 30, training: loss: 0.29505 
-# 
-# Epoch 30, validation: loss: 0.48091 
 
 # predict ---------------------------------------------------------
 

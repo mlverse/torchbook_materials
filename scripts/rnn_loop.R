@@ -47,7 +47,7 @@ elec_dataset <- dataset(
     end <- start + self$n_timesteps - 1
     
     list(
-      x = self$x[start:end, drop = FALSE],
+      x = self$x[start:end],
       y = self$x[end + 1]
     )
     
@@ -69,7 +69,7 @@ length(train_dl)
 b <- train_dl %>% dataloader_make_iter() %>% dataloader_next()
 b
 
-valid_ds <- elec_dataset(elec_valid, n_timesteps)
+valid_ds <- elec_dataset(elec_valid, n_timesteps, sample_frac = 0.5)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
 
