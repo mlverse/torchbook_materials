@@ -35,7 +35,6 @@ elec_dataset <- dataset(
     self$x <- torch_tensor((x - train_mean) / train_sd)
     
     n <- length(self$x) - self$n_timesteps - 1
-    # length(self$demand) - 2 * self$n_timesteps + 1??
     
     self$starts <- sort(sample.int(
       n = n,
@@ -115,7 +114,6 @@ encoder_module <- nn_module(
     # per layer, a single tensor for GRU, a list of 2 tensors for LSTM
     x <- x[[2]]
     x
-    
   }
   
 )
