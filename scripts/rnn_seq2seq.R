@@ -26,28 +26,6 @@ elec_test <- vic_elec_get_year(2014, 1) %>% as.matrix()
 train_mean <- mean(elec_train)
 train_sd <- sd(elec_train)
 
-elec_dataset_old <- dataset(
-  name = "elec_dataset",
-  
-  initialize = function(demand, n_timesteps) {
-    self$demand <- (demand - train_mean) / train_sd
-    self$n_timesteps <- n_timesteps
-    
-  },
-  
-  .getitem = function(i) {
-    
-    x <- torch_tensor(self$demand[i:(self$n_timesteps + i - 1)])$unsqueeze(2)
-    y <- torch_tensor(self$demand[(i + 1):(self$n_timesteps + i)])
-    list(x = x, y = y)
-  },
-  
-  .length = function() {
-    length(self$demand) - 2 * self$n_timesteps + 1
-  }
-  
-)
-
 elec_dataset <- dataset(
   name = "elec_dataset",
   
