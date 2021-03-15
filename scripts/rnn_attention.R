@@ -28,40 +28,53 @@ train_sd <- sd(elec_train)
 elec_dataset <- dataset(
   name = "elec_dataset",
   
-  initialize = function(demand, n_timesteps) {
-    self$demand <- (demand - train_mean) / train_sd
+  initialize = function(x, n_timesteps, sample_frac = 1) {
+    
     self$n_timesteps <- n_timesteps
+    self$x <- torch_tensor((x - train_mean) / train_sd)
+    
+    n <- length(self$x) - self$n_timesteps - 1
+    
+    self$starts <- sort(sample.int(
+      n = n,
+      size = n * sample_frac
+    ))
     
   },
   
   .getitem = function(i) {
     
-    x <- torch_tensor(self$demand[i:(self$n_timesteps + i - 1)])$unsqueeze(2)
-    y <- torch_tensor(self$demand[(i + 1):(self$n_timesteps + i)])
-    list(x = x, y = y)
+    start <- self$starts[i]
+    end <- start + self$n_timesteps - 1
+    lag <- 1
+    
+    list(
+      x = self$x[start:end],
+      y = self$x[(start+lag):(end+lag)]$squeeze(2)
+    )
+    
   },
   
   .length = function() {
-    length(self$demand) - 2 * self$n_timesteps + 1
+    length(self$starts) 
   }
-  
 )
 
-train_ds <- elec_dataset(elec_train, n_timesteps)
+train_ds <- elec_dataset(elec_train, n_timesteps, sample_frac = 0.5)
 length(train_ds)
+train_ds[1]
 
-batch_size <- 4
+batch_size <- 32
 train_dl <- train_ds %>% dataloader(batch_size = batch_size, shuffle = TRUE)
 length(train_dl)
 
-valid_ds <- elec_dataset(elec_valid, n_timesteps)
+valid_ds <- elec_dataset(elec_valid, n_timesteps, sample_frac = 0.5)
 valid_dl <- valid_ds %>% dataloader(batch_size = batch_size)
 length(valid_dl)
 
 test_ds <- elec_dataset(elec_test, n_timesteps)
 test_dl <- test_ds %>% dataloader(batch_size = 1)
 length(test_dl)
-
 # model -------------------------------------------------------------------
 
 encoder_module <- nn_module(
@@ -92,19 +105,19 @@ encoder_module <- nn_module(
   
   forward = function(x) {
     
-    x <- self$rnn(x)
-    
     # return outputs for all timesteps, as well as last-timestep states for all layers
-    x
+    x %>% self$rnn()
     
   }
   
 )
 
-attention_module <- nn_module(
+attention_module_additive <- nn_module(
   
   initialize = function(hidden_dim, attention_size) {
+    
     self$attention <- nn_linear(2 * hidden_dim, attention_size)
+    
   },
   
   forward = function(state, encoder_outputs) {
@@ -112,8 +125,8 @@ attention_module <- nn_module(
     ##################################################################################
     # calculate attention weights 
     #
-    # == weight encoder outputs from all timesteps as to their importance for the CURRENT
-    #    decoder hidden state
+    # == weight encoder outputs from all timesteps (KEYS) as to their importance for the CURRENT
+    #    decoder hidden state (QUERY)
     #
     # this is done through:
     # - multiplexing the current state,
@@ -124,37 +137,78 @@ attention_module <- nn_module(
     # this is a form of additive attention
     ##################################################################################
     
-    # encoder_outputs is (bs, timesteps, hidden_dim)
-    # state is (1, bs, hidden_dim)
+    # function argument shapes
+    # encoder_outputs: (bs, timesteps, hidden_dim)
+    # state: (1, bs, hidden_dim)
     
     seq_len <- dim(encoder_outputs)[2]
-    # (timesteps, bs, hidden_dim)
-    state_rep <- state$repeat_interleave(seq_len, 1)
-    
-    # (timesteps, bs, hidden_dim)
-    encoder_outputs <- encoder_outputs$permute(c(2, 1, 3))
-    
-    # => concatenates, for every batch item and timestep, hidden state from decoder
-    # (encoder, initially) and encoder output
+    # (bs, timesteps, hidden_dim)
+    state_rep <- state$permute(c(2, 1, 3))$repeat_interleave(seq_len, 2)
+
+    # concatenate along feature dimension
     concat <- torch_cat(list(state_rep, encoder_outputs), dim = 3)
     
-    # (timesteps, bs, attention_size)
-    # tbd: better variable name?
-    att <- self$attention(concat) %>% 
+    # (bs, timesteps, attention_size)
+    scores <- self$attention(concat) %>% 
       torch_tanh()
     
-    # (timesteps, bs) 
-    # a score for every source token
-    # tbd: better variable name?
-    attention <- torch_sum(att, dim = 3) %>%
-      nnf_softmax(dim = 1)
+    # (bs, timesteps) 
+    # a normalized score for every source token
+    attention_weights <- scores %>%
+      torch_sum(dim = 3) %>%
+      nnf_softmax(dim = 2)
+     
+    attention_weights
   }
 )
 
+attention_module_multiplicative <- nn_module(
+  
+  initialize = function() {
+    
+    NULL
+    
+  },
+  
+  forward = function(state, encoder_outputs) {
+    
+    ##################################################################################
+    # calculate attention weights 
+    #
+    # == weight encoder outputs from all timesteps (KEYS) as to their importance for the CURRENT
+    #    decoder hidden state (QUERY)
+    #
+    # this is done through:
+    # - calculating the dot products between key and query vectors
+    # - dividing by square root of number of features to achieve unit variance
+    #
+    # this is a form of multiplicative attention
+    ##################################################################################
+    
+    # function argument shapes
+    # encoder_outputs: (bs, timesteps, hidden_dim)
+    # state: (1, bs, hidden_dim)
+    
+    d <- torch_tensor(dim(encoder_outputs)[3], dtype = torch_float())
+    
+    state <- state$permute(c(2, 3, 1))
+    
+    # (bs, timesteps, 1)
+    scores <- torch_bmm(encoder_outputs, state) %>%
+      torch_div(torch_sqrt(d))
+    
+    # (bs, timesteps) 
+    # a normalized score for every source token
+    attention_weights <- scores$squeeze(3) %>%
+      nnf_softmax(dim = 2)
+    
+    attention_weights
+  }
+)
 
 decoder_module <- nn_module(
   
-  initialize = function(type, input_size, hidden_size, attention_size, num_layers = 1, dropout = 0) {
+  initialize = function(type, input_size, hidden_size, attention_type, attention_size = 8, num_layers = 1) {
     
     self$type <- type
     
@@ -163,7 +217,6 @@ decoder_module <- nn_module(
         input_size = input_size,
         hidden_size = hidden_size,
         num_layers = num_layers,
-        dropout = dropout,
         batch_first = TRUE
       )
     } else {
@@ -171,28 +224,27 @@ decoder_module <- nn_module(
         input_size = input_size,
         hidden_size = hidden_size,
         num_layers = num_layers,
-        dropout = dropout,
         batch_first = TRUE
       )
     }
     
     self$linear <- nn_linear(2 * hidden_size + 1, 1)
-    
-    self$attention <- attention_module(hidden_size, attention_size)
+
+    self$attention <- if (attention_type == "multiplicative") attention_module_multiplicative()
+                        else attention_module_additive(hidden_size, attention_size)
     
   },
   
   weighted_encoder_outputs = function(state, encoder_outputs) {
     
     ##################################################################################
-    # calculate weighted encoder outputs (a.k.a.context vector) 
+    # perform attention pooling == create current context (variable/vector) 
     #
-    # == weight encoder outputs from all timesteps as to their importance for the CURRENT
-    #    decoder hidden state
+    # == apply attention weights to encoder outputs (VALUES)
     #
     # this is done through:
     # - getting the attention weights from the attention module and 
-    # - multiplying them with the encoder outputs
+    # - batch-multiplying them with the encoder outputs
     ##################################################################################
     
     # encoder_outputs is (bs, timesteps, hidden_dim)
@@ -201,7 +253,7 @@ decoder_module <- nn_module(
     attention_weights <- self$attention(state, encoder_outputs)
     
     # (bs, 1, seq_len)
-    attention_weights <- attention_weights$unsqueeze(2)$permute(c(3, 2, 1))
+    attention_weights <- attention_weights$unsqueeze(2)
 
     # (bs, 1, hidden_size)
     weighted_encoder_outputs <- torch_bmm(attention_weights, encoder_outputs)
@@ -214,36 +266,33 @@ decoder_module <- nn_module(
     
     ##################################################################################
     # calculate prediction based on input (the last value predicted) as well as
-    # weighted encoder outputs
+    # current context
     #
     # this is done through:
-    # - getting the weighted encoder outputs from self$weighted_encoder_outputs,
-    # - concatenating with the input (a.k.a. building an attention vector)
+    # - getting the weighted encoder outputs (context) from self$weighted_encoder_outputs,
+    # - concatenating with the input, 
     # - running the result through an RNN, and
-    # - feeding the ensemble of RNN output, weighted encoder outputs, and input
-    # - through an MLP
+    # - feeding the ensemble of RNN output, context, and input through an MLP
     ##################################################################################
     
     # encoder_outputs is (bs, timesteps, hidden_dim)
     # state is (1, bs, hidden_dim)
     
     # (bs, 1, hidden_size)
-    weighted_encoder_outputs <- self$weighted_encoder_outputs(state, encoder_outputs)
+    context <- self$weighted_encoder_outputs(state, encoder_outputs)
     
-    # concatenate input and score from attention module
-    
+    # concatenate input and context
     # NOTE: this repeating is done to compensate for the absence of an embedding module
     # that would give x a higher proportion in the concatenation
-    # TBD vary??
-    x_rep <- x$repeat_interleave(dim(weighted_encoder_outputs)[3], 3) 
-    rnn_input <- torch_cat(list(x_rep, weighted_encoder_outputs), dim = 3)
+    x_rep <- x$repeat_interleave(dim(context)[3], 3) 
+    rnn_input <- torch_cat(list(x_rep, context), dim = 3)
     
     # (bs, 1, hidden_size) and (1, bs, hidden_size)
     rnn_out <- self$rnn(rnn_input, state)
     rnn_output <- rnn_out[[1]]
     next_hidden <- rnn_out[[2]]
 
-    mlp_input <- torch_cat(list(rnn_output$squeeze(2), weighted_encoder_outputs$squeeze(2), x$squeeze(2)), dim = 2)
+    mlp_input <- torch_cat(list(rnn_output$squeeze(2), context$squeeze(2), x$squeeze(2)), dim = 2)
     
     output <- self$linear(mlp_input)
 
@@ -255,10 +304,13 @@ decoder_module <- nn_module(
 
 seq2seq_module <- nn_module(
   
-  initialize = function(type, input_size, hidden_size, attention_size, n_forecast, teacher_forcing_ratio, num_layers = 1, encoder_dropout = 0) {
+  initialize = function(type, input_size, hidden_size, attention_type, attention_size, n_forecast, teacher_forcing_ratio,
+                        num_layers = 1, encoder_dropout = 0) {
     
-    self$encoder <- encoder_module(type = type, input_size = input_size, hidden_size = hidden_size, num_layers, encoder_dropout)
-    self$decoder <- decoder_module(type = type, input_size = 2 * hidden_size, hidden_size = hidden_size, attention_size = attention_size, num_layers)
+    self$encoder <- encoder_module(type = type, input_size = input_size, hidden_size = hidden_size,
+                                   num_layers, encoder_dropout)
+    self$decoder <- decoder_module(type = type, input_size = 2 * hidden_size, hidden_size = hidden_size,
+                                   attention_type = attention_type, attention_size = attention_size, num_layers)
     self$n_forecast <- n_forecast
     
   },
@@ -296,7 +348,8 @@ seq2seq_module <- nn_module(
 device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
 device <- "cpu"
 
-net <- seq2seq_module("gru", input_size = 1, hidden_size = 32, attention_size = 8, n_forecast = n_timesteps, teacher_forcing_ratio = 1)
+net <- seq2seq_module("gru", input_size = 1, hidden_size = 32, attention_type = "multiplicative",
+                      attention_size = 8, n_forecast = n_timesteps, teacher_forcing_ratio = 1)
 net <- net$to(device = device)
 
 b <- dataloader_make_iter(train_dl) %>% dataloader_next()
