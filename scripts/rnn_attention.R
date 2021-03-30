@@ -87,6 +87,8 @@ length(valid_dl)
 test_ds <- elec_dataset(elec_test, n_timesteps)
 test_dl <- test_ds %>% dataloader(batch_size = 1)
 length(test_dl)
+
+
 # model -------------------------------------------------------------------
 
 encoder_module <- nn_module(
@@ -336,7 +338,7 @@ seq2seq_module <- nn_module(
   
   forward = function(x, y, teacher_forcing_ratio) {
     
-    outputs <- torch_zeros(dim(x)[1], self$n_forecast)$to(device = device)
+    outputs <- torch_zeros(dim(x)[1], self$n_forecast)
     encoded <- self$encoder(x)
     encoder_outputs <- encoded[[1]]
     hidden <- encoded[[2]]
@@ -351,8 +353,9 @@ seq2seq_module <- nn_module(
     for (t in 2:self$n_forecast) {
       
       teacher_forcing <- runif(1) < teacher_forcing_ratio
-      input <- if (teacher_forcing == TRUE) pred$unsqueeze(3) else y[ , t - 1]
-      out <- self$decoder(pred$unsqueeze(3), state, encoder_outputs)
+      input <- if (teacher_forcing == TRUE) y[ , t - 1, drop = FALSE] else pred
+      input <- input$unsqueeze(3)
+      out <- self$decoder(input, state, encoder_outputs)
       pred <- out[[1]]
       state <- out[[2]]
       outputs[ , t] <- pred$squeeze(2)
@@ -364,12 +367,9 @@ seq2seq_module <- nn_module(
   
 )
 
-device <- torch_device(if (cuda_is_available()) "cuda" else "cpu")
-device <- "cpu"
 
 net <- seq2seq_module("gru", input_size = 1, hidden_size = 32, attention_type = "multiplicative",
                       attention_size = 8, n_forecast = n_forecast)
-net <- net$to(device = device)
 
 b <- dataloader_make_iter(train_dl) %>% dataloader_next()
 net(b$x, b$y, teacher_forcing_ratio = 1)
@@ -383,8 +383,8 @@ num_epochs <- 1000
 train_batch <- function(b, teacher_forcing_ratio) {
   
   optimizer$zero_grad()
-  output <- net(b$x$to(device = device), b$y$to(device = device), teacher_forcing_ratio)
-  target <- b$y$to(device = device)
+  output <- net(b$x, b$y, teacher_forcing_ratio)
+  target <- b$y
   
   loss <- nnf_mse_loss(output, target[ , 1:(dim(output)[2])])
   loss$backward()
@@ -396,8 +396,8 @@ train_batch <- function(b, teacher_forcing_ratio) {
 
 valid_batch <- function(b, teacher_forcing_ratio = 0) {
   
-  output <- net(b$x$to(device = device), b$y$to(device = device), teacher_forcing_ratio)
-  target <- b$y$to(device = device)
+  output <- net(b$x, b$y, teacher_forcing_ratio)
+  target <- b$y
   
   loss <- nnf_mse_loss(output, target[ , 1:(dim(output)[2])])
   
@@ -444,7 +444,7 @@ vic_elec_test <- vic_elec_daily %>%
 coro::loop(for (b in test_dl) {
   
   input <- b$x
-  output <- net(b$x$to(device = device), b$y$to(device = device), teacher_forcing_ratio = 0)
+  output <- net(b$x, b$y, teacher_forcing_ratio = 0)
   preds <- as.numeric(output)
   
   test_preds[[i]] <- preds
